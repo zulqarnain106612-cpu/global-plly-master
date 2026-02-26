@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Global Plly Master - 관리자</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: #0a0a0f;
+            color: #f9fafb;
+            min-height: 100vh;
+        }
+
+        .bg-orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.1;
+            pointer-events: none;
+        }
+
+        .orb1 {
+            width: 500px;
+            height: 500px;
+            background: #7c3aed;
+            top: -150px;
+            left: -100px;
+        }
+
+        .orb2 {
+            width: 300px;
+            height: 300px;
+            background: #06b6d4;
+            bottom: 0;
+            right: 0;
+        }
+
+        /* 헤더 */
+        header {
+            background: rgba(255, 255, 255, 0.04);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 16px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(12px);
+        }
+
+        .header-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-logo .icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #7c3aed, #06b6d4);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .header-logo h1 {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .admin-badge {
+            background: linear-gradient(135deg, #f59e0b, #ef4444);
+            color: white;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .admin-name {
+            font-size: 14px;
+            color: #9ca3af;
+        }
+
+        .btn-sm {
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: none;
+            font-family: 'Outfit', sans-serif;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #9ca3af;
+        }
+
+        .btn-outline:hover {
+            background: rgba(255, 255, 255, 0.06);
+            color: #f9fafb;
+        }
+
+        .btn-goto {
+            background: linear-gradient(135deg, #7c3aed, #4f46e5);
+            color: white;
+        }
+
+        .btn-goto:hover {
+            box-shadow: 0 4px 15px rgba(124, 58, 237, 0.4);
+            transform: translateY(-1px);
+        }
+
+        /* 메인 컨텐츠 */
+        main {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 40px 24px;
+        }
+
+        /* 통계 카드 */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 20px 24px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+        }
+
+        .stat-num {
+            font-size: 28px;
+            font-weight: 800;
+            line-height: 1;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: #6b7280;
+            margin-top: 3px;
+        }
+
+        /* 섹션 헤더 */
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .section-header h2 {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .section-header span {
+            font-size: 13px;
+            color: #6b7280;
+        }
+
+        /* 테이블 카드 */
+        .table-card {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            overflow: hidden;
+            margin-bottom: 32px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead th {
+            padding: 14px 20px;
+            text-align: left;
+            font-size: 12px;
+            font-weight: 600;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background: rgba(255, 255, 255, 0.03);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        tbody tr {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            transition: background 0.2s;
+        }
+
+        tbody tr:last-child {
+            border-bottom: none;
+        }
+
+        tbody tr:hover {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        tbody td {
+            padding: 16px 20px;
+            font-size: 14px;
+            color: #e5e7eb;
+            vertical-align: middle;
+        }
+
+        /* 상태 뱃지 */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge.pending {
+            background: rgba(245, 158, 11, 0.15);
+            color: #fcd34d;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        .badge.user {
+            background: rgba(34, 197, 94, 0.15);
+            color: #86efac;
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+
+        .badge.admin {
+            background: rgba(239, 68, 68, 0.15);
+            color: #fca5a5;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .badge.rejected {
+            background: rgba(107, 114, 128, 0.15);
+            color: #9ca3af;
+            border: 1px solid rgba(107, 114, 128, 0.3);
+        }
+
+        /* 액션 버튼 */
+        .btn-approve {
+            padding: 7px 14px;
+            border-radius: 8px;
+            border: none;
+            background: rgba(34, 197, 94, 0.15);
+            color: #86efac;
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            font-family: 'Outfit', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-right: 6px;
+        }
+
+        .btn-approve:hover {
+            background: rgba(34, 197, 94, 0.25);
+            transform: translateY(-1px);
+        }
+
+        .btn-reject {
+            padding: 7px 14px;
+            border-radius: 8px;
+            border: none;
+            background: rgba(239, 68, 68, 0.1);
+            color: #fca5a5;
+            border: 1px solid rgba(239, 68, 68, 0.25);
+            font-family: 'Outfit', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-reject:hover {
+            background: rgba(239, 68, 68, 0.2);
+            transform: translateY(-1px);
+        }
+
+        /* 빈 상태 */
+        .empty-state {
+            padding: 60px 20px;
+            text-align: center;
+            color: #4b5563;
+        }
+
+        .empty-state .icon {
+            font-size: 40px;
+            margin-bottom: 12px;
+        }
+
+        .empty-state p {
+            font-size: 15px;
+        }
+
+        /* 로딩 */
+        .loading {
+            text-align: center;
+            padding: 60px;
+            color: #6b7280;
+        }
+
+        .spinner-lg {
+            display: inline-block;
+            width: 36px;
+            height: 36px;
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top-color: #7c3aed;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-bottom: 12px;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* 토스트 */
+        #toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            padding: 14px 20px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 500;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(.175, .885, .32, 1.275);
+            z-index: 9999;
+        }
+
+        #toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        #toast.success {
+            background: rgba(34, 197, 94, 0.2);
+            border: 1px solid rgba(34, 197, 94, 0.4);
+            color: #86efac;
+        }
+
+        #toast.error {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            color: #fca5a5;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="bg-orb orb1"></div>
+    <div class="bg-orb orb2"></div>
+
+    <header>
+        <div class="header-logo">
+            <div class="icon">🎵</div>
+            <div>
+                <h1>Global Plly Master</h1>
+            </div>
+            <span class="admin-badge">👑 관리자</span>
+        </div>
+        <div class="header-right">
+            <span class="admin-name" id="admin-name">관리자</span>
+            <button class="btn-sm btn-goto" onclick="window.location.href='/'">🎵 메인으로</button>
+            <button class="btn-sm btn-outline" onclick="doLogout()">로그아웃</button>
+        </div>
+    </header>
+
+    <main>
+        <!-- 통계 -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon" style="background:rgba(124,58,237,0.2);">⏳</div>
+                <div>
+                    <div class="stat-num" id="stat-pending">-</div>
+                    <div class="stat-label">승인 대기</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background:rgba(34,197,94,0.2);">✅</div>
+                <div>
+                    <div class="stat-num" id="stat-active">-</div>
+                    <div class="stat-label">활성 회원</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background:rgba(245,158,11,0.2);">👥</div>
+                <div>
+                    <div class="stat-num" id="stat-total">-</div>
+                    <div class="stat-label">전체 회원</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon" style="background:rgba(6,182,212,0.2);">🎵</div>
+                <div>
+                    <div class="stat-num" id="stat-prompts">-</div>
+                    <div class="stat-label">생성된 프롬프트</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 승인 대기 목록 -->
+        <div class="section-header">
+            <h2>⏳ 승인 대기 회원</h2>
+            <span id="pending-count">로딩 중...</span>
+        </div>
+        <div class="table-card" id="pending-table-wrap">
+            <div class="loading">
+                <div class="spinner-lg"></div>
+                <p>데이터 불러오는 중...</p>
+            </div>
+        </div>
+
+        <!-- 전체 회원 목록 -->
+        <div class="section-header">
+            <h2>👥 전체 회원 목록</h2>
+            <button class="btn-sm btn-outline" onclick="loadAllData()" style="font-size:12px;">🔄 새로고침</button>
+        </div>
+        <div class="table-card" id="all-table-wrap">
+            <div class="loading">
+                <div class="spinner-lg"></div>
+                <p>데이터 불러오는 중...</p>
+            </div>
+        </div>
+    </main>
+
+    <div id="toast"></div>
+
+    <script>
+        const token = localStorage.getItem('gpm_token');
+        const role = localStorage.getItem('gpm_role');
+
+        // 인증 체크
+        if (!token || role !== 'admin') {
+            window.location.href = '/login.html';
+        }
+
+        document.getElementById('admin-name').textContent = localStorage.getItem('gpm_realname') || '관리자';
+
+        function authHeaders() {
+            return { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token };
+        }
+
+        function showToast(msg, type = 'success') {
+            const el = document.getElementById('toast');
+            el.textContent = msg;
+            el.className = 'show ' + type;
+            setTimeout(() => el.className = '', 3000);
+        }
+
+        function roleBadge(r) {
+            const map = { pending: '⏳ 대기', user: '✅ 활성', admin: '👑 관리자', rejected: '❌ 거절' };
+            return `<span class="badge ${r}">${map[r] || r}</span>`;
+        }
+
+        function fmt(dateStr) {
+            if (!dateStr) return '-';
+            return new Date(dateStr).toLocaleString('ko-KR', { year: '2-digit', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+        }
+
+        async function loadAllData() {
+            try {
+                const [usersRes, statsRes] = await Promise.all([
+                    fetch('/api/admin/users', { headers: authHeaders() }),
+                    fetch('/api/admin/stats', { headers: authHeaders() })
+                ]);
+                const users = await usersRes.json();
+                const stats = await statsRes.json();
+
+                // 통계 업데이트
+                if (stats.success) {
+                    document.getElementById('stat-pending').textContent = stats.data.pending;
+                    document.getElementById('stat-active').textContent = stats.data.active;
+                    document.getElementById('stat-total').textContent = stats.data.total;
+                    document.getElementById('stat-prompts').textContent = stats.data.prompts;
+                }
+
+                if (!users.success) { showToast('데이터 로드 실패: ' + users.message, 'error'); return; }
+
+                const pending = users.data.filter(u => u.role === 'pending');
+                const all = users.data;
+
+                // 대기 테이블
+                document.getElementById('pending-count').textContent = `총 ${pending.length}명`;
+                document.getElementById('pending-table-wrap').innerHTML = pending.length === 0
+                    ? `<div class="empty-state"><div class="icon">🎉</div><p>대기 중인 가입 신청이 없습니다!</p></div>`
+                    : `<table><thead><tr><th>실명</th><th>아이디</th><th>신청일</th><th>액션</th></tr></thead><tbody>
+              ${pending.map(u => `<tr>
+                <td><strong>${u.real_name}</strong></td>
+                <td><code style="background:rgba(255,255,255,0.07);padding:3px 8px;border-radius:6px;font-size:13px;">${u.username}</code></td>
+                <td style="color:#6b7280;">${fmt(u.created_at)}</td>
+                <td>
+                  <button class="btn-approve" onclick="approveUser('${u.id}', '${u.real_name}')">✅ 승인</button>
+                  <button class="btn-reject" onclick="rejectUser('${u.id}', '${u.real_name}')">❌ 거절</button>
+                </td>
+              </tr>`).join('')}
+            </tbody></table>`;
+
+                // 전체 테이블
+                document.getElementById('all-table-wrap').innerHTML = all.length === 0
+                    ? `<div class="empty-state"><div class="icon">👥</div><p>등록된 회원이 없습니다.</p></div>`
+                    : `<table><thead><tr><th>실명</th><th>아이디</th><th>상태</th><th>가입일</th><th>승인일</th></tr></thead><tbody>
+              ${all.map(u => `<tr>
+                <td><strong>${u.real_name}</strong></td>
+                <td><code style="background:rgba(255,255,255,0.07);padding:3px 8px;border-radius:6px;font-size:13px;">${u.username}</code></td>
+                <td>${roleBadge(u.role)}</td>
+                <td style="color:#6b7280;">${fmt(u.created_at)}</td>
+                <td style="color:#6b7280;">${fmt(u.approved_at)}</td>
+              </tr>`).join('')}
+            </tbody></table>`;
+
+            } catch (e) {
+                showToast('네트워크 오류가 발생했습니다.', 'error');
+            }
+        }
+
+        async function approveUser(id, name) {
+            if (!confirm(`${name}님의 가입을 승인하시겠습니까?`)) return;
+            try {
+                const res = await fetch(`/api/admin/users/${id}/approve`, { method: 'PUT', headers: authHeaders() });
+                const data = await res.json();
+                if (data.success) { showToast(`✅ ${name}님 가입 승인 완료!`); loadAllData(); }
+                else showToast(data.message, 'error');
+            } catch (e) { showToast('처리 중 오류가 발생했습니다.', 'error'); }
+        }
+
+        async function rejectUser(id, name) {
+            if (!confirm(`${name}님의 가입 신청을 거절하시겠습니까?`)) return;
+            try {
+                const res = await fetch(`/api/admin/users/${id}/reject`, { method: 'PUT', headers: authHeaders() });
+                const data = await res.json();
+                if (data.success) { showToast(`${name}님 가입 신청 거절 처리됨.`, 'error'); loadAllData(); }
+                else showToast(data.message, 'error');
+            } catch (e) { showToast('처리 중 오류가 발생했습니다.', 'error'); }
+        }
+
+        function doLogout() {
+            localStorage.removeItem('gpm_token');
+            localStorage.removeItem('gpm_role');
+            localStorage.removeItem('gpm_username');
+            localStorage.removeItem('gpm_realname');
+            window.location.href = '/login.html';
+        }
+
+        // 초기 로드
+        loadAllData();
+        // 30초마다 자동 새로고침
+        setInterval(loadAllData, 30000);
+    </script>
+</body>
+
+</html>

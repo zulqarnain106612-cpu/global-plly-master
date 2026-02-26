@@ -10,6 +10,12 @@ const cors = require('cors');
 const path = require('path');
 require('dotenv').config();
 const { createClient } = require('@supabase/supabase-js');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+
+const JWT_SECRET = process.env.JWT_SECRET || 'global-plly-master-secret-key-2025';
+const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'admin';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin1234';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -465,12 +471,153 @@ async function callSunoAPI(prompt, titleSuggestion) {
 }
 
 // ═══════════════════════════════════════════════════════════════
-// 🛣️ API 라우터
+// � 인증 미들웨어
 // ═══════════════════════════════════════════════════════════════
 
-// 메인 페이지
+function verifyToken(req, res, next) {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+    if (!token) return res.status(401).json({ success: false, message: '로그인이 필요합니다.' });
+    try {
+        req.user = jwt.verify(token, JWT_SECRET);
+        next();
+    } catch {
+        return res.status(403).json({ success: false, message: '세션이 만료되었습니다. 다시 로그인해주세요.' });
+    }
+}
+
+function verifyAdmin(req, res, next) {
+    verifyToken(req, res, () => {
+        if (req.user.role !== 'admin') return res.status(403).json({ success: false, message: '관리자 권한이 필요합니다.' });
+        next();
+    });
+}
+
+// ═══════════════════════════════════════════════════════════════
+// �🛣️ API 라우터
+// ═══════════════════════════════════════════════════════════════
+
+// 메인 페이지 (로그인 체크는 프론트엔드에서)
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// 로그인 페이지
+app.get('/login.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'login.html'));
+});
+
+// 관리자 페이지
+app.get('/admin.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'admin.html'));
+});
+
+// ─────────────────── 회원가입 신청 ───────────────────
+app.post('/api/auth/register', async (req, res) => {
+    try {
+        const { username, password, realName } = req.body;
+        if (!username || !password || !realName)
+            return res.status(400).json({ success: false, message: '모든 항목을 입력해주세요.' });
+        if (username.length < 4)
+            return res.status(400).json({ success: false, message: '아이디는 4자 이상이어야 합니다.' });
+        if (password.length < 6)
+            return res.status(400).json({ success: false, message: '비밀번호는 6자 이상이어야 합니다.' });
+
+        // 중복 체크
+        const { data: existing } = await supabase.from('users').select('id').eq('username', username).single();
+        if (existing) return res.status(409).json({ success: false, message: '이미 사용 중인 아이디입니다.' });
+
+        const passwordHash = await bcrypt.hash(password, 12);
+        const { error } = await supabase.from('users').insert([{
+            username, password_hash: passwordHash, real_name: realName, role: 'pending'
+        }]);
+        if (error) throw error;
+
+        res.json({ success: true, message: '가입 신청이 완료되었습니다. 관리자 승인을 기다려주세요.' });
+    } catch (e) {
+        res.status(500).json({ success: false, message: '서버 오류: ' + e.message });
+    }
+});
+
+// ─────────────────── 로그인 ───────────────────
+app.post('/api/auth/login', async (req, res) => {
+    try {
+        const { username, password } = req.body;
+        if (!username || !password)
+            return res.status(400).json({ success: false, message: '아이디와 비밀번호를 입력해주세요.' });
+
+        // 관리자 계정 체크 (Supabase 없이도 동작)
+        if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+            const token = jwt.sign({ id: 'admin', username: ADMIN_USERNAME, role: 'admin', realName: '관리자' }, JWT_SECRET, { expiresIn: '24h' });
+            return res.json({ success: true, token, role: 'admin', username: ADMIN_USERNAME, realName: '관리자' });
+        }
+
+        // 일반 사용자 체크
+        const { data: user, error } = await supabase.from('users').select('*').eq('username', username).single();
+        if (error || !user) return res.status(401).json({ success: false, message: '아이디 또는 비밀번호가 올바르지 않습니다.' });
+
+        const passwordMatch = await bcrypt.compare(password, user.password_hash);
+        if (!passwordMatch) return res.status(401).json({ success: false, message: '아이디 또는 비밀번호가 올바르지 않습니다.' });
+
+        if (user.role === 'pending')
+            return res.status(403).json({ success: false, status: 'pending', message: '⏳ 아직 관리자 승인 대기 중입니다. 승인 후 로그인하실 수 있습니다.' });
+        if (user.role === 'rejected')
+            return res.status(403).json({ success: false, message: '❌ 가입 신청이 거절되었습니다. 관리자에게 문의해주세요.' });
+
+        const token = jwt.sign({ id: user.id, username: user.username, role: user.role, realName: user.real_name }, JWT_SECRET, { expiresIn: '24h' });
+        res.json({ success: true, token, role: user.role, username: user.username, realName: user.real_name });
+    } catch (e) {
+        res.status(500).json({ success: false, message: '서버 오류: ' + e.message });
+    }
+});
+
+// ─────────────────── 관리자: 전체 회원 조회 ───────────────────
+app.get('/api/admin/users', verifyAdmin, async (req, res) => {
+    try {
+        const { data, error } = await supabase.from('users').select('id, username, real_name, role, created_at, approved_at').order('created_at', { ascending: false });
+        if (error) throw error;
+        res.json({ success: true, data });
+    } catch (e) {
+        res.status(500).json({ success: false, message: e.message });
+    }
+});
+
+// ─────────────────── 관리자: 통계 ───────────────────
+app.get('/api/admin/stats', verifyAdmin, async (req, res) => {
+    try {
+        const [usersRes, promptsRes] = await Promise.all([
+            supabase.from('users').select('role'),
+            supabase.from('prompt_history').select('id', { count: 'exact', head: true })
+        ]);
+        const users = usersRes.data || [];
+        const pending = users.filter(u => u.role === 'pending').length;
+        const active = users.filter(u => u.role === 'user' || u.role === 'admin').length;
+        res.json({ success: true, data: { pending, active, total: users.length, prompts: promptsRes.count || 0 } });
+    } catch (e) {
+        res.status(500).json({ success: false, message: e.message });
+    }
+});
+
+// ─────────────────── 관리자: 승인 ───────────────────
+app.put('/api/admin/users/:id/approve', verifyAdmin, async (req, res) => {
+    try {
+        const { error } = await supabase.from('users').update({ role: 'user', approved_at: new Date().toISOString(), approved_by: req.user.username }).eq('id', req.params.id);
+        if (error) throw error;
+        res.json({ success: true, message: '승인 완료' });
+    } catch (e) {
+        res.status(500).json({ success: false, message: e.message });
+    }
+});
+
+// ─────────────────── 관리자: 거절 ───────────────────
+app.put('/api/admin/users/:id/reject', verifyAdmin, async (req, res) => {
+    try {
+        const { error } = await supabase.from('users').update({ role: 'rejected' }).eq('id', req.params.id);
+        if (error) throw error;
+        res.json({ success: true, message: '거절 처리 완료' });
+    } catch (e) {
+        res.status(500).json({ success: false, message: e.message });
+    }
 });
 
 // 프롬프트 생성 API

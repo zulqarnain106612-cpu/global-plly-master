@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Global Plly Master - 로그인</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: #0a0a0f;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* 배경 오브 */
+        .bg-orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.18;
+            animation: float 8s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        .orb1 {
+            width: 500px;
+            height: 500px;
+            background: #7c3aed;
+            top: -150px;
+            left: -100px;
+        }
+
+        .orb2 {
+            width: 400px;
+            height: 400px;
+            background: #06b6d4;
+            bottom: -100px;
+            right: -100px;
+            animation-delay: -3s;
+        }
+
+        .orb3 {
+            width: 300px;
+            height: 300px;
+            background: #f59e0b;
+            top: 50%;
+            left: 55%;
+            animation-delay: -6s;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0px) scale(1);
+            }
+
+            50% {
+                transform: translateY(-30px) scale(1.05);
+            }
+        }
+
+        /* 파티클 */
+        canvas#particles {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            max-width: 440px;
+            padding: 20px;
+        }
+
+        /* 로고 */
+        .logo {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .logo-icon {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, #7c3aed, #06b6d4);
+            border-radius: 20px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            margin-bottom: 12px;
+            box-shadow: 0 0 30px rgba(124, 58, 237, 0.5);
+        }
+
+        .logo h1 {
+            font-size: 24px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #a78bfa, #67e8f9);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.5px;
+        }
+
+        .logo p {
+            color: #6b7280;
+            font-size: 13px;
+            margin-top: 4px;
+        }
+
+        /* 탭 */
+        .tab-bar {
+            display: flex;
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: 14px;
+            padding: 4px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.07);
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            background: transparent;
+            color: #6b7280;
+            font-family: 'Outfit', sans-serif;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border-radius: 10px;
+            transition: all 0.3s;
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, #7c3aed, #4f46e5);
+            color: white;
+            box-shadow: 0 4px 15px rgba(124, 58, 237, 0.4);
+        }
+
+        /* 카드 */
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 32px;
+        }
+
+        /* 폼 패널 */
+        .form-panel {
+            display: none;
+        }
+
+        .form-panel.active {
+            display: block;
+        }
+
+        .form-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #f9fafb;
+            margin-bottom: 6px;
+        }
+
+        .form-sub {
+            font-size: 13px;
+            color: #6b7280;
+            margin-bottom: 24px;
+        }
+
+        /* 입력창 */
+        .input-group {
+            margin-bottom: 16px;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: #9ca3af;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 14px 16px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: #f9fafb;
+            font-family: 'Outfit', sans-serif;
+            font-size: 15px;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        .input-group input:focus {
+            border-color: #7c3aed;
+            background: rgba(124, 58, 237, 0.1);
+            box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15);
+        }
+
+        .input-group input::placeholder {
+            color: #4b5563;
+        }
+
+        /* 버튼 */
+        .btn-primary {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #7c3aed, #4f46e5);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-family: 'Outfit', sans-serif;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(124, 58, 237, 0.4);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* 메시지 */
+        .msg {
+            padding: 12px 16px;
+            border-radius: 10px;
+            font-size: 14px;
+            margin-top: 16px;
+            display: none;
+        }
+
+        .msg.error {
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #fca5a5;
+            display: block;
+        }
+
+        .msg.success {
+            background: rgba(34, 197, 94, 0.15);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            color: #86efac;
+            display: block;
+        }
+
+        .msg.pending {
+            background: rgba(245, 158, 11, 0.15);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            color: #fcd34d;
+            display: block;
+        }
+
+        /* 로딩 스피너 */
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* 구분선 */
+        .divider {
+            text-align: center;
+            color: #4b5563;
+            font-size: 12px;
+            margin: 16px 0;
+            position: relative;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            width: 40%;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.07);
+        }
+
+        .divider::before {
+            left: 0;
+        }
+
+        .divider::after {
+            right: 0;
+        }
+
+        .footer-text {
+            text-align: center;
+            color: #4b5563;
+            font-size: 12px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="bg-orb orb1"></div>
+    <div class="bg-orb orb2"></div>
+    <div class="bg-orb orb3"></div>
+    <canvas id="particles"></canvas>
+
+    <div class="container">
+        <!-- 로고 -->
+        <div class="logo">
+            <div class="logo-icon">🎵</div>
+            <h1>Global Plly Master</h1>
+            <p>Suno AI 프롬프트 자동화 엔진</p>
+        </div>
+
+        <!-- 탭 -->
+        <div class="tab-bar">
+            <button class="tab-btn active" id="tab-login" onclick="switchTab('login')">로그인</button>
+            <button class="tab-btn" id="tab-register" onclick="switchTab('register')">가입 신청</button>
+        </div>
+
+        <!-- 카드 -->
+        <div class="card">
+
+            <!-- 로그인 패널 -->
+            <div class="form-panel active" id="panel-login">
+                <div class="form-title">다시 돌아오셨군요! 👋</div>
+                <div class="form-sub">아이디와 비밀번호를 입력해주세요.</div>
+
+                <div class="input-group">
+                    <label>아이디</label>
+                    <input type="text" id="login-username" placeholder="아이디를 입력하세요" autocomplete="username">
+                </div>
+                <div class="input-group">
+                    <label>비밀번호</label>
+                    <input type="password" id="login-password" placeholder="비밀번호를 입력하세요"
+                        autocomplete="current-password">
+                </div>
+
+                <button class="btn-primary" id="btn-login" onclick="doLogin()">로그인</button>
+                <div class="msg" id="login-msg"></div>
+            </div>
+
+            <!-- 가입 신청 패널 -->
+            <div class="form-panel" id="panel-register">
+                <div class="form-title">가입 신청 📝</div>
+                <div class="form-sub">신청 후 관리자 승인을 받으면 서비스를 이용할 수 있습니다.</div>
+
+                <div class="input-group">
+                    <label>실명</label>
+                    <input type="text" id="reg-realname" placeholder="실명을 입력하세요">
+                </div>
+                <div class="input-group">
+                    <label>아이디</label>
+                    <input type="text" id="reg-username" placeholder="영문/숫자 조합 (4자 이상)">
+                </div>
+                <div class="input-group">
+                    <label>비밀번호</label>
+                    <input type="password" id="reg-password" placeholder="6자 이상 입력하세요">
+                </div>
+
+                <button class="btn-primary" id="btn-register" onclick="doRegister()">가입 신청</button>
+                <div class="msg" id="register-msg"></div>
+            </div>
+
+        </div>
+
+        <div class="footer-text">© 2025 Global Plly Master. All rights reserved.</div>
+    </div>
+
+    <script>
+        // ═══════════════════════════ 파티클 배경 ═══════════════════════════
+        const canvas = document.getElementById('particles');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+        for (let i = 0; i < 60; i++) {
+            particles.push({
+                x: Math.random() * canvas.width, y: Math.random() * canvas.height,
+                vx: (Math.random() - 0.5) * 0.3, vy: (Math.random() - 0.5) * 0.3,
+                r: Math.random() * 1.5 + 0.5, a: Math.random() * 0.5 + 0.1
+            });
+        }
+        function animParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => {
+                p.x += p.vx; p.y += p.vy;
+                if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+                if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(167,139,250,${p.a})`;
+                ctx.fill();
+            });
+            requestAnimationFrame(animParticles);
+        }
+        animParticles();
+
+        // ═══════════════════════════ 탭 전환 ═══════════════════════════
+        function switchTab(tab) {
+            document.getElementById('panel-login').classList.toggle('active', tab === 'login');
+            document.getElementById('panel-register').classList.toggle('active', tab === 'register');
+            document.getElementById('tab-login').classList.toggle('active', tab === 'login');
+            document.getElementById('tab-register').classList.toggle('active', tab === 'register');
+        }
+
+        // ═══════════════════════════ 이미 로그인 여부 체크 ═══════════════════════════
+        window.addEventListener('load', () => {
+            const token = localStorage.getItem('gpm_token');
+            const role = localStorage.getItem('gpm_role');
+            if (token) {
+                if (role === 'admin') window.location.href = '/admin.html';
+                else window.location.href = '/';
+            }
+        });
+
+        // ═══════════════════════════ 로그인 ═══════════════════════════
+        async function doLogin() {
+            const username = document.getElementById('login-username').value.trim();
+            const password = document.getElementById('login-password').value;
+            const msgEl = document.getElementById('login-msg');
+            const btn = document.getElementById('btn-login');
+
+            if (!username || !password) { showMsg(msgEl, 'error', '아이디와 비밀번호를 입력해주세요.'); return; }
+
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner"></span>로그인 중...';
+            msgEl.className = 'msg';
+
+            try {
+                const res = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    localStorage.setItem('gpm_token', data.token);
+                    localStorage.setItem('gpm_role', data.role);
+                    localStorage.setItem('gpm_username', data.username);
+                    localStorage.setItem('gpm_realname', data.realName);
+
+                    showMsg(msgEl, 'success', `환영합니다, ${data.realName}님! 🎉 이동 중...`);
+                    setTimeout(() => {
+                        if (data.role === 'admin') window.location.href = '/admin.html';
+                        else window.location.href = '/';
+                    }, 800);
+                } else {
+                    showMsg(msgEl, data.status === 'pending' ? 'pending' : 'error', data.message);
+                }
+            } catch (e) {
+                showMsg(msgEl, 'error', '서버 연결에 실패했습니다. 잠시 후 다시 시도해주세요.');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '로그인';
+            }
+        }
+
+        // ═══════════════════════════ 회원가입 신청 ═══════════════════════════
+        async function doRegister() {
+            const realName = document.getElementById('reg-realname').value.trim();
+            const username = document.getElementById('reg-username').value.trim();
+            const password = document.getElementById('reg-password').value;
+            const msgEl = document.getElementById('register-msg');
+            const btn = document.getElementById('btn-register');
+
+            if (!realName || !username || !password) { showMsg(msgEl, 'error', '모든 항목을 입력해주세요.'); return; }
+            if (username.length < 4) { showMsg(msgEl, 'error', '아이디는 4자 이상이어야 합니다.'); return; }
+            if (password.length < 6) { showMsg(msgEl, 'error', '비밀번호는 6자 이상이어야 합니다.'); return; }
+
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner"></span>신청 중...';
+            msgEl.className = 'msg';
+
+            try {
+                const res = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password, realName })
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    showMsg(msgEl, 'success', '🎉 가입 신청이 완료되었습니다! 관리자 승인 후 로그인하실 수 있습니다.');
+                    document.getElementById('reg-realname').value = '';
+                    document.getElementById('reg-username').value = '';
+                    document.getElementById('reg-password').value = '';
+                } else {
+                    showMsg(msgEl, 'error', data.message);
+                }
+            } catch (e) {
+                showMsg(msgEl, 'error', '서버 연결에 실패했습니다. 잠시 후 다시 시도해주세요.');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '가입 신청';
+            }
+        }
+
+        function showMsg(el, type, text) {
+            el.className = 'msg ' + type;
+            el.textContent = text;
+        }
+
+        // 엔터키 로그인
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                const activePanel = document.querySelector('.form-panel.active').id;
+                if (activePanel === 'panel-login') doLogin();
+                else doRegister();
+            }
+        });
+    </script>
+</body>
+
+</html>
