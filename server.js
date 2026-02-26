@@ -578,6 +578,32 @@ const MOOD_MAP = {
 
 
 // ═══════════════════════════════════════════════════════════════
+// 🎤 디테일 확장 옵션 (신규 기능)
+// ═══════════════════════════════════════════════════════════════
+
+const VOCAL_MAP = {
+    auto: { label: '🤖 자동 (장르 맞춤)', tag: '' },
+    male: { label: '👨 남성 보컬', tag: 'male vocals' },
+    female: { label: '👩 여성 보컬', tag: 'female vocals' },
+    duet: { label: '👫 남녀 듀엣', tag: 'male and female duet vocals' },
+    husky: { label: '🚬 허스키 보컬', tag: 'husky raspy vocals' },
+    choir: { label: '👥 합창/콰이어', tag: 'choir vocals' }
+};
+
+const STRUCTURE_MAP = {
+    standard: { label: '📻 스탠다드 (3분)', structure: '[Intro]\n[Verse 1]\n[Chorus]\n[Verse 2]\n[Chorus]\n[Bridge]\n[Chorus]\n[Outro]' },
+    short: { label: '📱 숏폼/틱톡 (1분)', structure: '[Hook]\n[Chorus]\n[Drop]\n[Outro]' },
+    intro: { label: '🎬 인트로 강조', structure: '[Long Instrumental Intro]\n[Verse 1]\n[Pre-Chorus]\n[Chorus]' },
+    outro: { label: '🌅 아웃트로 강조', structure: '[Verse]\n[Chorus]\n[Extended Outro]\n[Fade Out]' }
+};
+
+const CREATIVITY_MAP = {
+    normal: { label: '🎯 정석 모드' },
+    creative: { label: '✨ 독창적 모드' },
+    crazy: { label: '🌀 짬뽕 모드' }
+};
+
+// ═══════════════════════════════════════════════════════════════
 // 🧠 프롬프트 엔지니어링 엔진
 // ═══════════════════════════════════════════════════════════════
 
@@ -587,12 +613,20 @@ const MOOD_MAP = {
  * @param {string} genre - 음악 장르 코드
  * @param {string} mood - 무드/분위기 코드
  * @param {string} tempo - 템포 (slow/medium/fast)
+ * @param {string} vocal - 보컬 타입 (auto/male/female/duet/husky/choir)
+ * @param {string} structure - 곡 구조 (standard/short/intro/outro)
+ * @param {string} creativity - 창의성 (normal/creative/crazy)
+ * @param {string} themeText - 커스텀 가사 주제 텍스트
  * @returns {object} 생성된 프롬프트 및 메타데이터
  */
-function generateSunoPrompt(country, genre, mood, tempo) {
+function generateSunoPrompt(country, genre, mood, tempo, vocal = 'auto', structure = 'standard', creativity = 'normal', themeText = '') {
     const countryData = COUNTRY_STYLES[country];
     const genreData = GENRE_MAP[genre];
     const moodData = MOOD_MAP[mood];
+
+    // 신규 옵션 맵핑
+    const vocalData = VOCAL_MAP[vocal] || VOCAL_MAP.auto;
+    const structureData = STRUCTURE_MAP[structure] || STRUCTURE_MAP.standard;
 
     if (!countryData || !genreData || !moodData) {
         throw new Error('Invalid parameters provided');
@@ -600,33 +634,47 @@ function generateSunoPrompt(country, genre, mood, tempo) {
 
     // 템포 매핑
     const tempoMap = {
-        very_slow: { label: 'Very Slow', bpm: '50-70', desc: 'extremely slow, meditative pace' },
-        slow: { label: 'Slow', bpm: '60-80', desc: 'slow tempo, gentle pace' },
-        medium: { label: 'Medium', bpm: '90-110', desc: 'moderate tempo, steady groove' },
-        fast: { label: 'Fast', bpm: '120-140', desc: 'fast tempo, energetic pace' },
-        very_fast: { label: 'Very Fast', bpm: '140-170', desc: 'very fast, high-octane energy' }
+        very_slow: { label: 'Very Slow', bpm: '50-70', desc: 'extremely slow pace' },
+        slow: { label: 'Slow', bpm: '60-80', desc: 'slow tempo' },
+        medium: { label: 'Medium', bpm: '90-110', desc: 'moderate tempo' },
+        fast: { label: 'Fast', bpm: '120-140', desc: 'fast tempo' },
+        very_fast: { label: 'Very Fast', bpm: '140-170', desc: 'high-octane energy' }
     };
-
     const tempoData = tempoMap[tempo] || tempoMap.medium;
 
-    // 악기 랜덤 선택 (2개만 - 간결하게)
-    const selectedInstruments = shuffleArray(countryData.instruments).slice(0, 2);
+    // 🎨 창의성(Creativity) 로직 적용
+    let selectedInstruments = shuffleArray(countryData.instruments).slice(0, 2);
+    let selectedScale = countryData.scales[Math.floor(Math.random() * countryData.scales.length)];
+    let selectedVibe = countryData.vibes[Math.floor(Math.random() * countryData.vibes.length)];
+    let selectedGenreTags = genreData.tags.slice(0, 2);
 
-    // 스케일 랜덤 선택 (1개)
-    const selectedScale = countryData.scales[Math.floor(Math.random() * countryData.scales.length)];
+    if (creativity === 'crazy') {
+        const allCountries = Object.values(COUNTRY_STYLES);
+        const randomCountry = allCountries[Math.floor(Math.random() * allCountries.length)];
+        // 짬뽕 모드: 타 국가 악기 강제 주입
+        selectedInstruments = [countryData.instruments[0], randomCountry.instruments[0]];
+        // 짬뽕 모드: 타 국가 스케일 강제 주입
+        selectedScale = randomCountry.scales[0];
 
-    // 국가 바이브 랜덤 선택 (1개)
-    const selectedVibe = countryData.vibes[Math.floor(Math.random() * countryData.vibes.length)];
+        const allGenres = Object.values(GENRE_MAP);
+        const randomGenre = allGenres[Math.floor(Math.random() * allGenres.length)];
+        selectedGenreTags = [genreData.tags[0], randomGenre.tags[0] + ' fusion'];
+    }
 
     // ═══ Style of Music 프롬프트 조합 (Suno AI 200자 제한 준수) ═══
     const styleParts = [
-        ...genreData.tags.slice(0, 2),      // 장르 태그 2개
+        ...selectedGenreTags,                 // 장르 태그 2개
         selectedVibe,                         // 국가 바이브 1개
         moodData.tags[0],                     // 무드 태그 1개
         `${tempoData.label} tempo`,           // 템포
         `${selectedInstruments.join(', ')}`,  // 악기 2개
-        selectedScale,                        // 스케일
+        selectedScale                         // 스케일
     ];
+
+    // 보컬 옵션이 자동이 아니면 추가
+    if (vocalData.tag) {
+        styleParts.unshift(vocalData.tag); // 보컬은 가장 중요하므로 맨 앞으로
+    }
 
     // 200자 제한에 맞게 트리밍
     let styleOfMusic = styleParts.join(', ');
@@ -634,31 +682,34 @@ function generateSunoPrompt(country, genre, mood, tempo) {
         styleOfMusic = styleOfMusic.substring(0, 198).replace(/,\s*$/, '');
     }
 
-    // ═══ Lyrics Theme / Title 제안 ═══
-    const titleSuggestions = generateTitleSuggestions(countryData, genreData, moodData);
+    // ═══ 가사 주제(Lyrics Theme) 설정 ═══
+    let lyricsThemeTxt = themeText.trim();
+    if (!lyricsThemeTxt) {
+        lyricsThemeTxt = `${moodData.description}, inspired by ${selectedVibe}`;
+    }
 
     // ═══ 메타태그 형식 포맷팅 ═══
     const metaTags = {
-        genre: genreData.tags.slice(0, 3).join(', '),
+        genre: selectedGenreTags.join(', '),
         mood: moodData.tags.slice(0, 3).join(', '),
         instruments: selectedInstruments.join(', '),
         tempo: `${tempoData.label} (${tempoData.bpm} BPM)`,
         region: `${countryData.name} (${countryData.flag})`,
         scale: selectedScale,
-        energy: moodData.energy,
-        valence: moodData.valence
+        vocal: vocalData.label,
+        structure: structureData.label
     };
 
     return {
         prompt: styleOfMusic,
         metaTags,
-        titleSuggestions,
+        titleSuggestions: generateTitleSuggestions(countryData, genreData, moodData),
         fullPrompt: {
             styleOfMusic,
-            lyricsTheme: `${moodData.description}, inspired by ${selectedVibe}, in the style of ${genreData.name} from ${countryData.name}`,
+            lyricsTheme: lyricsThemeTxt,
+            lyricsStructure: structureData.structure,
             suggestedLanguage: countryData.languages[0]
         }
-
     };
 }
 
@@ -954,7 +1005,7 @@ app.post('/api/generate-prompt', (req, res) => {
 // 음악 생성 API (Suno AI 연동)
 app.post('/api/generate-music', async (req, res) => {
     try {
-        const { country, genre, mood, tempo } = req.body;
+        const { country, genre, mood, tempo, vocal, structure, creativity, themeText } = req.body;
 
         if (!country || !genre || !mood || !tempo) {
             return res.status(400).json({
@@ -964,7 +1015,7 @@ app.post('/api/generate-music', async (req, res) => {
         }
 
         // 1단계: 프롬프트 생성
-        const promptResult = generateSunoPrompt(country, genre, mood, tempo);
+        const promptResult = generateSunoPrompt(country, genre, mood, tempo, vocal, structure, creativity, themeText);
 
         // 2단계: Suno AI API 호출
         const musicResult = await callSunoAPI(
@@ -1010,7 +1061,7 @@ app.post('/api/generate-music', async (req, res) => {
 // 🎯 배치 프롬프트 생성 API (N개 한번에 생성)
 app.post('/api/generate-batch', async (req, res) => {
     try {
-        const { country, genre, mood, tempo, count = 10 } = req.body;
+        const { country, genre, mood, tempo, vocal, structure, creativity, themeText, count = 10 } = req.body;
         if (!country || !genre || !mood || !tempo) {
             return res.status(400).json({ success: false, error: '모든 파라미터를 입력해 주세요' });
         }
@@ -1019,7 +1070,7 @@ app.post('/api/generate-batch', async (req, res) => {
         const results = [];
 
         for (let i = 0; i < batchCount; i++) {
-            const result = generateSunoPrompt(country, genre, mood, tempo);
+            const result = generateSunoPrompt(country, genre, mood, tempo, vocal, structure, creativity, themeText);
             results.push({
                 index: i + 1,
                 prompt: result.prompt,
@@ -1062,7 +1113,11 @@ app.get('/api/options', (req, res) => {
         { value: 'very_fast', label: '🚀 매우 빠름 (140-170 BPM)' }
     ];
 
-    res.json({ countries, genres, moods, tempos });
+    const vocals = Object.entries(VOCAL_MAP).map(([key, val]) => ({ value: key, label: val.label }));
+    const structures = Object.entries(STRUCTURE_MAP).map(([key, val]) => ({ value: key, label: val.label }));
+    const creativities = Object.entries(CREATIVITY_MAP).map(([key, val]) => ({ value: key, label: val.label }));
+
+    res.json({ countries, genres, moods, tempos, vocals, structures, creativities });
 });
 
 // ═══════════════════════════════════════════════════════════════
