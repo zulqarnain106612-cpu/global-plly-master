@@ -425,8 +425,157 @@ const MOOD_MAP = {
         description: 'ocean breeze, sunny disposition, carefree happiness',
         energy: 'medium-high',
         valence: 'very positive'
-    }
+    },
+    // ── 활동적 ──────────────────────────────────────
+    gym: {
+        name: '💪 헬스/운동',
+        emoji: '💪',
+        tags: ['gym', 'workout', 'pump up', 'fitness', 'power training'],
+        description: 'iron clanging, raw power, sweat and grind, beast mode',
+        energy: 'very high',
+        valence: 'positive'
+    },
+    roadtrip: {
+        name: '🚗 로드트립',
+        emoji: '🚗',
+        tags: ['road trip', 'highway', 'open road', 'adventure', 'freedom drive'],
+        description: 'windows down, open highway, endless horizon, free spirit',
+        energy: 'medium-high',
+        valence: 'very positive'
+    },
+    gaming: {
+        name: '🎮 게이밍',
+        emoji: '🎮',
+        tags: ['gaming', 'video game', 'boss battle', 'RPG soundtrack', 'game music'],
+        description: 'intense boss fight, pixel energy, dungeon crawl, game on',
+        energy: 'high',
+        valence: 'neutral-positive'
+    },
+    // ── 감성/감정 ─────────────────────────────────────
+    nostalgia: {
+        name: '📼 노스탈지아',
+        emoji: '📼',
+        tags: ['nostalgic', 'retro', '80s vibe', 'old memories', 'throwback'],
+        description: 'dusty film reel, childhood memories, warm vintage glow',
+        energy: 'low-medium',
+        valence: 'bittersweet'
+    },
+    heartbreak: {
+        name: '💔 이별/실연',
+        emoji: '💔',
+        tags: ['heartbreak', 'breakup', 'lonely', 'crying', 'goodbye song'],
+        description: 'empty room, late night crying, missing someone, bittersweet ache',
+        energy: 'low',
+        valence: 'very negative'
+    },
+    confidence: {
+        name: '😎 자신감/스웨그',
+        emoji: '😎',
+        tags: ['confident', 'boss energy', 'swagger', 'luxury', 'power moves'],
+        description: 'walking into the room, dripping confidence, unstoppable energy',
+        energy: 'high',
+        valence: 'very positive'
+    },
+    hopeful: {
+        name: '🌈 희망/설렘',
+        emoji: '🌈',
+        tags: ['hopeful', 'uplifting', 'inspiring', 'new beginning', 'optimistic'],
+        description: 'first day of spring, new chapter, bright future ahead',
+        energy: 'medium',
+        valence: 'very positive'
+    },
+    anger: {
+        name: '😤 분노/반항',
+        emoji: '😤',
+        tags: ['angry', 'rebellious', 'rage', 'aggressive', 'punk energy'],
+        description: 'fists clenched, shouting into the void, raw unfiltered fury',
+        energy: 'very high',
+        valence: 'negative'
+    },
+    // ── 공간/장소 ─────────────────────────────────────
+    rain: {
+        name: '🌧️ 빗소리/우중',
+        emoji: '🌧️',
+        tags: ['rainy day', 'rain sounds', 'stormy', 'cozy indoors', 'petrichor'],
+        description: 'raindrops on glass, grey skies, blanket and hot tea',
+        energy: 'low',
+        valence: 'neutral'
+    },
+    forest: {
+        name: '🌲 자연/숲',
+        emoji: '🌲',
+        tags: ['nature', 'forest', 'birdsong', 'organic', 'earth sounds'],
+        description: 'sunlight through trees, rustling leaves, deep forest calm',
+        energy: 'very low',
+        valence: 'positive'
+    },
+    club: {
+        name: '🪩 클럽/나이트',
+        emoji: '🪩',
+        tags: ['club', 'nightclub', 'after midnight', 'dark dance floor', 'DJ set'],
+        description: 'pulsing bass, strobe flash, sweaty dance floor, peak night',
+        energy: 'very high',
+        valence: 'positive'
+    },
+    wedding: {
+        name: '💒 웨딩/축하',
+        emoji: '💒',
+        tags: ['wedding', 'ceremony', 'celebration', 'elegant', 'first dance'],
+        description: 'white flowers, tears of joy, the most beautiful day',
+        energy: 'medium',
+        valence: 'very positive'
+    },
+    // ── 특수 ──────────────────────────────────────────
+    sleep: {
+        name: '😴 수면/ASMR',
+        emoji: '😴',
+        tags: ['sleep music', 'ASMR', 'lullaby', 'bedtime', 'dreamy slumber'],
+        description: 'soft whisper, weighted blanket, slow breathing, dream state',
+        energy: 'very low',
+        valence: 'positive'
+    },
+    meditation: {
+        name: '🧘 명상/요가',
+        emoji: '🧘',
+        tags: ['meditation', 'yoga', 'breathwork', 'mindfulness', 'chakra'],
+        description: 'slow breath cycles, third eye open, complete mind stillness',
+        energy: 'very low',
+        valence: 'neutral-positive'
+    },
+    horror: {
+        name: '👻 공포/다크',
+        emoji: '👻',
+        tags: ['horror', 'dark', 'eerie', 'haunting', 'creepy atmosphere'],
+        description: 'creaking floors, cold shadow, something in the dark',
+        energy: 'medium',
+        valence: 'very negative'
+    },
+    anime: {
+        name: '⚡ 애니/판타지',
+        emoji: '⚡',
+        tags: ['anime energy', 'shonen', 'fantasy world', 'power up', 'isekai'],
+        description: 'hero rising, power awakening, destiny calling, nakama bonds',
+        energy: 'very high',
+        valence: 'very positive'
+    },
+    dinner: {
+        name: '🍷 저녁식사/와인',
+        emoji: '🍷',
+        tags: ['dinner music', 'jazz dinner', 'elegant', 'fine dining', 'wine'],
+        description: 'candlelit table, soft conversation, sophisticated evening',
+        energy: 'low',
+        valence: 'positive'
+    },
+    kids: {
+        name: '🧸 어린이/귀여움',
+        emoji: '🧸',
+        tags: ['children', 'cute', 'playful', 'kindergarten', 'cartoon'],
+        description: 'bright colors, innocent laughter, pure playful joy',
+        energy: 'medium',
+        valence: 'very positive'
+    },
 };
+
 
 // ═══════════════════════════════════════════════════════════════
 // 🧠 프롬프트 엔지니어링 엔진
