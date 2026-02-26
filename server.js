@@ -1059,24 +1059,119 @@ app.post('/api/generate-music', async (req, res) => {
 });
 
 // ═══════════════════════════════════════════════════════════════
-// 🎨 이미지 AI 프롬프트 생성 엔진
-// 플레이리스트 컨셉 → Midjourney / DALL-E / Niji / SD 프롬프트
+// 🎨 이미지 AI 프롬프트 생성 엔진 (고급 버전)
+// 플레이리스트 컨셉 → Midjourney / DALL-E / Niji / SD / NanoBanana
 // ═══════════════════════════════════════════════════════════════
 
 const IMAGE_STYLE_MAP = {
-    // 국가별 비주얼 레퍼런스
-    india: { scene: 'Indian temple courtyard at golden hour, marigold flowers, intricate mandala patterns, saffron and gold palette', artist: 'Raja Ravi Varma inspired', neg: 'ugly, blurry, low quality' },
-    brazil: { scene: 'Rio de Janeiro Carnival night, neon lights, tropical jungle, vibrant mosaic tiles, electric energy', artist: 'tropicália art movement', neg: 'ugly, blurry, low quality' },
-    usa: { scene: 'American urban landscape, neon-lit downtown, skyline silhouette, cinematic street photography', artist: 'Edward Hopper, Gregory Crewdson', neg: 'ugly, blurry, low quality' },
-    korea: { scene: 'Neon Seoul cityscape at night, hanbok meets streetwear, cherry blossom rain, dynamic K-pop aesthetic', artist: 'Korean webtoon style', neg: 'ugly, blurry, low quality' },
-    japan: { scene: 'Tokyo city pop retro 80s aesthetic, torii gate silhouette, cherry blossoms, vintage Japanese poster', artist: 'Hiroshi Nagai, Studio Ghibli inspired', neg: 'ugly, blurry, low quality' },
-    mexico: { scene: 'Oaxacan village fiesta, papel picado banners, cactus and desert sunset, bold Day of the Dead iconography', artist: 'Diego Rivera, Mexican muralism', neg: 'ugly, blurry, low quality' },
-    france: { scene: 'Parisian rooftop at dusk, Eiffel Tower bokeh, art nouveau architecture, warm bistro lights', artist: 'Toulouse-Lautrec, French impressionism', neg: 'ugly, blurry, low quality' },
-    uk: { scene: 'London brutalist architecture, rainy cobblestone streets, vintage record shop, underground club entrance', artist: 'Peter Blake, British pop art', neg: 'ugly, blurry, low quality' },
-    nigeria: { scene: 'Lagos waterfront at golden hour, batik patterns, vibrant afropop concert crowd, tropical city energy', artist: 'contemporary Afrofuturism', neg: 'ugly, blurry, low quality' },
-    turkey: { scene: 'Istanbul at sunset, domes and minarets silhouette, intricate Ottoman tile patterns, bazaar lanterns', artist: 'Ottoman miniature art fusion', neg: 'ugly, blurry, low quality' },
-    egypt: { scene: 'Cairo rooftop at twilight, pyramid silhouette, arabesque geometry, warm amber city glow', artist: 'Egyptian Art Deco fusion', neg: 'ugly, blurry, low quality' },
-    jamaica: { scene: 'Kingston beach at sunset, reggae mural street art, palm trees, deep Caribbean blue and rastafarian colors', artist: 'Caribbean folk art style', neg: 'ugly, blurry, low quality' },
+    india: {
+        scene: 'Indian temple courtyard bathed in golden hour light, cascading marigold garlands, intricate mandala stone carvings, sacred fire pit glow, geometric rangoli patterns on marble floor',
+        atmosphere: 'ethereal spiritual energy, incense smoke trails, devotional grandeur',
+        texture: 'rough hand-carved stone, silk fabric, gold leaf, worn terracotta',
+        composition: 'centered symmetrical composition, low angle looking up, depth through archways',
+        artist: 'Raja Ravi Varma, Sudhir Patwardhan, Indian miniature painting tradition',
+        camera: 'wide angle 24mm, f/2.8, golden hour backlight, rich saturation',
+        neg: 'ugly, blurry, low quality, western, modern clutter',
+    },
+    brazil: {
+        scene: 'Rio de Janeiro Carnival night stage alive with feathered costumes in electric blues and greens, neon signs reflecting off tropical rain puddles, street art murals of samba dancers, dense favela hillside sparkling with lights in the distance',
+        atmosphere: 'explosive joyful energy, heat and rhythm, vibrant chaos turned beautiful',
+        texture: 'sequined fabric, mosaic tile, tropical leaves, rain-slicked concrete',
+        composition: 'dynamic diagonal composition, foreground bokeh of sparkle, layers of depth',
+        artist: 'tropicália art movement, Hélio Oiticica, Brazilian graphic modernism',
+        camera: '35mm street photography, dramatic flash fill, vivid filmic look',
+        neg: 'ugly, blurry, low quality, dull colors, sterile',
+    },
+    usa: {
+        scene: 'American downtown at blue hour, neon bar signs casting pools of colored light on rain-slicked streets, steam rising from a grate, lone figure with headphones, towering glass and steel skyline silhouette',
+        atmosphere: 'cinematic solitude, urban cool, restless American energy',
+        texture: 'wet asphalt reflections, neon glow, graffiti concrete, denim and chrome',
+        composition: 'rule-of-thirds street composition, foreground rain puddle mirror reflection, leading lines of road',
+        artist: 'Edward Hopper, Gregory Crewdson, Saul Leiter street photography',
+        camera: '50mm lens, long exposure 1/15s, wide aperture, street film grain',
+        neg: 'ugly, blurry, low quality, suburban cliché, generic',
+    },
+    korea: {
+        scene: 'Midnight Seoul rooftop overflowing with cherry blossom petals whipped by wind, holographic K-pop advertisements reflecting purple and cyan on wet streets below, traditional hanji lanterns alongside neon signage, geometric hanok roofline silhouette against electric sky',
+        atmosphere: 'hyper-modern yet deeply rooted, electric tension, youthful and emotionally charged',
+        texture: 'glossy neon-lit surfaces, traditional hanji paper, embroidered silk, chrome finish',
+        composition: 'high contrast foreground/background, centered subject, dynamic petals in motion',
+        artist: 'Korean webtoon illustration, WYSIWYG graphic design, contemporary K-pop art direction',
+        camera: '85mm lens, f/1.4, Seoul neon mixed lighting, teal and pink color grade',
+        neg: 'ugly, blurry, low quality, generic Asian cliché',
+    },
+    japan: {
+        scene: 'Tokyo at summer twilight—a deserted elevated highway above the city, retro vending machines glowing amber, distant Mount Fuji silhouette, torii gate reflections in a rooftop pool, vinyl record store window display, warm 80s analog warmth',
+        atmosphere: 'nostalgic city pop longing, gentle melancholy, soft summer magic',
+        texture: 'warm analog vinyl, azalea petals, city concrete softened by humidity, chrome railings',
+        composition: 'widescreen 2.39:1 cinematic frame, vanishing point on highway, sky takes upper half',
+        artist: 'Hiroshi Nagai, Makoto Shinkai, Jiro Ohashi city pop cover art',
+        camera: 'anamorphic lens flare, Ektachrome film stock, faded warm highlights',
+        neg: 'ugly, blurry, low quality, overly modern, generic anime',
+    },
+    mexico: {
+        scene: 'High desert Mexican village at sunset dusk—papel picado banners in magenta and gold strung between adobe buildings, marigold petals forming a path, sugar skull altar glowing with candles and photographs, giant saguaro cactus silhouette against burnt orange sky',
+        atmosphere: 'vibrant celebration intertwined with reverence for the dead, folk beauty, warmth of family',
+        texture: 'rough adobe clay, hand-painted ceramic tiles, woven wool, dried marigold petals',
+        composition: 'centered altar composition, leading lines of petal path, sun behind cactus halo',
+        artist: 'Diego Rivera muralism, Frida Kahlo self-portrait aesthetic, Mexican folk art ofrenda',
+        camera: 'medium format richness, polarizing filter on sky, warm Fuji Velvia saturation',
+        neg: 'ugly, blurry, low quality, stereotypical, cartoonish',
+    },
+    france: {
+        scene: 'Parisian rooftop terrace at blue hour—wrought iron railing draped with jasmine, Eiffel Tower glowing gold in soft bokeh distance, accordion sound implied by atmosphere, wine glass catching warm light, art nouveau iron details, chimney pots and zinc rooftops rolling into the horizon',
+        atmosphere: 'refined romantic melancholy, sophisticated leisure, joie de vivre',
+        texture: 'aged zinc, fine linen, worn leather, dewy glass, worn painted iron',
+        composition: 'intimate medium shot, foreground vineglass bokeh, tower in rule-of-thirds, dusk gradient sky',
+        artist: 'Toulouse-Lautrec poster art, Henri Cartier-Bresson photography, French New Wave film stills',
+        camera: '50mm f/2 with soft diffusion, Kodak Portra 400, blue-to-gold dusk exposure',
+        neg: 'ugly, blurry, low quality, tourist cliché, oversaturated',
+    },
+    uk: {
+        scene: 'London at 3AM in gentle drizzle—brutalist concrete flyover lit by amber streetlights, vintage record shop window glowing with album art, underground station entrance exhaling warm air, puddle reflections of red double-decker, figure in trench coat with headphones',
+        atmosphere: 'post-punk urban alienation, creative underground energy, melancholic cool',
+        texture: 'wet concrete, worn leather records, fog-softened amber light, grimy brick',
+        composition: 'low angle worm-eye view of brutalist architecture, foreground puddle reflection, narrow depth of field',
+        artist: 'Peter Blake, Martin Parr photography, Banksy visual language, British New Wave album covers',
+        camera: '28mm street lens, push-processed Ilford HP5 grain, amber sodium vapor color cast',
+        neg: 'ugly, blurry, low quality, generic European, overly cheerful',
+    },
+    nigeria: {
+        scene: 'Lagos Victoria Island rooftop at magic hour—cascading kente and ankara print fabric as banners, skyline of glass towers against vermillion sunset, Afrofusion DJ setup silhouetted, crowd energy implied by blurred gold light trails, palm trees framing the scene',
+        atmosphere: 'bursting joyful pride, pan-African creative energy, Lagos hustle meeting beauty',
+        texture: 'woven kente silk, corrugated metal, tropical leaves, DJ equipment chrome',
+        composition: 'wide panoramic rooftop shot, strong silhouettes against sunset, rhythm implied by repetitive pattern',
+        artist: 'contemporary Afrofuturism, Kehinde Wiley portraits, Nigerian graphic poster art',
+        camera: '16mm wide angle, golden sunset backlight, high-key shadows, vivid saturation',
+        neg: 'ugly, blurry, low quality, stereotypical poverty imagery, desaturated',
+    },
+    turkey: {
+        scene: 'Istanbul at golden sunset—Bosphorus strait shimmering with ferry lights, Blue Mosque domes and minarets in silhouette, Grand Bazaar archway hung with intricate Iznik tile lanterns casting turquoise and cobalt patterns, sea breeze moving thin muslin curtains',
+        atmosphere: 'ancient mystique meeting vibrant modern life, sensory richness of East meeting West',
+        texture: 'hand-painted Iznik ceramic, hammered copper, raw silk, weathered Byzantine stone',
+        composition: 'framed through keyhole arch, Bosphorus in the distance, optical center lantern',
+        artist: 'Ottoman miniature painting, Osman Hamdi Bey orientalism reinterpreted, Turkish Art Nouveau',
+        camera: 'tilt-shift medium format, golden hour warm grade, deep shadow detail retention',
+        neg: 'ugly, blurry, low quality, orientalist cliché, generic Middle East',
+    },
+    egypt: {
+        scene: 'Cairo rooftop apartment at twilight—Great Pyramid silhouette against ultramarine sky, arabesque mashrabiya wooden lattice casting star patterns of gold light on the wall, fragrant jasmine in a clay pot, city call to prayer implied by vista of minarets and glowing windows stretching to the horizon',
+        atmosphere: 'timeless layering of ancient and contemporary, mystical weight of history, quiet evening beauty',
+        texture: 'carved wood mashrabiya, rough-plastered walls, burnished brass, worn linen',
+        composition: 'two-point perspective interior looking out to pyramid, framing within frame of mashrabiya',
+        artist: 'Egyptian Art Deco revival, Mahmoud Said painting, pharaonic graphic symbolism modernized',
+        camera: '35mm, deep blue/amber dusk split tone, strong contrast, VSCO A6 preset reference',
+        neg: 'ugly, blurry, low quality, hieroglyph clipart, tourist kitsch',
+    },
+    jamaica: {
+        scene: 'Kingston beach at sunset—wave-worn driftwood covered in faded reggae mural paint, Rasta colors in weathered palette, fishermens boats bobbing in turquoise cove, Blue Mountains rising through purple haze, single palm silhouette against gradient sky from coral to indigo',
+        atmosphere: 'sun-bleached peace, roots and memory, island time infinite loop',
+        texture: 'salt-worn paint on wood, sand-polished stone, frayed rope, sun-bleached fabric',
+        composition: 'wide coastal shot, horizon-thirds rule, palm as strong vertical, reflection in wet sand',
+        artist: 'Caribbean folk art, Jamaican intuitive art movement, vintage Studio One album covers',
+        camera: 'medium format slide film, cross-processed greens and purples, haze diffusion filter',
+        neg: 'ugly, blurry, low quality, resort stock photo, artificial',
+    },
 };
 
 const MOOD_VISUAL_MAP = {
@@ -1135,68 +1230,152 @@ const GENRE_VISUAL_MAP = {
 };
 
 /**
- * 이미지 AI 프롬프트 생성기
- * 국가 + 장르 + 무드 → Midjourney / DALL-E / Nijijourney / Stable Diffusion 프롬프트
+/**
+ * 이미지 AI 프롬프트 생성기 (고급 버전)
+ * 국가 + 장르 + 무드 → 5개 AI 맞춤형 초고품질 프롬프트
  */
 function generateImagePrompt(country, genre, mood) {
     const countryData = COUNTRY_STYLES[country];
     const genreData = GENRE_MAP[genre];
     const moodData = MOOD_MAP[mood];
-    const imageCountry = IMAGE_STYLE_MAP[country] || { scene: `${country} cultural landscape`, artist: 'contemporary art style', neg: 'ugly, blurry' };
-    const imageMood = MOOD_VISUAL_MAP[mood] || { lighting: 'natural cinematic lighting', palette: 'harmonious color palette' };
-    const imageGenre = GENRE_VISUAL_MAP[genre] || GENRE_VISUAL_MAP.default;
+    const C = IMAGE_STYLE_MAP[country] || { scene: `${country} cultural landscape, authentic local details`, atmosphere: 'cultural richness', texture: 'organic natural materials', composition: 'balanced cinematic composition', artist: 'contemporary world art', camera: '50mm, f/2.8, natural light', neg: 'ugly, blurry' };
+    const M = MOOD_VISUAL_MAP[mood] || { lighting: 'natural cinematic lighting, volumetric rays', palette: 'harmonious sophisticated color palette', emotion: 'evocative and resonant', timeOfDay: 'golden hour' };
+    const G = GENRE_VISUAL_MAP[genre] || GENRE_VISUAL_MAP.default;
 
     const countryName = countryData ? countryData.name : country;
     const genreName = genreData ? genreData.name : genre;
     const moodName = moodData ? moodData.name : mood;
     const moodEmoji = moodData ? moodData.emoji : '🎵';
+    const genreBpm = genreData ? genreData.bpm : '';
+    const genreStyle = genreData ? genreData.style : '';
 
-    // ── Midjourney 프롬프트 (가장 상세, 파라미터 포함)
-    const midjourneyPrompt = `${imageCountry.scene}, ${imageGenre.element}, ${imageMood.lighting}, ${imageMood.palette} color palette, ${imageGenre.style}, ${imageCountry.artist}, album cover art for ${genreName} playlist, ultra detailed, cinematic composition, 8K --ar 1:1 --stylize 750 --v 6`;
+    // ══════════════════════════════════════════════════════
+    // 🧿 MIDJOURNEY v6 — 전문 파라미터 최적화
+    // 구도, 피사체, 재질, 조명, 카메라, 아티스트 레퍼런스 포함
+    // ══════════════════════════════════════════════════════
+    const midjourneyPrompt =
+        `/imagine prompt: ${C.scene}, ${G.element},
 
-    // ── DALL-E 3 프롬프트 (자연어 설명형, 구체적 묘사)
-    const dallePrompt = `Create a stunning album cover artwork for a ${genreName} music playlist with a ${moodName} (${moodEmoji}) atmosphere. Setting: ${imageCountry.scene}. Featured visual elements: ${imageGenre.element}. Lighting: ${imageMood.lighting}. Color palette: ${imageMood.palette}. Art style inspired by ${imageCountry.artist} and ${imageGenre.style}. The image should feel like a premium music streaming editorial visual — cinematic, emotional, and perfectly capturing the essence of ${genreName} music from ${countryName}.`;
+Atmosphere: ${C.atmosphere}, ${M.lighting},
+Color grading: ${M.palette} palette, rich tonal depth,
+Textures: ${C.texture},
+Composition: ${C.composition}, golden ratio framing, album cover 1:1 crop,
+Subject detail: ${G.style}, ${genreStyle},
+Art direction: inspired by ${C.artist},
+Camera: ${C.camera}, tack-sharp focus on subject, soft cinematic bokeh background,
+Post-processing: subtle film grain, contrast-lifted shadows, luminous highlights,
+Render quality: ultra-detailed, hyperrealistic, 8K resolution, award-winning editorial photography
 
-    // ── Nijijourney 프롬프트 (아니메/일러스트 특화)
-    const nijiPrompt = `${genreName} playlist cover, ${moodName} vibe, ${imageGenre.element}, anime illustration style, ${imageMood.palette}, ${imageCountry.scene}, beautifully detailed, editorial illustration, key visual --niji 6 --ar 1:1 --stylize 600`;
+--ar 1:1 --stylize 900 --v 6 --quality 2`;
 
-    // ── Stable Diffusion 프롬프트 (웨이트 최적화)
-    const sdPrompt = [
-        `(${imageGenre.element}:1.3)`,
-        `(${imageMood.lighting}:1.2)`,
-        `${imageCountry.scene}`,
-        `${imageMood.palette} color grading`,
-        `(${imageGenre.style}:1.1)`,
-        `album cover composition`,
-        `professional photography`,
-        `8k uhd, detailed, artstation trending`
-    ].join(', ') + `\n\nNegative: ${imageCountry.neg}, watermark, text, signature, low quality, pixelated, amateur`;
+    // ══════════════════════════════════════════════════════
+    // 🤖 DALL-E 3 — 풍부한 자연어 서술형
+    // ChatGPT에 그대로 붙여넣기 최적화
+    // ══════════════════════════════════════════════════════
+    const dallePrompt =
+        `Create a premium, editorial-quality album cover artwork for a "${genreName}" music playlist with a "${moodName}" (${moodEmoji}) emotional tone.
 
-    // ── 나노바나나 프롬프트 (한국 이미지 AI · SD 계열 혼합 형식)
-    // 나노바나나는 한국어 설명 + 영문 태그 혼합, 짧고 직관적인 형식이 최적
-    const nanoBananaPrompt = [
-        `${genreName} 플레이리스트 커버 이미지`,
-        `분위기: ${moodEmoji} ${moodName}`,
-        `배경: ${imageCountry.scene}`,
-        ``,
-        `[영문 태그]`,
-        `${imageGenre.element}, ${imageMood.lighting}`,
-        `${imageMood.palette} color palette, ${imageGenre.style}`,
-        `album cover art, high quality, detailed, 1:1 ratio`,
-        ``,
-        `[제외 태그]`,
-        `${imageCountry.neg}, 글자, 워터마크, 저화질, 흐림`
-    ].join('\n');
+**Scene & Setting:**
+${C.scene}. The environment breathes with ${C.atmosphere}.
 
-    // ── 공통 컨셉 키워드 (어떤 AI에도 붙여쓸 수 있는 핵심 태그)
+**Visual Elements:**
+Prominently feature: ${G.element}. The subject matter should visually communicate the essence of ${genreName} music — specifically: ${genreStyle}.
+
+**Texture & Materials:**
+The surfaces in the image should have tactile richness: ${C.texture}. Every detail should feel physically real and tangible.
+
+**Lighting & Color:**
+Lighting style: ${M.lighting}. The entire image should be bathed in a ${M.palette} color palette — consistent, mood-driven, and emotionally resonant.
+
+**Composition:**
+${C.composition}. Frame it like a professional music editorial cover — bold, graphic, and immediately striking.
+
+**Art Direction Reference:**
+Visual style inspired by: ${C.artist}, and the graphic tradition of ${G.style}.
+
+**Camera & Lens Feel:**
+Render it as if shot with: ${C.camera}. The image should feel like a high-end music publication editorial photograph or illustration.
+
+Do NOT include any text, letters, watermarks, or logos. The image must be exactly square (1:1). Maximum detail, ultra high resolution.`;
+
+    // ══════════════════════════════════════════════════════
+    // ✨ NIJIJOURNEY v6 — 애니/일러스트 특화 상세 프롬프트
+    // ══════════════════════════════════════════════════════
+    const nijiPrompt =
+        `/imagine prompt: ${genreName} playlist cover art, ${moodName} mood, ${moodEmoji} emotional tone,
+
+Scene: ${C.scene}, ${G.element},
+Style: beautiful anime key visual illustration, ${G.style},
+Color palette: ${M.palette}, rich saturated storytelling colors,
+Lighting: ${M.lighting}, painted light quality, luminous shading,
+Character design: expressive face, detailed costume reflecting ${countryName} cultural aesthetics,
+Background: ${C.scene}, intricate background detail, depth and atmosphere,
+Art quality: Kyoto Animation level detail, cinematic anime frame, concept art quality,  detailed linework, studio-quality coloring,
+Reference artists: ${C.artist}, contemporary anime key visual style
+
+--niji 6 --ar 1:1 --stylize 700 --quality 2`;
+
+    // ══════════════════════════════════════════════════════
+    // ⚡ STABLE DIFFUSION — WebUI 가중치 최적화
+    // PromptPositive + Negative 분리 형식
+    // ══════════════════════════════════════════════════════
+    const sdPrompt =
+        `[POSITIVE PROMPT]
+(${G.element}:1.4), (${M.lighting}:1.3), (${C.scene}:1.2),
+(${M.palette} color palette:1.3), (${G.style}:1.2),
+(album cover composition:1.3), (${C.texture}:1.1),
+(${C.atmosphere}:1.1), (${C.composition}:1.1),
+masterpiece, best quality, ultra-detailed, 8k uhd, RAW photo, sharp focus,
+(professional editorial photography:1.2), (cinematic color grading:1.2),
+(hyperrealistic:1.1), artstation trending, award winning,
+inspired by ${C.artist}, shot on ${C.camera}
+
+[NEGATIVE PROMPT]
+${C.neg}, watermark, text, signature, logo, username, blurry, out of focus,
+low quality, low res, jpeg artifacts, oversaturated, bad anatomy, deformed,
+ugly, amateur photography, stock photo, generic, cliché, boring composition,
+bad lighting, overexposed, underexposed, flat colors, washed out`;
+
+    // ══════════════════════════════════════════════════════
+    // 🍌 나노바나나 — 한국어 설명 + 영문 태그 혼합, 구조화 형식
+    // ══════════════════════════════════════════════════════
+    const nanoBananaPrompt =
+        `📋 이미지 요청 정보
+─────────────────────
+🎵 장르: ${genreName}
+${moodEmoji} 분위기: ${moodName}
+🌍 국가/문화: ${countryName}
+
+📝 원하는 이미지 설명 (한국어)
+─────────────────────
+${genreName} 플레이리스트의 앨범 커버 이미지를 만들어주세요.
+배경: ${C.scene}
+분위기: ${C.atmosphere}
+조명: ${M.lighting}
+시각적 요소: ${G.element}
+
+🏷️ 영문 긍정 태그 (그대로 붙여넣기)
+─────────────────────
+${G.element}, ${M.lighting},
+${M.palette} color palette, ${G.style},
+${C.texture}, ${C.composition},
+album cover art, square format 1:1,
+masterpiece, best quality, ultra detailed, 8K, hyperrealistic,
+inspired by ${C.artist}
+
+🚫 영문 부정 태그 (제외할 것)
+─────────────────────
+${C.neg}, text, watermark, logo, blurry, low quality,
+bad anatomy, deformed, ugly, oversaturated, stock photo`;
+
     const conceptTags = [
         genreName,
-        moodEmoji + ' ' + moodName,
-        countryName + ' cultural aesthetic',
-        imageGenre.style,
-        imageMood.palette,
-        'album cover art',
-        'playlist cover design',
+        `${moodEmoji} ${moodName}`,
+        `${countryName} 문화 미학`,
+        G.style,
+        M.palette,
+        '앨범 커버 아트',
+        '플레이리스트 커버',
     ];
 
     return {
@@ -1204,6 +1383,7 @@ function generateImagePrompt(country, genre, mood) {
         genre: genreName,
         mood: moodName,
         moodEmoji,
+        genreBpm,
         prompts: {
             midjourney: midjourneyPrompt,
             dalle: dallePrompt,
@@ -1212,9 +1392,9 @@ function generateImagePrompt(country, genre, mood) {
             nanobanana: nanoBananaPrompt,
         },
         conceptTags,
-        colorPalette: imageMood.palette,
-        artStyle: imageGenre.style,
-        scene: imageCountry.scene,
+        colorPalette: M.palette,
+        artStyle: G.style,
+        scene: C.scene,
     };
 }
 
