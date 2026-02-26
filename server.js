@@ -530,6 +530,42 @@ app.get('/logout', (req, res) => {
     </script></body></html>`);
 });
 
+// ─────────────────── 비밀번호 변경 ───────────────────
+app.post('/api/auth/change-password', verifyToken, async (req, res) => {
+    try {
+        const { currentPassword, newPassword } = req.body;
+        const userId = req.user.id;
+        const userRole = req.user.role;
+
+        if (!currentPassword || !newPassword)
+            return res.status(400).json({ success: false, message: '모든 항목을 입력해주세요.' });
+        if (newPassword.length < 6)
+            return res.status(400).json({ success: false, message: '새 비밀번호는 6자 이상이어야 합니다.' });
+
+        // 관리자 계정은 Vercel 환경변수로만 변경 가능
+        if (userRole === 'admin' || userId === 'admin') {
+            return res.status(403).json({ success: false, message: '관리자 비밀번호는 Vercel 환경변수(ADMIN_PASSWORD)에서 변경해주세요.' });
+        }
+
+        // DB에서 사용자 조회
+        const { data: user, error } = await supabase.from('users').select('*').eq('id', userId).single();
+        if (error || !user) return res.status(404).json({ success: false, message: '사용자를 찾을 수 없습니다.' });
+
+        // 현재 비밀번호 검증
+        const isValid = await bcrypt.compare(currentPassword, user.password_hash);
+        if (!isValid) return res.status(401).json({ success: false, message: '현재 비밀번호가 올바르지 않습니다.' });
+
+        // 새 비밀번호로 업데이트
+        const newHash = await bcrypt.hash(newPassword, 12);
+        const { error: updateError } = await supabase.from('users').update({ password_hash: newHash }).eq('id', userId);
+        if (updateError) throw updateError;
+
+        res.json({ success: true, message: '비밀번호가 성공적으로 변경되었습니다.' });
+    } catch (e) {
+        res.status(500).json({ success: false, message: '서버 오류: ' + e.message });
+    }
+});
+
 // ─────────────────── 회원가입 신청 ───────────────────
 app.post('/api/auth/register', async (req, res) => {
     try {
