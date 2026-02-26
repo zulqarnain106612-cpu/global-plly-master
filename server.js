@@ -362,8 +362,8 @@ function generateSunoPrompt(country, genre, mood, tempo) {
 
     const tempoData = tempoMap[tempo] || tempoMap.medium;
 
-    // 악기 랜덤 선택 (2-3개)
-    const selectedInstruments = shuffleArray(countryData.instruments).slice(0, 3);
+    // 악기 랜덤 선택 (2개만 - 간결하게)
+    const selectedInstruments = shuffleArray(countryData.instruments).slice(0, 2);
 
     // 스케일 랜덤 선택 (1개)
     const selectedScale = countryData.scales[Math.floor(Math.random() * countryData.scales.length)];
@@ -371,18 +371,21 @@ function generateSunoPrompt(country, genre, mood, tempo) {
     // 국가 바이브 랜덤 선택 (1개)
     const selectedVibe = countryData.vibes[Math.floor(Math.random() * countryData.vibes.length)];
 
-    // ═══ Style of Music 프롬프트 조합 ═══
+    // ═══ Style of Music 프롬프트 조합 (Suno AI 200자 제한 준수) ═══
     const styleParts = [
-        ...genreData.tags.slice(0, 3),
-        selectedVibe,
-        ...moodData.tags.slice(0, 2),
-        tempoData.desc,
-        `featuring ${selectedInstruments.join(', ')}`,
-        selectedScale,
-        moodData.description
+        ...genreData.tags.slice(0, 2),      // 장르 태그 2개
+        selectedVibe,                         // 국가 바이브 1개
+        moodData.tags[0],                     // 무드 태그 1개
+        `${tempoData.label} tempo`,           // 템포
+        `${selectedInstruments.join(', ')}`,  // 악기 2개
+        selectedScale,                        // 스케일
     ];
 
-    const styleOfMusic = styleParts.join(', ');
+    // 200자 제한에 맞게 트리밍
+    let styleOfMusic = styleParts.join(', ');
+    if (styleOfMusic.length > 198) {
+        styleOfMusic = styleOfMusic.substring(0, 198).replace(/,\s*$/, '');
+    }
 
     // ═══ Lyrics Theme / Title 제안 ═══
     const titleSuggestions = generateTitleSuggestions(countryData, genreData, moodData);
@@ -408,6 +411,7 @@ function generateSunoPrompt(country, genre, mood, tempo) {
             lyricsTheme: `${moodData.description}, inspired by ${selectedVibe}, in the style of ${genreData.name} from ${countryData.name}`,
             suggestedLanguage: countryData.languages[0]
         }
+
     };
 }
 
