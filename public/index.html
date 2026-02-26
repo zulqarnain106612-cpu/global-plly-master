@@ -674,12 +674,35 @@
   <!-- ═══ JavaScript ═══ -->
   <script>
       // ═══════════════════════════════════════════════════════
-      // 🔐 인증 보호 (Auth Guard)
+      // 🔐 인증 보호 (서버 검증 방식 Auth Guard)
       // ═══════════════════════════════════════════════════════
-      (function authGuard() {
+      (async function authGuard() {
         const token = localStorage.getItem('gpm_token');
         const role = localStorage.getItem('gpm_role');
+
+        // 토큰 자체가 없으면 바로 로그인 페이지로
         if (!token) { window.location.href = '/login.html'; return; }
+
+        try {
+          // 서버에 토큰 유효성 검증 요청
+          const res = await fetch('/api/auth/verify', {
+            headers: { 'Authorization': 'Bearer ' + token }
+          });
+
+          if (!res.ok) {
+            // 서버가 거부한 경우 (만료/위조 토큰) → 로컬 데이터 삭제 후 로그인 페이지로
+            localStorage.removeItem('gpm_token');
+            localStorage.removeItem('gpm_role');
+            localStorage.removeItem('gpm_username');
+            localStorage.removeItem('gpm_realname');
+            window.location.href = '/login.html';
+            return;
+          }
+        } catch (e) {
+          // 네트워크 오류는 일단 통과 (오프라인 대비)
+          console.warn('Auth verify network error, proceeding with local token');
+        }
+
         // 유저 정보 표시
         const realName = localStorage.getItem('gpm_realname') || '사용자';
         const dispEl = document.getElementById('user-display');
@@ -699,7 +722,6 @@
     // ═══════════════════════════════════════════════════════
     // 🎨 Particle Background System
     // ═══════════════════════════════════════════════════════
-
     (function initParticles() {
       const canvas = document.getElementById('particles-canvas');
       const ctx = canvas.getContext('2d');
