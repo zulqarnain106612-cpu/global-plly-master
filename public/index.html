@@ -1,0 +1,1051 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Global Plly Master - Suno AI 프롬프트 자동화</title>
+  <meta name="description" content="타겟 국가와 분위기를 선택하면 최적화된 Suno AI 프롬프트를 자동 생성하는 음원 제작 자동화 시스템">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            plly: {
+              bg: '#0a0a0f',
+              card: '#12121a',
+              border: '#1e1e2e',
+              accent: '#7c3aed',
+              accent2: '#06b6d4',
+              accent3: '#f43f5e',
+              glow: '#7c3aed33',
+              text: '#e2e8f0',
+              muted: '#64748b',
+            }
+          },
+          animation: {
+            'pulse-glow': 'pulseGlow 2s ease-in-out infinite',
+            'float': 'float 6s ease-in-out infinite',
+            'slide-up': 'slideUp 0.5s ease-out',
+            'fade-in': 'fadeIn 0.6s ease-out',
+            'shimmer': 'shimmer 2s linear infinite',
+            'bounce-in': 'bounceIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55)',
+            'wave': 'wave 1.5s ease-in-out infinite',
+            'spin-slow': 'spin 3s linear infinite',
+          },
+          keyframes: {
+            pulseGlow: {
+              '0%, 100%': { boxShadow: '0 0 20px rgba(124, 58, 237, 0.3)' },
+              '50%': { boxShadow: '0 0 40px rgba(124, 58, 237, 0.6)' },
+            },
+            float: {
+              '0%, 100%': { transform: 'translateY(0px)' },
+              '50%': { transform: 'translateY(-10px)' },
+            },
+            slideUp: {
+              '0%': { transform: 'translateY(30px)', opacity: '0' },
+              '100%': { transform: 'translateY(0)', opacity: '1' },
+            },
+            fadeIn: {
+              '0%': { opacity: '0' },
+              '100%': { opacity: '1' },
+            },
+            shimmer: {
+              '0%': { backgroundPosition: '-200% 0' },
+              '100%': { backgroundPosition: '200% 0' },
+            },
+            bounceIn: {
+              '0%': { transform: 'scale(0.3)', opacity: '0' },
+              '50%': { transform: 'scale(1.05)' },
+              '70%': { transform: 'scale(0.9)' },
+              '100%': { transform: 'scale(1)', opacity: '1' },
+            },
+            wave: {
+              '0%, 100%': { transform: 'scaleY(1)' },
+              '50%': { transform: 'scaleY(1.8)' },
+            }
+          }
+        },
+      },
+    }
+  </script>
+
+  <style>
+    /* ═══ Custom Scrollbar ═══ */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #0a0a0f; }
+    ::-webkit-scrollbar-thumb { background: #7c3aed44; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #7c3aed88; }
+
+    /* ═══ Background Grid ═══ */
+    .bg-grid {
+      background-image: 
+        linear-gradient(rgba(124, 58, 237, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(124, 58, 237, 0.03) 1px, transparent 1px);
+      background-size: 50px 50px;
+    }
+
+    /* ═══ Glassmorphism ═══ */
+    .glass {
+      background: rgba(18, 18, 26, 0.7);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(124, 58, 237, 0.15);
+    }
+
+    .glass-strong {
+      background: rgba(18, 18, 26, 0.85);
+      backdrop-filter: blur(30px);
+      -webkit-backdrop-filter: blur(30px);
+      border: 1px solid rgba(124, 58, 237, 0.2);
+    }
+
+    /* ═══ Gradient Text ═══ */
+    .gradient-text {
+      background: linear-gradient(135deg, #7c3aed, #06b6d4, #f43f5e);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .gradient-text-subtle {
+      background: linear-gradient(135deg, #a78bfa, #67e8f9);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* ═══ Glow Effects ═══ */
+    .glow-purple {
+      box-shadow: 0 0 30px rgba(124, 58, 237, 0.3), 0 0 60px rgba(124, 58, 237, 0.1);
+    }
+
+    .glow-cyan {
+      box-shadow: 0 0 30px rgba(6, 182, 212, 0.3), 0 0 60px rgba(6, 182, 212, 0.1);
+    }
+
+    /* ═══ Custom Select ═══ */
+    .select-plly {
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%237c3aed' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+      background-position: right 0.75rem center;
+      background-repeat: no-repeat;
+      background-size: 1.5em 1.5em;
+      padding-right: 2.5rem;
+    }
+
+    .select-plly:focus {
+      box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.3);
+    }
+
+    /* ═══ Prompt Box ═══ */
+    .prompt-box {
+      background: linear-gradient(135deg, rgba(124, 58, 237, 0.05), rgba(6, 182, 212, 0.05));
+      border: 1px solid rgba(124, 58, 237, 0.2);
+    }
+
+    /* ═══ Generate Button ═══ */
+    .btn-generate {
+      background: linear-gradient(135deg, #7c3aed, #6d28d9);
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .btn-generate::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+      transition: left 0.5s ease;
+    }
+
+    .btn-generate:hover::before {
+      left: 100%;
+    }
+
+    .btn-generate:hover {
+      background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+      box-shadow: 0 0 30px rgba(124, 58, 237, 0.4);
+      transform: translateY(-2px);
+    }
+
+    .btn-generate:active {
+      transform: translateY(0px);
+    }
+
+    .btn-generate:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* ═══ Copy Button ═══ */
+    .btn-copy {
+      background: linear-gradient(135deg, #06b6d4, #0891b2);
+      transition: all 0.3s ease;
+    }
+
+    .btn-copy:hover {
+      background: linear-gradient(135deg, #22d3ee, #06b6d4);
+      box-shadow: 0 0 20px rgba(6, 182, 212, 0.3);
+      transform: translateY(-1px);
+    }
+
+    /* ═══ Tag Pills ═══ */
+    .tag-pill {
+      background: rgba(124, 58, 237, 0.1);
+      border: 1px solid rgba(124, 58, 237, 0.2);
+      transition: all 0.2s ease;
+    }
+
+    .tag-pill:hover {
+      background: rgba(124, 58, 237, 0.2);
+      border-color: rgba(124, 58, 237, 0.4);
+      transform: translateY(-1px);
+    }
+
+    /* ═══ Audio Player Custom ═══ */
+    .audio-player-container {
+      background: linear-gradient(135deg, rgba(124, 58, 237, 0.08), rgba(6, 182, 212, 0.05));
+      border: 1px solid rgba(124, 58, 237, 0.2);
+    }
+
+    audio::-webkit-media-controls-panel {
+      background: rgba(18, 18, 26, 0.9);
+    }
+
+    /* ═══ Wave Animation ═══ */
+    .wave-bar {
+      width: 3px;
+      border-radius: 2px;
+      background: linear-gradient(to top, #7c3aed, #06b6d4);
+    }
+
+    .wave-bar:nth-child(1) { animation-delay: 0s; }
+    .wave-bar:nth-child(2) { animation-delay: 0.1s; }
+    .wave-bar:nth-child(3) { animation-delay: 0.2s; }
+    .wave-bar:nth-child(4) { animation-delay: 0.3s; }
+    .wave-bar:nth-child(5) { animation-delay: 0.4s; }
+    .wave-bar:nth-child(6) { animation-delay: 0.5s; }
+    .wave-bar:nth-child(7) { animation-delay: 0.3s; }
+    .wave-bar:nth-child(8) { animation-delay: 0.1s; }
+
+    /* ═══ Loading Spinner ═══ */
+    .spinner {
+      border: 3px solid rgba(124, 58, 237, 0.2);
+      border-top: 3px solid #7c3aed;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      animation: spin 0.8s linear infinite;
+    }
+
+    /* ═══ Orb Decorations ═══ */
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.4;
+      pointer-events: none;
+    }
+
+    /* ═══ Responsive tweaks ═══ */
+    @media (max-width: 768px) {
+      .hero-title { font-size: 2rem !important; }
+    }
+
+    /* ═══ Notification Toast ═══ */
+    .toast {
+      transform: translateX(100%);
+      opacity: 0;
+      transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    }
+    .toast.show {
+      transform: translateX(0);
+      opacity: 1;
+    }
+
+    /* ═══ Step Indicator ═══ */
+    .step-indicator {
+      counter-reset: step;
+    }
+    .step-item::before {
+      counter-increment: step;
+      content: counter(step);
+    }
+
+    /* ═══ Particle Background ═══ */
+    #particles-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+    }
+  </style>
+</head>
+
+<body class="bg-plly-bg text-plly-text font-sans min-h-screen bg-grid overflow-x-hidden">
+  
+  <!-- ═══ Particle Canvas ═══ -->
+  <canvas id="particles-canvas"></canvas>
+
+  <!-- ═══ Decorative Orbs ═══ -->
+  <div class="orb w-96 h-96 bg-purple-600 top-0 left-0 -translate-x-1/2 -translate-y-1/2"></div>
+  <div class="orb w-72 h-72 bg-cyan-500 bottom-0 right-0 translate-x-1/3 translate-y-1/3"></div>
+  <div class="orb w-64 h-64 bg-rose-500 top-1/2 right-0 translate-x-1/2 opacity-20"></div>
+
+  <!-- ═══ Toast Container ═══ -->
+  <div id="toast-container" class="fixed top-6 right-6 z-50 flex flex-col gap-3"></div>
+
+  <!-- ═══ Main Container ═══ -->
+  <div class="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+    <!-- ═══ Header ═══ -->
+    <header class="text-center mb-12 animate-fade-in">
+      <!-- Logo Area -->
+      <div class="flex items-center justify-center gap-3 mb-4">
+        <div class="relative">
+          <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-600 via-violet-600 to-cyan-500 flex items-center justify-center text-2xl animate-float shadow-lg shadow-purple-500/30">
+            🎵
+          </div>
+          <div class="absolute -top-1 -right-1 w-5 h-5 bg-cyan-400 rounded-full flex items-center justify-center text-[10px] font-bold text-black">
+            AI
+          </div>
+        </div>
+        <div>
+          <h1 class="hero-title text-4xl sm:text-5xl font-black tracking-tight gradient-text">
+            Global Plly Master
+          </h1>
+          <p class="text-plly-muted text-sm font-medium tracking-wider uppercase mt-1">
+            Suno AI Prompt Automation Engine
+          </p>
+        </div>
+      </div>
+      <p class="text-plly-muted/80 text-base max-w-xl mx-auto leading-relaxed">
+        국가 × 장르 × 무드를 조합하여 <span class="text-purple-400 font-semibold">Suno AI 최적화 프롬프트</span>를 자동 생성합니다
+      </p>
+    </header>
+
+    <!-- ═══ Main Content Grid ═══ -->
+    <div class="grid lg:grid-cols-5 gap-6">
+
+      <!-- ═══ Left Panel: Controls ═══ -->
+      <div class="lg:col-span-2 space-y-5">
+
+        <!-- Step 1: Country -->
+        <div class="glass rounded-2xl p-5 animate-slide-up" style="animation-delay: 0.1s">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-600 to-violet-600 flex items-center justify-center text-sm font-bold shadow-lg shadow-purple-600/20">1</div>
+            <div>
+              <h2 class="font-semibold text-white text-base">타겟 국가</h2>
+              <p class="text-plly-muted text-xs">Target Country</p>
+            </div>
+            <div class="ml-auto text-2xl" id="country-flag">🌍</div>
+          </div>
+          <select id="select-country" class="select-plly w-full bg-plly-bg border border-plly-border rounded-xl px-4 py-3 text-sm text-plly-text focus:outline-none focus:border-purple-500 transition-all cursor-pointer">
+            <option value="" disabled selected>국가를 선택하세요...</option>
+          </select>
+        </div>
+
+        <!-- Step 2: Genre -->
+        <div class="glass rounded-2xl p-5 animate-slide-up" style="animation-delay: 0.2s">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-600 to-cyan-500 flex items-center justify-center text-sm font-bold shadow-lg shadow-cyan-600/20">2</div>
+            <div>
+              <h2 class="font-semibold text-white text-base">음악 장르</h2>
+              <p class="text-plly-muted text-xs">Music Genre</p>
+            </div>
+            <div class="ml-auto text-2xl">🎸</div>
+          </div>
+          <select id="select-genre" class="select-plly w-full bg-plly-bg border border-plly-border rounded-xl px-4 py-3 text-sm text-plly-text focus:outline-none focus:border-cyan-500 transition-all cursor-pointer">
+            <option value="" disabled selected>장르를 선택하세요...</option>
+          </select>
+        </div>
+
+        <!-- Step 3: Mood -->
+        <div class="glass rounded-2xl p-5 animate-slide-up" style="animation-delay: 0.3s">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-500 to-teal-400 flex items-center justify-center text-sm font-bold shadow-lg shadow-teal-500/20">3</div>
+            <div>
+              <h2 class="font-semibold text-white text-base">무드 / 분위기</h2>
+              <p class="text-plly-muted text-xs">Mood & Atmosphere</p>
+            </div>
+            <div class="ml-auto text-2xl" id="mood-emoji">✨</div>
+          </div>
+          <select id="select-mood" class="select-plly w-full bg-plly-bg border border-plly-border rounded-xl px-4 py-3 text-sm text-plly-text focus:outline-none focus:border-teal-400 transition-all cursor-pointer">
+            <option value="" disabled selected>무드를 선택하세요...</option>
+          </select>
+        </div>
+
+        <!-- Step 4: Tempo -->
+        <div class="glass rounded-2xl p-5 animate-slide-up" style="animation-delay: 0.4s">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-teal-400 to-emerald-400 flex items-center justify-center text-sm font-bold shadow-lg shadow-emerald-500/20">4</div>
+            <div>
+              <h2 class="font-semibold text-white text-base">템포</h2>
+              <p class="text-plly-muted text-xs">Tempo & Speed</p>
+            </div>
+            <div class="ml-auto text-2xl">⏱️</div>
+          </div>
+          <select id="select-tempo" class="select-plly w-full bg-plly-bg border border-plly-border rounded-xl px-4 py-3 text-sm text-plly-text focus:outline-none focus:border-emerald-400 transition-all cursor-pointer">
+            <option value="" disabled selected>템포를 선택하세요...</option>
+          </select>
+        </div>
+
+        <!-- Generate Button -->
+        <button id="btn-generate" class="btn-generate w-full py-4 rounded-2xl text-white font-bold text-base tracking-wide uppercase disabled:opacity-50 animate-slide-up flex items-center justify-center gap-3" style="animation-delay: 0.5s" disabled>
+          <svg id="btn-icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+          </svg>
+          <span id="btn-text">프롬프트 생성하기</span>
+          <div id="btn-spinner" class="spinner hidden"></div>
+        </button>
+
+      </div>
+
+      <!-- ═══ Right Panel: Results ═══ -->
+      <div class="lg:col-span-3 space-y-5">
+
+        <!-- Generated Prompt Box -->
+        <div id="result-prompt" class="glass-strong rounded-2xl p-6 animate-fade-in min-h-[200px]">
+          <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-600 to-pink-500 flex items-center justify-center text-lg">🧠</div>
+              <div>
+                <h2 class="font-semibold text-white text-base">Generated Prompt</h2>
+                <p class="text-plly-muted text-xs">Suno AI Style of Music</p>
+              </div>
+            </div>
+            <button id="btn-copy-prompt" class="btn-copy px-4 py-2 rounded-xl text-xs font-semibold text-white flex items-center gap-2 opacity-0 transition-opacity" aria-label="프롬프트 복사">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+              Copy
+            </button>
+          </div>
+
+          <!-- Placeholder State -->
+          <div id="prompt-placeholder" class="flex flex-col items-center justify-center py-10 text-center">
+            <div class="text-5xl mb-4 animate-float">🎶</div>
+            <p class="text-plly-muted/60 text-sm">국가, 장르, 무드, 템포를 선택하고</p>
+            <p class="text-plly-muted/60 text-sm">"프롬프트 생성하기" 버튼을 눌러주세요</p>
+          </div>
+
+          <!-- Prompt Result -->
+          <div id="prompt-result" class="hidden">
+            <div class="prompt-box rounded-xl p-4 mb-4">
+              <p id="prompt-text" class="text-sm leading-relaxed text-purple-200 font-mono"></p>
+            </div>
+
+            <!-- Title Suggestions -->
+            <div class="mb-4">
+              <p class="text-xs text-plly-muted mb-2 font-semibold uppercase tracking-wider">🎤 Title Suggestions</p>
+              <div id="title-suggestions" class="flex flex-wrap gap-2"></div>
+            </div>
+
+            <!-- Lyrics Theme -->
+            <div class="mb-4">
+              <p class="text-xs text-plly-muted mb-2 font-semibold uppercase tracking-wider">📝 Lyrics Theme</p>
+              <p id="lyrics-theme" class="text-sm text-plly-text/80 leading-relaxed"></p>
+            </div>
+
+            <!-- Language -->
+            <div>
+              <p class="text-xs text-plly-muted mb-2 font-semibold uppercase tracking-wider">🌐 Suggested Language</p>
+              <p id="suggested-lang" class="text-sm text-cyan-300 font-medium"></p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Meta Tags Panel -->
+        <div id="meta-panel" class="glass-strong rounded-2xl p-6 hidden">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center text-lg">🏷️</div>
+            <div>
+              <h2 class="font-semibold text-white text-base">Meta Tags</h2>
+              <p class="text-plly-muted text-xs">프롬프트 구성 요소</p>
+            </div>
+          </div>
+          <div id="meta-tags-grid" class="grid grid-cols-2 gap-3"></div>
+        </div>
+
+        <!-- Music Player Panel -->
+        <div id="player-panel" class="glass-strong rounded-2xl p-6 hidden">
+          <div class="flex items-center gap-3 mb-5">
+            <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-rose-500 to-orange-500 flex items-center justify-center text-lg">🎧</div>
+            <div>
+              <h2 class="font-semibold text-white text-base">Music Player</h2>
+              <p class="text-plly-muted text-xs">생성된 음원 미리듣기</p>
+            </div>
+          </div>
+
+          <!-- Player Content -->
+          <div class="audio-player-container rounded-xl p-5">
+            <!-- Track Info -->
+            <div class="flex items-center gap-4 mb-5">
+              <div id="cover-art" class="w-16 h-16 rounded-xl bg-gradient-to-br from-purple-600 to-cyan-500 flex items-center justify-center text-3xl flex-shrink-0 shadow-lg">
+                🎵
+              </div>
+              <div class="flex-1 min-w-0">
+                <p id="track-title" class="font-semibold text-white truncate">대기 중...</p>
+                <p id="track-duration" class="text-xs text-plly-muted mt-1">--:--</p>
+                <p id="track-status" class="text-xs text-purple-400 mt-1"></p>
+              </div>
+              <!-- Wave Animation -->
+              <div id="wave-animation" class="flex items-end gap-[3px] h-8 hidden">
+                <div class="wave-bar h-4 animate-wave"></div>
+                <div class="wave-bar h-6 animate-wave"></div>
+                <div class="wave-bar h-3 animate-wave"></div>
+                <div class="wave-bar h-7 animate-wave"></div>
+                <div class="wave-bar h-5 animate-wave"></div>
+                <div class="wave-bar h-8 animate-wave"></div>
+                <div class="wave-bar h-4 animate-wave"></div>
+                <div class="wave-bar h-6 animate-wave"></div>
+              </div>
+            </div>
+
+            <!-- Audio Element -->
+            <audio id="audio-player" class="w-full rounded-lg" controls style="display:none;"></audio>
+
+            <!-- Demo Mode Message -->
+            <div id="demo-message" class="bg-purple-500/10 border border-purple-500/20 rounded-xl p-4 text-center">
+              <p class="text-sm text-purple-300">
+                💡 <strong>데모 모드</strong>: 생성된 프롬프트를 
+                <a href="https://suno.com" target="_blank" rel="noopener" class="text-cyan-400 underline hover:text-cyan-300 transition-colors">suno.com</a>
+                에 붙여넣어 음악을 생성하세요!
+              </p>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex gap-3 mt-4">
+              <button id="btn-copy-suno" class="flex-1 bg-gradient-to-r from-purple-600 to-violet-600 hover:from-purple-500 hover:to-violet-500 text-white py-3 rounded-xl text-sm font-semibold transition-all hover:shadow-lg hover:shadow-purple-600/20 flex items-center justify-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                Suno에 복사
+              </button>
+              <a href="https://suno.com/create" target="_blank" rel="noopener" class="flex-1 bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-500 hover:to-teal-500 text-white py-3 rounded-xl text-sm font-semibold transition-all hover:shadow-lg hover:shadow-cyan-600/20 flex items-center justify-center gap-2 text-center">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                Suno AI 열기
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- History Panel -->
+        <div id="history-panel" class="glass-strong rounded-2xl p-6 hidden">
+          <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center text-lg">📜</div>
+              <div>
+                <h2 class="font-semibold text-white text-base">History</h2>
+                <p class="text-plly-muted text-xs">이전 생성 기록</p>
+              </div>
+            </div>
+            <button id="btn-clear-history" class="text-xs text-plly-muted hover:text-rose-400 transition-colors px-3 py-1 rounded-lg hover:bg-rose-500/10">
+              전체 삭제
+            </button>
+          </div>
+          <div id="history-list" class="space-y-3 max-h-64 overflow-y-auto pr-1"></div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ═══ Footer ═══ -->
+    <footer class="mt-16 text-center text-plly-muted/40 text-xs pb-8">
+      <div class="flex items-center justify-center gap-2 mb-2">
+        <span>Built with</span>
+        <span class="text-rose-400">❤️</span>
+        <span>by</span>
+        <span class="gradient-text-subtle font-semibold">코다리 개발부장 🐟</span>
+      </div>
+      <p>Global Plly Master v1.0 — Suno AI Prompt Automation Engine</p>
+    </footer>
+
+  </div>
+
+  <!-- ═══ JavaScript ═══ -->
+  <script>
+    // ═══════════════════════════════════════════════════════
+    // 🎨 Particle Background System
+    // ═══════════════════════════════════════════════════════
+    
+    (function initParticles() {
+      const canvas = document.getElementById('particles-canvas');
+      const ctx = canvas.getContext('2d');
+      let particles = [];
+      const PARTICLE_COUNT = 50;
+
+      function resize() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      }
+
+      function createParticle() {
+        return {
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          size: Math.random() * 2 + 0.5,
+          speedX: (Math.random() - 0.5) * 0.3,
+          speedY: (Math.random() - 0.5) * 0.3,
+          opacity: Math.random() * 0.4 + 0.1,
+          hue: Math.random() > 0.5 ? 270 : 190, // purple or cyan
+        };
+      }
+
+      function animate() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        particles.forEach((p, i) => {
+          p.x += p.speedX;
+          p.y += p.speedY;
+
+          if (p.x < 0 || p.x > canvas.width) p.speedX *= -1;
+          if (p.y < 0 || p.y > canvas.height) p.speedY *= -1;
+
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+          ctx.fillStyle = `hsla(${p.hue}, 70%, 60%, ${p.opacity})`;
+          ctx.fill();
+
+          // Draw connections
+          for (let j = i + 1; j < particles.length; j++) {
+            const dx = particles[j].x - p.x;
+            const dy = particles[j].y - p.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < 120) {
+              ctx.beginPath();
+              ctx.moveTo(p.x, p.y);
+              ctx.lineTo(particles[j].x, particles[j].y);
+              ctx.strokeStyle = `hsla(270, 60%, 50%, ${0.05 * (1 - dist / 120)})`;
+              ctx.lineWidth = 0.5;
+              ctx.stroke();
+            }
+          }
+        });
+
+        requestAnimationFrame(animate);
+      }
+
+      resize();
+      window.addEventListener('resize', resize);
+      for (let i = 0; i < PARTICLE_COUNT; i++) {
+        particles.push(createParticle());
+      }
+      animate();
+    })();
+
+    // ═══════════════════════════════════════════════════════
+    // 📦 State & Elements
+    // ═══════════════════════════════════════════════════════
+
+    const state = {
+      country: '',
+      genre: '',
+      mood: '',
+      tempo: '',
+      lastPrompt: null,
+      history: JSON.parse(localStorage.getItem('plly_history') || '[]'),
+      isGenerating: false,
+    };
+
+    const els = {
+      selectCountry: document.getElementById('select-country'),
+      selectGenre: document.getElementById('select-genre'),
+      selectMood: document.getElementById('select-mood'),
+      selectTempo: document.getElementById('select-tempo'),
+      btnGenerate: document.getElementById('btn-generate'),
+      btnText: document.getElementById('btn-text'),
+      btnIcon: document.getElementById('btn-icon'),
+      btnSpinner: document.getElementById('btn-spinner'),
+      btnCopyPrompt: document.getElementById('btn-copy-prompt'),
+      btnCopySuno: document.getElementById('btn-copy-suno'),
+      btnClearHistory: document.getElementById('btn-clear-history'),
+      promptPlaceholder: document.getElementById('prompt-placeholder'),
+      promptResult: document.getElementById('prompt-result'),
+      promptText: document.getElementById('prompt-text'),
+      titleSuggestions: document.getElementById('title-suggestions'),
+      lyricsTheme: document.getElementById('lyrics-theme'),
+      suggestedLang: document.getElementById('suggested-lang'),
+      metaPanel: document.getElementById('meta-panel'),
+      metaTagsGrid: document.getElementById('meta-tags-grid'),
+      playerPanel: document.getElementById('player-panel'),
+      trackTitle: document.getElementById('track-title'),
+      trackDuration: document.getElementById('track-duration'),
+      trackStatus: document.getElementById('track-status'),
+      audioPlayer: document.getElementById('audio-player'),
+      demoMessage: document.getElementById('demo-message'),
+      waveAnimation: document.getElementById('wave-animation'),
+      historyPanel: document.getElementById('history-panel'),
+      historyList: document.getElementById('history-list'),
+      countryFlag: document.getElementById('country-flag'),
+      moodEmoji: document.getElementById('mood-emoji'),
+    };
+
+    // ═══════════════════════════════════════════════════════
+    // 🔧 Initialize
+    // ═══════════════════════════════════════════════════════
+
+    async function init() {
+      try {
+        const res = await fetch('/api/options');
+        const data = await res.json();
+
+        populateSelect(els.selectCountry, data.countries);
+        populateSelect(els.selectGenre, data.genres);
+        populateSelect(els.selectMood, data.moods);
+        populateSelect(els.selectTempo, data.tempos);
+
+        renderHistory();
+      } catch (err) {
+        showToast('서버 연결에 실패했습니다', 'error');
+        console.error('Init error:', err);
+      }
+    }
+
+    function populateSelect(selectEl, options) {
+      options.forEach(opt => {
+        const option = document.createElement('option');
+        option.value = opt.value;
+        option.textContent = opt.label;
+        if (opt.flag) option.dataset.flag = opt.flag;
+        if (opt.emoji) option.dataset.emoji = opt.emoji;
+        selectEl.appendChild(option);
+      });
+    }
+
+    // ═══════════════════════════════════════════════════════
+    // 🎧 Event Listeners
+    // ═══════════════════════════════════════════════════════
+
+    // Select change handlers
+    els.selectCountry.addEventListener('change', (e) => {
+      state.country = e.target.value;
+      const opt = e.target.selectedOptions[0];
+      if (opt.dataset.flag) els.countryFlag.textContent = opt.dataset.flag;
+      checkReady();
+    });
+
+    els.selectGenre.addEventListener('change', (e) => {
+      state.genre = e.target.value;
+      checkReady();
+    });
+
+    els.selectMood.addEventListener('change', (e) => {
+      state.mood = e.target.value;
+      const opt = e.target.selectedOptions[0];
+      if (opt.dataset.emoji) els.moodEmoji.textContent = opt.dataset.emoji;
+      checkReady();
+    });
+
+    els.selectTempo.addEventListener('change', (e) => {
+      state.tempo = e.target.value;
+      checkReady();
+    });
+
+    // Generate button
+    els.btnGenerate.addEventListener('click', generatePrompt);
+
+    // Copy buttons
+    els.btnCopyPrompt.addEventListener('click', () => {
+      if (state.lastPrompt) {
+        copyToClipboard(state.lastPrompt.prompt);
+        showToast('프롬프트가 클립보드에 복사되었습니다!', 'success');
+      }
+    });
+
+    els.btnCopySuno.addEventListener('click', () => {
+      if (state.lastPrompt) {
+        copyToClipboard(state.lastPrompt.prompt);
+        showToast('Suno AI용 프롬프트가 복사되었습니다! 🎵', 'success');
+      }
+    });
+
+    // Clear history
+    els.btnClearHistory.addEventListener('click', () => {
+      state.history = [];
+      localStorage.removeItem('plly_history');
+      renderHistory();
+      showToast('기록이 삭제되었습니다', 'info');
+    });
+
+    // ═══════════════════════════════════════════════════════
+    // ✅ Validation
+    // ═══════════════════════════════════════════════════════
+
+    function checkReady() {
+      const ready = state.country && state.genre && state.mood && state.tempo;
+      els.btnGenerate.disabled = !ready;
+    }
+
+    // ═══════════════════════════════════════════════════════
+    // 🚀 Generate Prompt
+    // ═══════════════════════════════════════════════════════
+
+    async function generatePrompt() {
+      if (state.isGenerating) return;
+      state.isGenerating = true;
+
+      // Update UI to loading state
+      els.btnText.textContent = '생성 중...';
+      els.btnIcon.classList.add('hidden');
+      els.btnSpinner.classList.remove('hidden');
+      els.btnGenerate.disabled = true;
+
+      try {
+        const res = await fetch('/api/generate-music', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            country: state.country,
+            genre: state.genre,
+            mood: state.mood,
+            tempo: state.tempo,
+          })
+        });
+
+        const data = await res.json();
+
+        if (!data.success) {
+          throw new Error(data.error || '프롬프트 생성 실패');
+        }
+
+        // Save results
+        state.lastPrompt = data.prompt;
+        displayResults(data);
+        addToHistory(data);
+        showToast('프롬프트가 성공적으로 생성되었습니다! 🎵', 'success');
+
+      } catch (err) {
+        showToast(err.message, 'error');
+        console.error('Generate error:', err);
+      } finally {
+        state.isGenerating = false;
+        els.btnText.textContent = '프롬프트 생성하기';
+        els.btnIcon.classList.remove('hidden');
+        els.btnSpinner.classList.add('hidden');
+        els.btnGenerate.disabled = false;
+      }
+    }
+
+    // ═══════════════════════════════════════════════════════
+    // 📊 Display Results
+    // ═══════════════════════════════════════════════════════
+
+    function displayResults(data) {
+      const { prompt: promptData, music } = data;
+
+      // Show prompt text
+      els.promptPlaceholder.classList.add('hidden');
+      els.promptResult.classList.remove('hidden');
+      els.promptResult.classList.add('animate-fade-in');
+      els.btnCopyPrompt.style.opacity = '1';
+
+      // Main prompt
+      els.promptText.textContent = promptData.prompt;
+
+      // Title suggestions
+      els.titleSuggestions.innerHTML = '';
+      promptData.titleSuggestions.forEach(title => {
+        const pill = document.createElement('span');
+        pill.className = 'tag-pill px-3 py-1.5 rounded-full text-xs text-purple-300 cursor-pointer';
+        pill.textContent = title;
+        pill.addEventListener('click', () => {
+          copyToClipboard(title);
+          showToast(`"${title}" 복사됨!`, 'info');
+        });
+        els.titleSuggestions.appendChild(pill);
+      });
+
+      // Lyrics theme
+      els.lyricsTheme.textContent = promptData.fullPrompt.lyricsTheme;
+
+      // Suggested language
+      els.suggestedLang.textContent = promptData.fullPrompt.suggestedLanguage;
+
+      // Meta tags panel
+      displayMetaTags(promptData.metaTags);
+
+      // Player panel
+      displayPlayer(music, promptData);
+    }
+
+    function displayMetaTags(metaTags) {
+      els.metaPanel.classList.remove('hidden');
+      els.metaPanel.classList.add('animate-slide-up');
+      els.metaTagsGrid.innerHTML = '';
+
+      const tagConfig = [
+        { key: 'genre', label: '🎸 Genre', color: 'purple' },
+        { key: 'mood', label: '🎭 Mood', color: 'cyan' },
+        { key: 'instruments', label: '🎹 Instruments', color: 'teal' },
+        { key: 'tempo', label: '⏱️ Tempo', color: 'emerald' },
+        { key: 'region', label: '🌍 Region', color: 'amber' },
+        { key: 'scale', label: '🎼 Scale', color: 'rose' },
+        { key: 'energy', label: '⚡ Energy', color: 'orange' },
+        { key: 'valence', label: '💫 Valence', color: 'violet' },
+      ];
+
+      tagConfig.forEach(({ key, label, color }) => {
+        if (!metaTags[key]) return;
+        const div = document.createElement('div');
+        div.className = `bg-${color}-500/10 border border-${color}-500/20 rounded-xl p-3`;
+        div.innerHTML = `
+          <p class="text-xs text-plly-muted font-semibold mb-1">${label}</p>
+          <p class="text-sm text-${color}-300">${metaTags[key]}</p>
+        `;
+        els.metaTagsGrid.appendChild(div);
+      });
+    }
+
+    function displayPlayer(music, promptData) {
+      els.playerPanel.classList.remove('hidden');
+      els.playerPanel.classList.add('animate-slide-up');
+
+      els.trackTitle.textContent = music.title || 'Untitled Track';
+      els.trackDuration.textContent = music.duration || '--:--';
+
+      if (music.audioUrl) {
+        // 실제 음원이 있을 경우
+        els.audioPlayer.src = music.audioUrl;
+        els.audioPlayer.style.display = 'block';
+        els.demoMessage.classList.add('hidden');
+        els.waveAnimation.classList.remove('hidden');
+        els.trackStatus.textContent = '🎵 재생 준비 완료';
+      } else {
+        // 데모 모드
+        els.audioPlayer.style.display = 'none';
+        els.demoMessage.classList.remove('hidden');
+        els.waveAnimation.classList.add('hidden');
+        els.trackStatus.textContent = music.message || '데모 모드';
+      }
+    }
+
+    // ═══════════════════════════════════════════════════════
+    // 📜 History Management
+    // ═══════════════════════════════════════════════════════
+
+    function addToHistory(data) {
+      const entry = {
+        id: Date.now(),
+        timestamp: new Date().toLocaleString('ko-KR'),
+        country: state.country,
+        genre: state.genre,
+        mood: state.mood,
+        tempo: state.tempo,
+        prompt: data.prompt.prompt,
+        title: data.music.title,
+      };
+
+      state.history.unshift(entry);
+      if (state.history.length > 20) state.history.pop();
+      localStorage.setItem('plly_history', JSON.stringify(state.history));
+      renderHistory();
+    }
+
+    function renderHistory() {
+      if (state.history.length === 0) {
+        els.historyPanel.classList.add('hidden');
+        return;
+      }
+
+      els.historyPanel.classList.remove('hidden');
+      els.historyList.innerHTML = '';
+
+      state.history.forEach(entry => {
+        const div = document.createElement('div');
+        div.className = 'bg-plly-bg/50 border border-plly-border rounded-xl p-3 hover:border-purple-500/30 transition-all cursor-pointer group';
+        div.innerHTML = `
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs text-purple-400 font-semibold">${entry.title || 'Untitled'}</span>
+            <span class="text-xs text-plly-muted">${entry.timestamp}</span>
+          </div>
+          <p class="text-xs text-plly-text/60 truncate font-mono group-hover:text-plly-text/80 transition-colors">${entry.prompt}</p>
+        `;
+        div.addEventListener('click', () => {
+          copyToClipboard(entry.prompt);
+          showToast('기록의 프롬프트가 복사되었습니다!', 'info');
+        });
+        els.historyList.appendChild(div);
+      });
+    }
+
+    // ═══════════════════════════════════════════════════════
+    // 🛠️ Utilities
+    // ═══════════════════════════════════════════════════════
+
+    async function copyToClipboard(text) {
+      try {
+        await navigator.clipboard.writeText(text);
+      } catch (err) {
+        // Fallback
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+      }
+    }
+
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toast-container');
+
+      const colors = {
+        success: 'from-emerald-600/90 to-teal-600/90 border-emerald-500/30',
+        error: 'from-rose-600/90 to-red-600/90 border-rose-500/30',
+        info: 'from-purple-600/90 to-violet-600/90 border-purple-500/30',
+      };
+
+      const icons = {
+        success: '✅',
+        error: '❌',
+        info: 'ℹ️',
+      };
+
+      const toast = document.createElement('div');
+      toast.className = `toast glass rounded-xl px-5 py-3 bg-gradient-to-r ${colors[type]} border flex items-center gap-3 shadow-2xl max-w-sm`;
+      toast.innerHTML = `
+        <span class="text-lg">${icons[type]}</span>
+        <span class="text-sm text-white font-medium">${message}</span>
+      `;
+
+      container.appendChild(toast);
+
+      // Trigger animation
+      requestAnimationFrame(() => {
+        toast.classList.add('show');
+      });
+
+      // Auto remove
+      setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 400);
+      }, 3000);
+    }
+
+    // ═══════════════════════════════════════════════════════
+    // 🏁 Start
+    // ═══════════════════════════════════════════════════════
+
+    init();
+  </script>
+</body>
+</html>
