@@ -756,6 +756,34 @@ app.post('/api/generate-music', async (req, res) => {
     }
 });
 
+// 🎯 배치 프롬프트 생성 API (N개 한번에 생성)
+app.post('/api/generate-batch', async (req, res) => {
+    try {
+        const { country, genre, mood, tempo, count = 10 } = req.body;
+        if (!country || !genre || !mood || !tempo) {
+            return res.status(400).json({ success: false, error: '모든 파라미터를 입력해 주세요' });
+        }
+
+        const batchCount = Math.min(Math.max(parseInt(count) || 10, 1), 10); // 1~10개 제한
+        const results = [];
+
+        for (let i = 0; i < batchCount; i++) {
+            const result = generateSunoPrompt(country, genre, mood, tempo);
+            results.push({
+                index: i + 1,
+                prompt: result.prompt,
+                title: result.titleSuggestions[0],
+                metaTags: result.metaTags,
+                fullPrompt: result.fullPrompt
+            });
+        }
+
+        res.json({ success: true, count: batchCount, results });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
 // 데이터 조회 API (프론트엔드 드롭다운용)
 app.get('/api/options', (req, res) => {
     const countries = Object.entries(COUNTRY_STYLES).map(([key, val]) => ({

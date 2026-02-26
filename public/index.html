@@ -479,16 +479,28 @@
           </select>
         </div>
 
-        <!-- Generate Button -->
-        <button id="btn-generate"
-          class="btn-generate w-full py-4 rounded-2xl text-white font-bold text-base tracking-wide uppercase disabled:opacity-50 animate-slide-up flex items-center justify-center gap-3"
-          style="animation-delay: 0.5s" disabled>
-          <svg id="btn-icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-          </svg>
-          <span id="btn-text">프롬프트 생성하기</span>
-          <div id="btn-spinner" class="spinner hidden"></div>
-        </button>
+        <!-- Generate Buttons -->
+        <div class="flex gap-3 animate-slide-up" style="animation-delay: 0.5s">
+          <button id="btn-generate"
+            class="btn-generate flex-1 py-4 rounded-2xl text-white font-bold text-sm tracking-wide uppercase disabled:opacity-50 flex items-center justify-center gap-2"
+            disabled>
+            <svg id="btn-icon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+            <span id="btn-text">1개 생성</span>
+            <div id="btn-spinner" class="spinner hidden"></div>
+          </button>
+          <button id="btn-generate-batch"
+            class="flex-1 py-4 rounded-2xl text-white font-bold text-sm tracking-wide uppercase disabled:opacity-50 flex items-center justify-center gap-2 transition-all"
+            style="background:linear-gradient(135deg,#f59e0b,#ef4444);opacity:0.5;cursor:not-allowed" disabled>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+            </svg>
+            <span id="btn-batch-text">10개 생성</span>
+            <div id="btn-batch-spinner" class="spinner hidden"></div>
+          </button>
+        </div>
 
       </div>
 
@@ -962,6 +974,9 @@
       historyList: document.getElementById('history-list'),
       countryFlag: document.getElementById('country-flag'),
       moodEmoji: document.getElementById('mood-emoji'),
+      btnGenerateBatch: document.getElementById('btn-generate-batch'),
+      btnBatchText: document.getElementById('btn-batch-text'),
+      btnBatchSpinner: document.getElementById('btn-batch-spinner'),
     };
 
     // ═══════════════════════════════════════════════════════
@@ -1027,6 +1042,8 @@
 
     // Generate button
     els.btnGenerate.addEventListener('click', generatePrompt);
+    // 10개 배치 생성 버튼
+    els.btnGenerateBatch.addEventListener('click', generateBatch);
 
     // Copy buttons
     els.btnCopyPrompt.addEventListener('click', () => {
@@ -1058,6 +1075,12 @@
     function checkReady() {
       const ready = state.country && state.genre && state.mood && state.tempo;
       els.btnGenerate.disabled = !ready;
+      // 배치 버튼도 함께 활성화
+      if (els.btnGenerateBatch) {
+        els.btnGenerateBatch.disabled = !ready;
+        els.btnGenerateBatch.style.opacity = ready ? '1' : '0.5';
+        els.btnGenerateBatch.style.cursor = ready ? 'pointer' : 'not-allowed';
+      }
     }
 
     // ═══════════════════════════════════════════════════════
@@ -1103,11 +1126,115 @@
         console.error('Generate error:', err);
       } finally {
         state.isGenerating = false;
-        els.btnText.textContent = '프롬프트 생성하기';
+        els.btnText.textContent = '1개 생성';
         els.btnIcon.classList.remove('hidden');
         els.btnSpinner.classList.add('hidden');
         els.btnGenerate.disabled = false;
       }
+    }
+
+    // ═══════════════════════════════════════════════════════
+    // 🎯 Batch Generate (10개 한번에)
+    // ═══════════════════════════════════════════════════════
+    async function generateBatch() {
+      if (state.isGenerating) return;
+      state.isGenerating = true;
+
+      els.btnBatchText.textContent = '생성 중...';
+      els.btnBatchSpinner.classList.remove('hidden');
+      els.btnGenerateBatch.disabled = true;
+
+      try {
+        const res = await fetch('/api/generate-batch', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ country: state.country, genre: state.genre, mood: state.mood, tempo: state.tempo, count: 10 })
+        });
+        const data = await res.json();
+        if (!data.success) throw new Error(data.error || '배치 생성 실패');
+
+        // 배치 결과 표시
+        displayBatchResults(data.results);
+        showToast(`🎵 ${data.count}개 프롬프트 생성 완료!`, 'success');
+
+      } catch (err) {
+        showToast(err.message, 'error');
+      } finally {
+        state.isGenerating = false;
+        els.btnBatchText.textContent = '10개 생성';
+        els.btnBatchSpinner.classList.add('hidden');
+        els.btnGenerateBatch.disabled = false;
+      }
+    }
+
+    function displayBatchResults(results) {
+      // 기존 배치 패널 제거
+      const existing = document.getElementById('batch-panel');
+      if (existing) existing.remove();
+
+      // 새 배치 패널 생성
+      const panel = document.createElement('div');
+      panel.id = 'batch-panel';
+      panel.className = 'glass-strong rounded-2xl p-6';
+      panel.innerHTML = `
+        <div class="flex items-center gap-3 mb-5">
+          <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-500 to-red-500 flex items-center justify-center text-lg">🎯</div>
+          <div>
+            <h2 class="font-semibold text-white text-base">10개 프롬프트 배치</h2>
+            <p class="text-plly-muted text-xs">각 프롬프트를 클릭해서 복사하세요</p>
+          </div>
+          <button onclick="document.getElementById('batch-panel').remove()"
+            class="ml-auto text-xs text-plly-muted hover:text-rose-400 px-3 py-1 rounded-lg hover:bg-rose-500/10 transition-colors">✕ 닫기</button>
+        </div>
+        <div class="space-y-3">
+          ${results.map(r => `
+            <div class="bg-white/5 border border-white/10 rounded-xl p-4 hover:border-purple-500/30 transition-all cursor-pointer group"
+              onclick="copyBatchPrompt(${r.index - 1})">
+              <div class="flex items-start justify-between gap-3">
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center gap-2 mb-2">
+                    <span class="text-xs font-bold text-purple-400 bg-purple-400/10 px-2 py-0.5 rounded-full">#${r.index}</span>
+                    <span class="text-xs text-plly-muted truncate">${r.title}</span>
+                  </div>
+                  <p class="text-xs text-plly-text/80 leading-relaxed line-clamp-2 font-mono">${r.prompt}</p>
+                </div>
+                <button class="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity bg-purple-500/20 hover:bg-purple-500/40 border border-purple-500/30 text-purple-300 text-xs px-3 py-1.5 rounded-lg">복사</button>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+        <button onclick="copyAllBatchPrompts()"
+          class="mt-4 w-full py-3 rounded-xl text-white text-sm font-semibold transition-all"
+          style="background:linear-gradient(135deg,#f59e0b,#ef4444);"
+          onmouseover="this.style.transform='translateY(-1px)'"
+          onmouseout="this.style.transform=''">
+          📋 전체 ${results.length}개 한번에 복사
+        </button>
+      `;
+
+      // 우측 패널 맨 아래에 추가
+      const rightPanel = document.querySelector('.lg\\:col-span-3');
+      if (rightPanel) rightPanel.appendChild(panel);
+
+      // 배치 데이터 저장
+      window._batchResults = results;
+
+      // 스크롤
+      panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function copyBatchPrompt(index) {
+      if (!window._batchResults) return;
+      const r = window._batchResults[index];
+      copyToClipboard(r.prompt);
+      showToast(`#${r.index} 프롬프트 복사됨! 🎵`, 'success');
+    }
+
+    function copyAllBatchPrompts() {
+      if (!window._batchResults) return;
+      const allText = window._batchResults.map(r => `[#${r.index}] ${r.title}\n${r.prompt}`).join('\n\n---\n\n');
+      copyToClipboard(allText);
+      showToast(`🎉 전체 ${window._batchResults.length}개 프롬프트 복사 완료!`, 'success');
     }
 
     // ═══════════════════════════════════════════════════════
