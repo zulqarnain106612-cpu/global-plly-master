@@ -523,31 +523,154 @@
             <h3 class="text-sm font-bold text-white mb-4 flex items-center gap-2">🏆 글로벌 스트리밍 TOP 10 <span
                 class="text-xs font-normal text-plly-muted">(Spotify 2025)</span></h3>
             <div class="space-y-2">
-              ${[
-              {r:1, g:'Hip-Hop / Rap', pct:'28%', w:'88%', c:'from-amber-400 to-orange-400', hot:true},
-              {r:2, g:'Pop', pct:'23%', w:'74%', c:'from-slate-300 to-slate-400', hot:false},
-              {r:3, g:'Latin / Reggaeton', pct:'18%', w:'58%', c:'from-orange-400 to-yellow-400', hot:false},
-              {r:4, g:'R&B / Soul', pct:'12%', w:'40%', c:'from-purple-400 to-pink-400', hot:false},
-              {r:5, g:'Afrobeats', pct:'📈', w:'32%', c:'from-green-400 to-teal-400', hot:true},
-              {r:6, g:'K-Pop', pct:'📈', w:'28%', c:'from-pink-400 to-rose-400', hot:true},
-              {r:7, g:'EDM / Dance', pct:'8%', w:'25%', c:'from-cyan-400 to-blue-400', hot:false},
-              {r:8, g:'Rock / Alt', pct:'6%', w:'20%', c:'from-red-400 to-orange-400', hot:false},
-              {r:9, g:'Lo-Fi / Chillhop', pct:'4%', w:'14%', c:'from-amber-300/60 to-yellow-300/60', hot:false},
-              {r:10, g:'Bollywood', pct:'3%', w:'10%', c:'from-indigo-400/60 to-purple-400/60', hot:false},
-              ].map(x=>`
+              <!-- 1 -->
               <div class="flex items-center gap-3">
                 <span
-                  class="w-6 h-6 rounded-full ${x.r<=3?'bg-amber-400 text-black':'bg-white/10 text-white/60'} text-xs font-black flex items-center justify-center flex-shrink-0">${x.r}</span>
+                  class="w-6 h-6 rounded-full bg-amber-400 text-black text-xs font-black flex items-center justify-center flex-shrink-0">1</span>
                 <div class="flex-1 min-w-0">
                   <div class="flex justify-between mb-1">
-                    <span class="text-xs ${x.r<=3?'text-white font-medium':'text-white/70'}">${x.g}</span>
-                    <span class="text-xs ${x.hot?'text-green-400':'text-plly-muted'}">${x.pct}</span>
+                    <span class="text-xs text-white font-medium">Hip-Hop / Rap</span>
+                    <span class="text-xs text-green-400">28%</span>
                   </div>
                   <div class="h-1.5 bg-white/5 rounded-full">
-                    <div class="h-full rounded-full bg-gradient-to-r ${x.c}" style="width:${x.w}"></div>
+                    <div class="h-full rounded-full bg-gradient-to-r from-amber-400 to-orange-400" style="width:88%">
+                    </div>
                   </div>
                 </div>
-              </div>`).join('')}
+              </div>
+              <!-- 2 -->
+              <div class="flex items-center gap-3">
+                <span
+                  class="w-6 h-6 rounded-full bg-amber-400 text-black text-xs font-black flex items-center justify-center flex-shrink-0">2</span>
+                <div class="flex-1 min-w-0">
+                  <div class="flex justify-between mb-1">
+                    <span class="text-xs text-white font-medium">Pop</span>
+                    <span class="text-xs text-plly-muted">23%</span>
+                  </div>
+                  <div class="h-1.5 bg-white/5 rounded-full">
+                    <div class="h-full rounded-full bg-gradient-to-r from-slate-300 to-slate-400" style="width:74%">
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!-- 3 -->
+              <div class="flex items-center gap-3">
+                <span
+                  class="w-6 h-6 rounded-full bg-amber-400 text-black text-xs font-black flex items-center justify-center flex-shrink-0">3</span>
+                <div class="flex-1 min-w-0">
+                  <div class="flex justify-between mb-1">
+                    <span class="text-xs text-white font-medium">Latin / Reggaeton</span>
+                    <span class="text-xs text-plly-muted">18%</span>
+                  </div>
+                  <div class="h-1.5 bg-white/5 rounded-full">
+                    <div class="h-full rounded-full bg-gradient-to-r from-orange-400 to-yellow-400" style="width:58%">
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!-- 4 -->
+              <div class="flex items-center gap-3">
+                <span
+                  class="w-6 h-6 rounded-full bg-white/10 text-white/60 text-xs font-black flex items-center justify-center flex-shrink-0">4</span>
+                <div class="flex-1 min-w-0">
+                  <div class="flex justify-between mb-1">
+                    <span class="text-xs text-white/70">R&B / Soul</span>
+                    <span class="text-xs text-plly-muted">12%</span>
+                  </div>
+                  <div class="h-1.5 bg-white/5 rounded-full">
+                    <div class="h-full rounded-full bg-gradient-to-r from-purple-400 to-pink-400" style="width:40%">
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!-- 5 -->
+              <div class="flex items-center gap-3">
+                <span
+                  class="w-6 h-6 rounded-full bg-white/10 text-white/60 text-xs font-black flex items-center justify-center flex-shrink-0">5</span>
+                <div class="flex-1 min-w-0">
+                  <div class="flex justify-between mb-1">
+                    <span class="text-xs text-white/70">Afrobeats</span>
+                    <span class="text-xs text-green-400">📈 급성장</span>
+                  </div>
+                  <div class="h-1.5 bg-white/5 rounded-full">
+                    <div class="h-full rounded-full bg-gradient-to-r from-green-400 to-teal-400" style="width:32%">
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!-- 6 -->
+              <div class="flex items-center gap-3">
+                <span
+                  class="w-6 h-6 rounded-full bg-white/10 text-white/60 text-xs font-black flex items-center justify-center flex-shrink-0">6</span>
+                <div class="flex-1 min-w-0">
+                  <div class="flex justify-between mb-1">
+                    <span class="text-xs text-white/70">K-Pop</span>
+                    <span class="text-xs text-green-400">📈 급성장</span>
+                  </div>
+                  <div class="h-1.5 bg-white/5 rounded-full">
+                    <div class="h-full rounded-full bg-gradient-to-r from-pink-400 to-rose-400" style="width:28%"></div>
+                  </div>
+                </div>
+              </div>
+              <!-- 7 -->
+              <div class="flex items-center gap-3">
+                <span
+                  class="w-6 h-6 rounded-full bg-white/10 text-white/60 text-xs font-black flex items-center justify-center flex-shrink-0">7</span>
+                <div class="flex-1 min-w-0">
+                  <div class="flex justify-between mb-1">
+                    <span class="text-xs text-white/70">EDM / Dance</span>
+                    <span class="text-xs text-plly-muted">8%</span>
+                  </div>
+                  <div class="h-1.5 bg-white/5 rounded-full">
+                    <div class="h-full rounded-full bg-gradient-to-r from-cyan-400 to-blue-400" style="width:25%"></div>
+                  </div>
+                </div>
+              </div>
+              <!-- 8 -->
+              <div class="flex items-center gap-3">
+                <span
+                  class="w-6 h-6 rounded-full bg-white/10 text-white/60 text-xs font-black flex items-center justify-center flex-shrink-0">8</span>
+                <div class="flex-1 min-w-0">
+                  <div class="flex justify-between mb-1">
+                    <span class="text-xs text-white/70">Rock / Alt</span>
+                    <span class="text-xs text-plly-muted">6%</span>
+                  </div>
+                  <div class="h-1.5 bg-white/5 rounded-full">
+                    <div class="h-full rounded-full bg-gradient-to-r from-red-400 to-orange-400" style="width:20%">
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!-- 9 -->
+              <div class="flex items-center gap-3">
+                <span
+                  class="w-6 h-6 rounded-full bg-white/10 text-white/60 text-xs font-black flex items-center justify-center flex-shrink-0">9</span>
+                <div class="flex-1 min-w-0">
+                  <div class="flex justify-between mb-1">
+                    <span class="text-xs text-white/70">Lo-Fi / Chillhop</span>
+                    <span class="text-xs text-plly-muted">4%</span>
+                  </div>
+                  <div class="h-1.5 bg-white/5 rounded-full">
+                    <div class="h-full rounded-full bg-gradient-to-r from-amber-300/60 to-yellow-300/60"
+                      style="width:14%"></div>
+                  </div>
+                </div>
+              </div>
+              <!-- 10 -->
+              <div class="flex items-center gap-3">
+                <span
+                  class="w-6 h-6 rounded-full bg-white/10 text-white/60 text-xs font-black flex items-center justify-center flex-shrink-0">10</span>
+                <div class="flex-1 min-w-0">
+                  <div class="flex justify-between mb-1">
+                    <span class="text-xs text-white/70">Bollywood</span>
+                    <span class="text-xs text-plly-muted">3%</span>
+                  </div>
+                  <div class="h-1.5 bg-white/5 rounded-full">
+                    <div class="h-full rounded-full bg-gradient-to-r from-indigo-400/60 to-purple-400/60"
+                      style="width:10%"></div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
           <div class="glass rounded-xl p-5">
