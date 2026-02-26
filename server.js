@@ -1058,6 +1058,163 @@ app.post('/api/generate-music', async (req, res) => {
     }
 });
 
+// ═══════════════════════════════════════════════════════════════
+// 🎨 이미지 AI 프롬프트 생성 엔진
+// 플레이리스트 컨셉 → Midjourney / DALL-E / Niji / SD 프롬프트
+// ═══════════════════════════════════════════════════════════════
+
+const IMAGE_STYLE_MAP = {
+    // 국가별 비주얼 레퍼런스
+    india: { scene: 'Indian temple courtyard at golden hour, marigold flowers, intricate mandala patterns, saffron and gold palette', artist: 'Raja Ravi Varma inspired', neg: 'ugly, blurry, low quality' },
+    brazil: { scene: 'Rio de Janeiro Carnival night, neon lights, tropical jungle, vibrant mosaic tiles, electric energy', artist: 'tropicália art movement', neg: 'ugly, blurry, low quality' },
+    usa: { scene: 'American urban landscape, neon-lit downtown, skyline silhouette, cinematic street photography', artist: 'Edward Hopper, Gregory Crewdson', neg: 'ugly, blurry, low quality' },
+    korea: { scene: 'Neon Seoul cityscape at night, hanbok meets streetwear, cherry blossom rain, dynamic K-pop aesthetic', artist: 'Korean webtoon style', neg: 'ugly, blurry, low quality' },
+    japan: { scene: 'Tokyo city pop retro 80s aesthetic, torii gate silhouette, cherry blossoms, vintage Japanese poster', artist: 'Hiroshi Nagai, Studio Ghibli inspired', neg: 'ugly, blurry, low quality' },
+    mexico: { scene: 'Oaxacan village fiesta, papel picado banners, cactus and desert sunset, bold Day of the Dead iconography', artist: 'Diego Rivera, Mexican muralism', neg: 'ugly, blurry, low quality' },
+    france: { scene: 'Parisian rooftop at dusk, Eiffel Tower bokeh, art nouveau architecture, warm bistro lights', artist: 'Toulouse-Lautrec, French impressionism', neg: 'ugly, blurry, low quality' },
+    uk: { scene: 'London brutalist architecture, rainy cobblestone streets, vintage record shop, underground club entrance', artist: 'Peter Blake, British pop art', neg: 'ugly, blurry, low quality' },
+    nigeria: { scene: 'Lagos waterfront at golden hour, batik patterns, vibrant afropop concert crowd, tropical city energy', artist: 'contemporary Afrofuturism', neg: 'ugly, blurry, low quality' },
+    turkey: { scene: 'Istanbul at sunset, domes and minarets silhouette, intricate Ottoman tile patterns, bazaar lanterns', artist: 'Ottoman miniature art fusion', neg: 'ugly, blurry, low quality' },
+    egypt: { scene: 'Cairo rooftop at twilight, pyramid silhouette, arabesque geometry, warm amber city glow', artist: 'Egyptian Art Deco fusion', neg: 'ugly, blurry, low quality' },
+    jamaica: { scene: 'Kingston beach at sunset, reggae mural street art, palm trees, deep Caribbean blue and rastafarian colors', artist: 'Caribbean folk art style', neg: 'ugly, blurry, low quality' },
+};
+
+const MOOD_VISUAL_MAP = {
+    dawn: { lighting: 'soft dawn light, pastel pink and gold horizon, morning mist', palette: 'soft lavender, warm gold, misty blue' },
+    running: { lighting: 'dynamic motion blur, high contrast sunlight, energy trails', palette: 'electric orange, deep black, neon green' },
+    cafe: { lighting: 'warm cafe window light, bokeh, golden hour interior', palette: 'warm amber, cream, coffee brown' },
+    night_drive: { lighting: 'neon reflections on wet asphalt, streaking headlights, city glow', palette: 'deep navy, hot pink neon, cyan glow' },
+    study: { lighting: 'clean desk lamp light, minimal shadows, focused midday', palette: 'white, soft gray, subtle blue' },
+    party: { lighting: 'strobe flash, fog machine, laser beams, confetti explosion', palette: 'electric purple, hot pink, UV white' },
+    romantic: { lighting: 'candlelight, soft bokeh, golden fairy lights', palette: 'deep rose, warm gold, soft cream' },
+    melancholy: { lighting: 'overcast grey sky, rain on glass, diffused cold light', palette: 'slate blue, muted silver, deep grey' },
+    epic: { lighting: 'dramatic volumetric god rays, storm clouds, cinematic wide shot', palette: 'dark crimson, gold, storm grey' },
+    chill: { lighting: 'gentle diffused sunlight, open nature, peaceful', palette: 'sage green, sky blue, soft white' },
+    cyberpunk: { lighting: 'neon rain, holographic HUD, dark cyberpunk streets at 3AM', palette: 'hot pink, electric blue, acid yellow on black' },
+    summer: { lighting: 'bright beach sunlight, sparkling ocean, clear sky', palette: 'turquoise, sunshine yellow, coral pink' },
+    gym: { lighting: 'stark floodlight, power shadows, dynamic diagonal lines', palette: 'cold steel, aggressive red, matte black' },
+    roadtrip: { lighting: 'window-gold afternoon sun, open highway heat shimmer', palette: 'dusty orange, sky blue, warm yellow' },
+    gaming: { lighting: 'RGB monitor glow, dark room, pixel art accent lights', palette: 'deep purple, RGB rainbow, black' },
+    nostalgia: { lighting: 'vintage film grain, faded VHS tone, warm sepia', palette: 'faded orange, dusty rose, warm sepia' },
+    heartbreak: { lighting: 'cold moonlight, empty room window shadow, stark contrast', palette: 'midnight blue, pale grey, lone amber' },
+    confidence: { lighting: 'spotlight center stage, luxury evening, sharp shadows', palette: 'matte gold, obsidian black, champagne' },
+    hopeful: { lighting: 'first spring morning light, volumetric rays through clouds', palette: 'soft yellow, fresh green, sky blue' },
+    anger: { lighting: 'harsh red emergency light, cracked concrete, raw energy', palette: 'blood red, charcoal black, raw white' },
+    rain: { lighting: 'overcast diffused grey, wet reflections, cozy window glow indoors', palette: 'silver grey, deep blue, amber window' },
+    forest: { lighting: 'dappled sunlight through tree canopy, morning mist', palette: 'deep green, golden amber, earthy brown' },
+    club: { lighting: 'strobing UV blacklight, laser grid, smoke machine, high energy darkness', palette: 'UV white, electric green, deep black' },
+    wedding: { lighting: 'soft golden afternoon ceremony light, floral bokeh', palette: 'ivory white, blush pink, champagne gold' },
+    sleep: { lighting: 'moonlight through curtains, deep quiet blue-black night', palette: 'midnight blue, soft silver, pale lavender' },
+    meditation: { lighting: 'dawn sunrise rays, ethereal light pillars, serene', palette: 'warm white, soft gold, sage' },
+    horror: { lighting: 'single flickering light source, deep shadows, eerie green tint', palette: 'sickly green, shadow black, cold white' },
+    anime: { lighting: 'shonen manga power aura, sakura petals, dramatic sky', palette: 'vivid blue sky, warm gold, electric white' },
+    dinner: { lighting: 'candlelit fine dining, warm amber glow, elegant shadows', palette: 'deep burgundy, warm gold, ivory cream' },
+    kids: { lighting: 'bright cheerful primary colors, cartoon sun, playful soft light', palette: 'primary red, sunny yellow, sky blue' },
+};
+
+const GENRE_VISUAL_MAP = {
+    kpop: { element: 'K-pop idol stage, holographic stage effects, synchronized performance', style: 'Korean webtoon, glossy magazine cover' },
+    hiphop: { element: 'urban graffiti mural, basketball court, streetwear fashion', style: 'hip-hop album cover art, bold typography' },
+    edm: { element: 'massive festival stage, laser grid, crowd hands raised, LED matrix', style: 'electronic music poster, glitch art' },
+    jazz: { element: 'smoky jazz club stage, saxophone spotlight, vintage microphone', style: 'Blue Note Records era album art' },
+    lofi: { element: 'cozy desk with vinyl records, rain on window, cat silhouette, warm lamp', style: 'lo-fi anime aesthetic, Studio Ghibli soft' },
+    rock: { element: 'concert stage explosion, guitar pick, crowd mosh pit, smoke', style: 'classic rock album cover, high contrast photography' },
+    rnb: { element: 'luxury apartment balcony at night, velvet textures, soft lighting', style: 'R&B album cover, fashion photography' },
+    classical: { element: 'grand concert hall interior, orchestra silhouette, chandelier', style: 'romantic era oil painting, architectural photography' },
+    citypop: { element: '80s Japanese city, retro car, rooftop pool, sunset highway', style: 'Hiroshi Nagai poster, vaporwave aesthetic' },
+    bollywood: { element: 'Bollywood film set, ornate costumes, dramatic lighting, flower petals', style: 'Indian film poster, cinematic Bollywood' },
+    afrobeats: { element: 'Lagos rooftop party, colorful kente print, tropical setting', style: 'Afrofuturist art, vibrant graphic design' },
+    reggaeton: { element: 'rooftop party, urban Latin city, palm trees at night', style: 'Latin urban music video aesthetic' },
+    phonk: { element: 'drift car at night, smoke trail, aggressive neon, dark industrial', style: 'phonk cassette aesthetic, grunge' },
+    anisong: { element: 'anime hero silhouette, dynamic action pose, falling cherry blossoms', style: 'anime key visual, manga panel energy' },
+    ambient: { element: 'vast empty landscape, cosmic sky, floating particles, minimalist', style: 'Brian Eno album art, abstract digital art' },
+    acoustic: { element: 'wooden cabin interior, guitar by fireplace, autumn window', style: 'folk album cover, warm film photography' },
+    amapiano: { element: 'South African township sunset, log drum, colorful township murals', style: 'Afrofuturism, contemporary African art' },
+    trot: { element: 'Korean traditional stage, vibrant lights, emotional performance', style: 'Korean TV show poster, retro K-entertainment' },
+    default: { element: 'abstract music visualization, sound waves, artistic concert', style: 'contemporary digital art' },
+};
+
+/**
+ * 이미지 AI 프롬프트 생성기
+ * 국가 + 장르 + 무드 → Midjourney / DALL-E / Nijijourney / Stable Diffusion 프롬프트
+ */
+function generateImagePrompt(country, genre, mood) {
+    const countryData = COUNTRY_STYLES[country];
+    const genreData = GENRE_MAP[genre];
+    const moodData = MOOD_MAP[mood];
+    const imageCountry = IMAGE_STYLE_MAP[country] || { scene: `${country} cultural landscape`, artist: 'contemporary art style', neg: 'ugly, blurry' };
+    const imageMood = MOOD_VISUAL_MAP[mood] || { lighting: 'natural cinematic lighting', palette: 'harmonious color palette' };
+    const imageGenre = GENRE_VISUAL_MAP[genre] || GENRE_VISUAL_MAP.default;
+
+    const countryName = countryData ? countryData.name : country;
+    const genreName = genreData ? genreData.name : genre;
+    const moodName = moodData ? moodData.name : mood;
+    const moodEmoji = moodData ? moodData.emoji : '🎵';
+
+    // ── Midjourney 프롬프트 (가장 상세, 파라미터 포함)
+    const midjourneyPrompt = `${imageCountry.scene}, ${imageGenre.element}, ${imageMood.lighting}, ${imageMood.palette} color palette, ${imageGenre.style}, ${imageCountry.artist}, album cover art for ${genreName} playlist, ultra detailed, cinematic composition, 8K --ar 1:1 --stylize 750 --v 6`;
+
+    // ── DALL-E 3 프롬프트 (자연어 설명형, 구체적 묘사)
+    const dallePrompt = `Create a stunning album cover artwork for a ${genreName} music playlist with a ${moodName} (${moodEmoji}) atmosphere. Setting: ${imageCountry.scene}. Featured visual elements: ${imageGenre.element}. Lighting: ${imageMood.lighting}. Color palette: ${imageMood.palette}. Art style inspired by ${imageCountry.artist} and ${imageGenre.style}. The image should feel like a premium music streaming editorial visual — cinematic, emotional, and perfectly capturing the essence of ${genreName} music from ${countryName}.`;
+
+    // ── Nijijourney 프롬프트 (아니메/일러스트 특화)
+    const nijiPrompt = `${genreName} playlist cover, ${moodName} vibe, ${imageGenre.element}, anime illustration style, ${imageMood.palette}, ${imageCountry.scene}, beautifully detailed, editorial illustration, key visual --niji 6 --ar 1:1 --stylize 600`;
+
+    // ── Stable Diffusion 프롬프트 (웨이트 최적화)
+    const sdPrompt = [
+        `(${imageGenre.element}:1.3)`,
+        `(${imageMood.lighting}:1.2)`,
+        `${imageCountry.scene}`,
+        `${imageMood.palette} color grading`,
+        `(${imageGenre.style}:1.1)`,
+        `album cover composition`,
+        `professional photography`,
+        `8k uhd, detailed, artstation trending`
+    ].join(', ') + `\n\nNegative: ${imageCountry.neg}, watermark, text, signature, low quality, pixelated, amateur`;
+
+    // ── 공통 컨셉 키워드 (어떤 AI에도 붙여쓸 수 있는 핵심 태그)
+    const conceptTags = [
+        genreName,
+        moodEmoji + ' ' + moodName,
+        countryName + ' cultural aesthetic',
+        imageGenre.style,
+        imageMood.palette,
+        'album cover art',
+        'playlist cover design',
+    ];
+
+    return {
+        country: countryName,
+        genre: genreName,
+        mood: moodName,
+        moodEmoji,
+        prompts: {
+            midjourney: midjourneyPrompt,
+            dalle: dallePrompt,
+            nijijourney: nijiPrompt,
+            stableDiffusion: sdPrompt,
+        },
+        conceptTags,
+        colorPalette: imageMood.palette,
+        artStyle: imageGenre.style,
+        scene: imageCountry.scene,
+    };
+}
+
+// 이미지 프롬프트 생성 API
+app.post('/api/generate-image-prompt', (req, res) => {
+    try {
+        const { country, genre, mood } = req.body;
+        if (!country || !genre || !mood) {
+            return res.status(400).json({ success: false, error: 'country, genre, mood 파라미터가 필요합니다.' });
+        }
+        const result = generateImagePrompt(country, genre, mood);
+        res.json({ success: true, data: result });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
 // 🎯 배치 프롬프트 생성 API (N개 한번에 생성)
 app.post('/api/generate-batch', async (req, res) => {
     try {

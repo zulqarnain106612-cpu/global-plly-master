@@ -369,6 +369,22 @@
       box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
     }
 
+    /* ═══ Image AI Tabs ═══ */
+    .img-tab {
+      color: rgba(255, 255, 255, 0.45);
+    }
+
+    .img-tab:hover {
+      color: rgba(255, 255, 255, 0.75);
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .img-tab.active {
+      background: linear-gradient(135deg, rgba(217, 70, 239, 0.3), rgba(244, 63, 94, 0.25));
+      color: #fff;
+      border: 1px solid rgba(217, 70, 239, 0.4);
+    }
+
     /* ═══ Step Indicator ═══ */
     .step-indicator {
       counter-reset: step;
@@ -938,6 +954,111 @@
             </div>
           </div>
           <div id="meta-tags-grid" class="grid grid-cols-2 gap-3"></div>
+        </div>
+
+        <!-- 🎨 Image AI Prompt Panel -->
+        <div id="image-prompt-panel" class="glass-strong rounded-2xl p-6 hidden animate-fade-in">
+          <!-- Header -->
+          <div class="flex items-center justify-between mb-5">
+            <div class="flex items-center gap-3">
+              <div
+                class="w-8 h-8 rounded-lg bg-gradient-to-br from-fuchsia-500 to-pink-500 flex items-center justify-center text-lg">
+                🎨</div>
+              <div>
+                <h2 class="font-semibold text-white text-base">이미지 AI 프롬프트</h2>
+                <p class="text-plly-muted text-xs">플레이리스트 커버 이미지 생성용</p>
+              </div>
+            </div>
+            <div id="img-prompt-loading" class="hidden flex items-center gap-2">
+              <div class="spinner w-4 h-4"></div>
+              <span class="text-xs text-plly-muted">생성 중...</span>
+            </div>
+          </div>
+
+          <!-- 개념 태그 -->
+          <div id="img-concept-tags" class="flex flex-wrap gap-1.5 mb-5"></div>
+
+          <!-- 컬러 팔레트 힌트 -->
+          <div id="img-color-palette"
+            class="text-xs text-plly-muted bg-white/5 rounded-lg px-3 py-2 mb-4 border border-white/10">
+            🎨 <span id="img-palette-text"></span>
+          </div>
+
+          <!-- AI Tool 탭 -->
+          <div class="flex gap-1 bg-white/5 rounded-xl p-1 mb-4 overflow-x-auto">
+            <button onclick="switchImgTab('midjourney')" id="img-tab-midjourney"
+              class="img-tab active flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all">
+              🧿 Midjourney
+            </button>
+            <button onclick="switchImgTab('dalle')" id="img-tab-dalle"
+              class="img-tab flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all">
+              🤖 DALL-E 3
+            </button>
+            <button onclick="switchImgTab('nijijourney')" id="img-tab-nijijourney"
+              class="img-tab flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all">
+              ✨ Nijijourney
+            </button>
+            <button onclick="switchImgTab('stableDiffusion')" id="img-tab-stableDiffusion"
+              class="img-tab flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all">
+              ⚡ Stable Diffusion
+            </button>
+          </div>
+
+          <!-- 프롬프트 텍스트 박스 -->
+          <div class="relative">
+            <div id="img-prompt-box"
+              class="prompt-box rounded-xl p-4 min-h-[100px] text-sm leading-relaxed text-fuchsia-200 font-mono whitespace-pre-wrap break-words">
+            </div>
+            <button onclick="copyImgPrompt()"
+              class="absolute top-3 right-3 btn-copy px-3 py-1.5 rounded-lg text-xs font-semibold text-white flex items-center gap-1.5"
+              aria-label="이미지 프롬프트 복사">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+              </svg>
+              Copy
+            </button>
+          </div>
+
+          <!-- 사용 안내 -->
+          <div class="mt-4 grid grid-cols-2 gap-2">
+            <a href="https://www.midjourney.com" target="_blank"
+              class="flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl px-3 py-2 transition-all group">
+              <span class="text-lg">🧿</span>
+              <div>
+                <div class="text-xs font-semibold text-white group-hover:text-fuchsia-300 transition-colors">Midjourney
+                </div>
+                <div class="text-[10px] text-plly-muted">midjourney.com</div>
+              </div>
+            </a>
+            <a href="https://chatgpt.com" target="_blank"
+              class="flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl px-3 py-2 transition-all group">
+              <span class="text-lg">🤖</span>
+              <div>
+                <div class="text-xs font-semibold text-white group-hover:text-fuchsia-300 transition-colors">DALL-E 3
+                </div>
+                <div class="text-[10px] text-plly-muted">ChatGPT Image</div>
+              </div>
+            </a>
+            <a href="https://nijijourney.com" target="_blank"
+              class="flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl px-3 py-2 transition-all group">
+              <span class="text-lg">✨</span>
+              <div>
+                <div class="text-xs font-semibold text-white group-hover:text-fuchsia-300 transition-colors">Nijijourney
+                </div>
+                <div class="text-[10px] text-plly-muted">nijijourney.com</div>
+              </div>
+            </a>
+            <a href="https://stablediffusionweb.com" target="_blank"
+              class="flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl px-3 py-2 transition-all group">
+              <span class="text-lg">⚡</span>
+              <div>
+                <div class="text-xs font-semibold text-white group-hover:text-fuchsia-300 transition-colors">Stable
+                  Diffusion</div>
+                <div class="text-[10px] text-plly-muted">stablediffusionweb.com</div>
+              </div>
+            </a>
+          </div>
         </div>
 
         <!-- Music Player Panel -->
@@ -1665,6 +1786,91 @@
 
       // Player panel
       displayPlayer(music, promptData);
+
+      // 🎨 이미지 AI 프롬프트 자동 생성
+      fetchImagePrompt(
+        els.selectCountry.value,
+        els.selectGenre.value,
+        els.selectMood.value
+      );
+    }
+
+    // ═══════════════════════════════════════════════════════
+    // 🎨 Image AI Prompt Functions
+    // ═══════════════════════════════════════════════════════
+
+    let _imgPromptData = null; // 현재 이미지 프롬프트 데이터 캐시
+    let _currentImgTab = 'midjourney'; // 현재 활성 탭
+
+    async function fetchImagePrompt(country, genre, mood) {
+      const panel = document.getElementById('image-prompt-panel');
+      const loading = document.getElementById('img-prompt-loading');
+      if (!panel || !country || !genre || !mood) return;
+
+      // 패널 표시 & 로딩 상태
+      panel.classList.remove('hidden');
+      panel.classList.add('animate-fade-in');
+      loading.classList.remove('hidden');
+      document.getElementById('img-prompt-box').textContent = '생성 중...';
+
+      try {
+        const token = localStorage.getItem('gpm_token');
+        const res = await fetch('/api/generate-image-prompt', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+          },
+          body: JSON.stringify({ country, genre, mood })
+        });
+        const data = await res.json();
+        if (data.success) {
+          _imgPromptData = data.data;
+          displayImagePrompt(data.data);
+        }
+      } catch (e) {
+        document.getElementById('img-prompt-box').textContent = '⚠️ 이미지 프롬프트 생성 실패: ' + e.message;
+      } finally {
+        loading.classList.add('hidden');
+      }
+    }
+
+    function displayImagePrompt(data) {
+      // 개념 태그
+      const tagsEl = document.getElementById('img-concept-tags');
+      tagsEl.innerHTML = data.conceptTags.map(tag =>
+        `<span class="px-2.5 py-1 rounded-full text-xs font-medium bg-fuchsia-500/15 border border-fuchsia-500/25 text-fuchsia-300">${tag}</span>`
+      ).join('');
+
+      // 컬러 팔레트
+      document.getElementById('img-palette-text').textContent = data.colorPalette;
+
+      // 기본 탭(midjourney) 프롬프트 표시
+      switchImgTab(_currentImgTab);
+    }
+
+    function switchImgTab(tab) {
+      _currentImgTab = tab;
+      // 탭 활성화
+      document.querySelectorAll('.img-tab').forEach(btn => btn.classList.remove('active'));
+      const activeBtn = document.getElementById(`img-tab-${tab}`);
+      if (activeBtn) activeBtn.classList.add('active');
+      // 프롬프트 표시
+      const box = document.getElementById('img-prompt-box');
+      if (_imgPromptData && _imgPromptData.prompts) {
+        box.textContent = _imgPromptData.prompts[tab] || '프롬프트 준비 중...';
+      } else {
+        box.textContent = '먼저 음악 프롬프트를 생성해주세요.';
+      }
+    }
+
+    function copyImgPrompt() {
+      const box = document.getElementById('img-prompt-box');
+      const text = box.textContent;
+      if (!text || text === '먼저 음악 프롬프트를 생성해주세요.') return;
+      copyToClipboard(text);
+      const toolName = { midjourney: 'Midjourney', dalle: 'DALL-E 3', nijijourney: 'Nijijourney', stableDiffusion: 'Stable Diffusion' };
+      showToast(`🎨 ${toolName[_currentImgTab] || ''} 프롬프트 복사 완료!`, 'success');
     }
 
     function displayMetaTags(metaTags) {
