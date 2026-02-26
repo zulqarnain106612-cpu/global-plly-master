@@ -321,6 +321,22 @@
       opacity: 1;
     }
 
+    /* ═══ Trend Tabs ═══ */
+    .trend-tab {
+      color: rgba(255, 255, 255, 0.45);
+    }
+
+    .trend-tab:hover {
+      color: rgba(255, 255, 255, 0.75);
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .trend-tab.active {
+      background: linear-gradient(135deg, rgba(139, 92, 246, 0.3), rgba(6, 182, 212, 0.3));
+      color: #fff;
+      border: 1px solid rgba(139, 92, 246, 0.4);
+    }
+
     /* ═══ Step Indicator ═══ */
     .step-indicator {
       counter-reset: step;
@@ -400,6 +416,477 @@
           관리자</a>
       </div>
     </header>
+
+    <!-- ═══ Trend Info Panel ═══ -->
+    <section id="trend-panel" class="mb-8 animate-slide-up" style="animation-delay:0.05s">
+      <!-- 탭 네비게이션 -->
+      <div class="flex items-center gap-2 mb-4">
+        <div class="flex bg-white/5 border border-white/10 rounded-xl p-1 gap-1">
+          <button onclick="switchTrendTab('country')" id="tab-country"
+            class="trend-tab active px-4 py-1.5 rounded-lg text-xs font-semibold transition-all">
+            🌍 국가별
+          </button>
+          <button onclick="switchTrendTab('age')" id="tab-age"
+            class="trend-tab px-4 py-1.5 rounded-lg text-xs font-semibold transition-all">
+            👶 연령별
+          </button>
+          <button onclick="switchTrendTab('top')" id="tab-top"
+            class="trend-tab px-4 py-1.5 rounded-lg text-xs font-semibold transition-all">
+            🏆 인기장르 TOP
+          </button>
+        </div>
+        <span class="ml-auto text-xs text-plly-muted bg-white/5 px-3 py-1 rounded-full border border-white/10">📅 2025
+          글로벌 트렌드</span>
+      </div>
+
+      <!-- 탭 컨텐츠 -->
+      <div id="trend-country" class="trend-content">
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+          <!-- Korea -->
+          <div class="glass rounded-xl p-4 hover:scale-[1.02] transition-transform cursor-default">
+            <div class="text-2xl mb-2">🇰🇷</div>
+            <div class="text-xs font-bold text-white mb-2">한국</div>
+            <ol class="space-y-1">
+              <li class="flex items-center gap-1.5"><span class="text-amber-400 text-xs font-bold w-4">1</span><span
+                  class="text-xs text-plly-muted">K-Pop</span></li>
+              <li class="flex items-center gap-1.5"><span class="text-slate-400 text-xs font-bold w-4">2</span><span
+                  class="text-xs text-plly-muted">K-Hip Hop</span></li>
+              <li class="flex items-center gap-1.5"><span class="text-orange-400 text-xs font-bold w-4">3</span><span
+                  class="text-xs text-plly-muted">트로트</span></li>
+              <li class="flex items-center gap-1.5"><span class="text-plly-muted text-xs font-bold w-4">4</span><span
+                  class="text-xs text-plly-muted">K-Indie</span></li>
+              <li class="flex items-center gap-1.5"><span class="text-plly-muted text-xs font-bold w-4">5</span><span
+                  class="text-xs text-plly-muted">R&B/Soul</span></li>
+            </ol>
+          </div>
+          <!-- Japan -->
+          <div class="glass rounded-xl p-4 hover:scale-[1.02] transition-transform cursor-default">
+            <div class="text-2xl mb-2">🇯🇵</div>
+            <div class="text-xs font-bold text-white mb-2">일본</div>
+            <ol class="space-y-1">
+              <li class="flex items-center gap-1.5"><span class="text-amber-400 text-xs font-bold w-4">1</span><span
+                  class="text-xs text-plly-muted">Anime OST</span></li>
+              <li class="flex items-center gap-1.5"><span class="text-slate-400 text-xs font-bold w-4">2</span><span
+                  class="text-xs text-plly-muted">J-Pop</span></li>
+              <li class="flex items-center gap-1.5"><span class="text-orange-400 text-xs font-bold w-4">3</span><span
+                  class="text-xs text-plly-muted">City Pop</span></li>
+              <li class="flex items-center gap-1.5"><span class="text-plly-muted text-xs font-bold w-4">4</span><span
+                  class="text-xs text-plly-muted">J-Rock</span></li>
+              <li class="flex items-center gap-1.5"><span class="text-plly-muted text-xs font-bold w-4">5</span><span
+                  class="text-xs text-plly-muted">Lo-Fi</span></li>
+            </ol>
+          </div>
+          <!-- USA -->
+          <div class="glass rounded-xl p-4 hover:scale-[1.02] transition-transform cursor-default">
+            <div class="text-2xl mb-2">🇺🇸</div>
+            <div class="text-xs font-bold text-white mb-2">미국</div>
+            <ol class="space-y-1">
+              <li class="flex items-center gap-1.5"><span class="text-amber-400 text-xs font-bold w-4">1</span><span
+                  class="text-xs text-plly-muted">Hip-Hop</span></li>
+              <li class="flex items-center gap-1.5"><span class="text-slate-400 text-xs font-bold w-4">2</span><span
+                  class="text-xs text-plly-muted">Pop</span></li>
+              <li class="flex items-center gap-1.5"><span class="text-orange-400 text-xs font-bold w-4">3</span><span
+                  class="text-xs text-plly-muted">R&B</span></li>
+              <li class="flex items-center gap-1.5"><span class="text-plly-muted text-xs font-bold w-4">4</span><span
+                  class="text-xs text-plly-muted">Country</span></li>
+              <li class="flex items-center gap-1.5"><span class="text-plly-muted text-xs font-bold w-4">5</span><span
+                  class="text-xs text-plly-muted">EDM</span></li>
+            </ol>
+          </div>
+          <!-- India -->
+          <div class="glass rounded-xl p-4 hover:scale-[1.02] transition-transform cursor-default">
+            <div class="text-2xl mb-2">🇮🇳</div>
+            <div class="text-xs font-bold text-white mb-2">인도</div>
+            <ol class="space-y-1">
+              <li class="flex items-center gap-1.5"><span class="text-amber-400 text-xs font-bold w-4">1</span><span
+                  class="text-xs text-plly-muted">Bollywood</span></li>
+              <li class="flex items-center gap-1.5"><span class="text-slate-400 text-xs font-bold w-4">2</span><span
+                  class="text-xs text-plly-muted">Punjabi Hip Hop</span></li>
+              <li class="flex items-center gap-1.5"><span class="text-orange-400 text-xs font-bold w-4">3</span><span
+                  class="text-xs text-plly-muted">Bhangra</span></li>
+              <li class="flex items-center gap-1.5"><span class="text-plly-muted text-xs font-bold w-4">4</span><span
+                  class="text-xs text-plly-muted">Indie Hindi</span></li>
+              <li class="flex items-center gap-1.5"><span class="text-plly-muted text-xs font-bold w-4">5</span><span
+                  class="text-xs text-plly-muted">Tamil Pop</span></li>
+            </ol>
+          </div>
+          <!-- Brazil -->
+          <div class="glass rounded-xl p-4 hover:scale-[1.02] transition-transform cursor-default">
+            <div class="text-2xl mb-2">🇧🇷</div>
+            <div class="text-xs font-bold text-white mb-2">브라질</div>
+            <ol class="space-y-1">
+              <li class="flex items-center gap-1.5"><span class="text-amber-400 text-xs font-bold w-4">1</span><span
+                  class="text-xs text-plly-muted">Baile Funk</span></li>
+              <li class="flex items-center gap-1.5"><span class="text-slate-400 text-xs font-bold w-4">2</span><span
+                  class="text-xs text-plly-muted">Sertanejo</span></li>
+              <li class="flex items-center gap-1.5"><span class="text-orange-400 text-xs font-bold w-4">3</span><span
+                  class="text-xs text-plly-muted">Samba</span></li>
+              <li class="flex items-center gap-1.5"><span class="text-plly-muted text-xs font-bold w-4">4</span><span
+                  class="text-xs text-plly-muted">Bossa Nova</span></li>
+              <li class="flex items-center gap-1.5"><span class="text-plly-muted text-xs font-bold w-4">5</span><span
+                  class="text-xs text-plly-muted">Axé</span></li>
+            </ol>
+          </div>
+          <!-- Nigeria-->
+          <div class="glass rounded-xl p-4 hover:scale-[1.02] transition-transform cursor-default">
+            <div class="text-2xl mb-2">🇳🇬</div>
+            <div class="text-xs font-bold text-white mb-2">나이지리아</div>
+            <ol class="space-y-1">
+              <li class="flex items-center gap-1.5"><span class="text-amber-400 text-xs font-bold w-4">1</span><span
+                  class="text-xs text-plly-muted">Afrobeats</span></li>
+              <li class="flex items-center gap-1.5"><span class="text-slate-400 text-xs font-bold w-4">2</span><span
+                  class="text-xs text-plly-muted">Afropop</span></li>
+              <li class="flex items-center gap-1.5"><span class="text-orange-400 text-xs font-bold w-4">3</span><span
+                  class="text-xs text-plly-muted">Highlife</span></li>
+              <li class="flex items-center gap-1.5"><span class="text-plly-muted text-xs font-bold w-4">4</span><span
+                  class="text-xs text-plly-muted">Afro-trap</span></li>
+              <li class="flex items-center gap-1.5"><span class="text-plly-muted text-xs font-bold w-4">5</span><span
+                  class="text-xs text-plly-muted">Jùjú</span></li>
+            </ol>
+          </div>
+          <!-- Mexico -->
+          <div class="glass rounded-xl p-4 hover:scale-[1.02] transition-transform cursor-default">
+            <div class="text-2xl mb-2">🇲🇽</div>
+            <div class="text-xs font-bold text-white mb-2">멕시코</div>
+            <ol class="space-y-1">
+              <li class="flex items-center gap-1.5"><span class="text-amber-400 text-xs font-bold w-4">1</span><span
+                  class="text-xs text-plly-muted">Reggaeton</span></li>
+              <li class="flex items-center gap-1.5"><span class="text-slate-400 text-xs font-bold w-4">2</span><span
+                  class="text-xs text-plly-muted">Norteño</span></li>
+              <li class="flex items-center gap-1.5"><span class="text-orange-400 text-xs font-bold w-4">3</span><span
+                  class="text-xs text-plly-muted">Latin Pop</span></li>
+              <li class="flex items-center gap-1.5"><span class="text-plly-muted text-xs font-bold w-4">4</span><span
+                  class="text-xs text-plly-muted">Banda</span></li>
+              <li class="flex items-center gap-1.5"><span class="text-plly-muted text-xs font-bold w-4">5</span><span
+                  class="text-xs text-plly-muted">Mariachi</span></li>
+            </ol>
+          </div>
+          <!-- Germany -->
+          <div class="glass rounded-xl p-4 hover:scale-[1.02] transition-transform cursor-default">
+            <div class="text-2xl mb-2">🇩🇪</div>
+            <div class="text-xs font-bold text-white mb-2">독일/유럽</div>
+            <ol class="space-y-1">
+              <li class="flex items-center gap-1.5"><span class="text-amber-400 text-xs font-bold w-4">1</span><span
+                  class="text-xs text-plly-muted">Techno/EDM</span></li>
+              <li class="flex items-center gap-1.5"><span class="text-slate-400 text-xs font-bold w-4">2</span><span
+                  class="text-xs text-plly-muted">Euro Pop</span></li>
+              <li class="flex items-center gap-1.5"><span class="text-orange-400 text-xs font-bold w-4">3</span><span
+                  class="text-xs text-plly-muted">House</span></li>
+              <li class="flex items-center gap-1.5"><span class="text-plly-muted text-xs font-bold w-4">4</span><span
+                  class="text-xs text-plly-muted">Schlager</span></li>
+              <li class="flex items-center gap-1.5"><span class="text-plly-muted text-xs font-bold w-4">5</span><span
+                  class="text-xs text-plly-muted">Rock</span></li>
+            </ol>
+          </div>
+          <!-- UK -->
+          <div class="glass rounded-xl p-4 hover:scale-[1.02] transition-transform cursor-default">
+            <div class="text-2xl mb-2">🇬🇧</div>
+            <div class="text-xs font-bold text-white mb-2">영국</div>
+            <ol class="space-y-1">
+              <li class="flex items-center gap-1.5"><span class="text-amber-400 text-xs font-bold w-4">1</span><span
+                  class="text-xs text-plly-muted">Pop</span></li>
+              <li class="flex items-center gap-1.5"><span class="text-slate-400 text-xs font-bold w-4">2</span><span
+                  class="text-xs text-plly-muted">Drill</span></li>
+              <li class="flex items-center gap-1.5"><span class="text-orange-400 text-xs font-bold w-4">3</span><span
+                  class="text-xs text-plly-muted">Grime</span></li>
+              <li class="flex items-center gap-1.5"><span class="text-plly-muted text-xs font-bold w-4">4</span><span
+                  class="text-xs text-plly-muted">Indie Rock</span></li>
+              <li class="flex items-center gap-1.5"><span class="text-plly-muted text-xs font-bold w-4">5</span><span
+                  class="text-xs text-plly-muted">Garage</span></li>
+            </ol>
+          </div>
+          <!-- China -->
+          <div class="glass rounded-xl p-4 hover:scale-[1.02] transition-transform cursor-default">
+            <div class="text-2xl mb-2">🇨🇳</div>
+            <div class="text-xs font-bold text-white mb-2">중국</div>
+            <ol class="space-y-1">
+              <li class="flex items-center gap-1.5"><span class="text-amber-400 text-xs font-bold w-4">1</span><span
+                  class="text-xs text-plly-muted">C-Pop (华语)</span></li>
+              <li class="flex items-center gap-1.5"><span class="text-slate-400 text-xs font-bold w-4">2</span><span
+                  class="text-xs text-plly-muted">Mandopop</span></li>
+              <li class="flex items-center gap-1.5"><span class="text-orange-400 text-xs font-bold w-4">3</span><span
+                  class="text-xs text-plly-muted">C-Hip Hop</span></li>
+              <li class="flex items-center gap-1.5"><span class="text-plly-muted text-xs font-bold w-4">4</span><span
+                  class="text-xs text-plly-muted">Guochao</span></li>
+              <li class="flex items-center gap-1.5"><span class="text-plly-muted text-xs font-bold w-4">5</span><span
+                  class="text-xs text-plly-muted">Electronic</span></li>
+            </ol>
+          </div>
+        </div>
+      </div>
+
+      <!-- 연령별 탭 -->
+      <div id="trend-age" class="trend-content hidden">
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+          <!-- 10s -->
+          <div class="glass rounded-xl p-4 border-t-2 border-pink-500/60">
+            <div class="text-xl mb-1">🧒</div>
+            <div class="text-xs font-bold text-pink-300 mb-3">10대 (Gen Z)</div>
+            <ol class="space-y-1.5">
+              <li class="flex items-center gap-1.5"><span class="text-amber-400 text-xs font-bold w-4">1</span><span
+                  class="text-xs text-plly-muted">K-Pop</span><span class="ml-auto text-[10px] text-pink-400">🔥</span>
+              </li>
+              <li class="flex items-center gap-1.5"><span class="text-slate-400 text-xs font-bold w-4">2</span><span
+                  class="text-xs text-plly-muted">Hip-Hop / Trap</span></li>
+              <li class="flex items-center gap-1.5"><span class="text-orange-400 text-xs font-bold w-4">3</span><span
+                  class="text-xs text-plly-muted">Phonk</span><span class="ml-auto text-[10px] text-pink-400">📈</span>
+              </li>
+              <li class="flex items-center gap-1.5"><span class="text-plly-muted text-xs font-bold w-4">4</span><span
+                  class="text-xs text-plly-muted">Anime OST</span></li>
+              <li class="flex items-center gap-1.5"><span class="text-plly-muted text-xs font-bold w-4">5</span><span
+                  class="text-xs text-plly-muted">EDM</span></li>
+            </ol>
+          </div>
+          <!-- 20s -->
+          <div class="glass rounded-xl p-4 border-t-2 border-purple-500/60">
+            <div class="text-xl mb-1">🧑</div>
+            <div class="text-xs font-bold text-purple-300 mb-3">20대 (밀레니얼Z)</div>
+            <ol class="space-y-1.5">
+              <li class="flex items-center gap-1.5"><span class="text-amber-400 text-xs font-bold w-4">1</span><span
+                  class="text-xs text-plly-muted">Hip-Hop / R&B</span><span
+                  class="ml-auto text-[10px] text-purple-400">🔥</span></li>
+              <li class="flex items-center gap-1.5"><span class="text-slate-400 text-xs font-bold w-4">2</span><span
+                  class="text-xs text-plly-muted">Lo-Fi / Chillhop</span></li>
+              <li class="flex items-center gap-1.5"><span class="text-orange-400 text-xs font-bold w-4">3</span><span
+                  class="text-xs text-plly-muted">Indie Pop</span></li>
+              <li class="flex items-center gap-1.5"><span class="text-plly-muted text-xs font-bold w-4">4</span><span
+                  class="text-xs text-plly-muted">K-Pop</span></li>
+              <li class="flex items-center gap-1.5"><span class="text-plly-muted text-xs font-bold w-4">5</span><span
+                  class="text-xs text-plly-muted">Afrobeats</span></li>
+            </ol>
+          </div>
+          <!-- 30s -->
+          <div class="glass rounded-xl p-4 border-t-2 border-cyan-500/60">
+            <div class="text-xl mb-1">🧑‍💼</div>
+            <div class="text-xs font-bold text-cyan-300 mb-3">30대 (밀레니얼)</div>
+            <ol class="space-y-1.5">
+              <li class="flex items-center gap-1.5"><span class="text-amber-400 text-xs font-bold w-4">1</span><span
+                  class="text-xs text-plly-muted">Pop / R&B</span><span
+                  class="ml-auto text-[10px] text-cyan-400">🔥</span></li>
+              <li class="flex items-center gap-1.5"><span class="text-slate-400 text-xs font-bold w-4">2</span><span
+                  class="text-xs text-plly-muted">Indie / Alt Rock</span></li>
+              <li class="flex items-center gap-1.5"><span class="text-orange-400 text-xs font-bold w-4">3</span><span
+                  class="text-xs text-plly-muted">Jazz / Soul</span></li>
+              <li class="flex items-center gap-1.5"><span class="text-plly-muted text-xs font-bold w-4">4</span><span
+                  class="text-xs text-plly-muted">EDM / House</span></li>
+              <li class="flex items-center gap-1.5"><span class="text-plly-muted text-xs font-bold w-4">5</span><span
+                  class="text-xs text-plly-muted">Acoustic</span></li>
+            </ol>
+          </div>
+          <!-- 40s -->
+          <div class="glass rounded-xl p-4 border-t-2 border-teal-500/60">
+            <div class="text-xl mb-1">🧑‍🦱</div>
+            <div class="text-xs font-bold text-teal-300 mb-3">40대</div>
+            <ol class="space-y-1.5">
+              <li class="flex items-center gap-1.5"><span class="text-amber-400 text-xs font-bold w-4">1</span><span
+                  class="text-xs text-plly-muted">Classic Rock</span></li>
+              <li class="flex items-center gap-1.5"><span class="text-slate-400 text-xs font-bold w-4">2</span><span
+                  class="text-xs text-plly-muted">R&B / Soul</span><span
+                  class="ml-auto text-[10px] text-teal-400">🔥</span></li>
+              <li class="flex items-center gap-1.5"><span class="text-orange-400 text-xs font-bold w-4">3</span><span
+                  class="text-xs text-plly-muted">Pop Ballad</span></li>
+              <li class="flex items-center gap-1.5"><span class="text-plly-muted text-xs font-bold w-4">4</span><span
+                  class="text-xs text-plly-muted">Jazz / Smooth</span></li>
+              <li class="flex items-center gap-1.5"><span class="text-plly-muted text-xs font-bold w-4">5</span><span
+                  class="text-xs text-plly-muted">트로트</span></li>
+            </ol>
+          </div>
+          <!-- 50s+ -->
+          <div class="glass rounded-xl p-4 border-t-2 border-emerald-500/60">
+            <div class="text-xl mb-1">🧓</div>
+            <div class="text-xs font-bold text-emerald-300 mb-3">50대+</div>
+            <ol class="space-y-1.5">
+              <li class="flex items-center gap-1.5"><span class="text-amber-400 text-xs font-bold w-4">1</span><span
+                  class="text-xs text-plly-muted">트로트</span><span class="ml-auto text-[10px] text-emerald-400">🔥</span>
+              </li>
+              <li class="flex items-center gap-1.5"><span class="text-slate-400 text-xs font-bold w-4">2</span><span
+                  class="text-xs text-plly-muted">Classical</span></li>
+              <li class="flex items-center gap-1.5"><span class="text-orange-400 text-xs font-bold w-4">3</span><span
+                  class="text-xs text-plly-muted">Oldies Pop</span></li>
+              <li class="flex items-center gap-1.5"><span class="text-plly-muted text-xs font-bold w-4">4</span><span
+                  class="text-xs text-plly-muted">Ballad</span></li>
+              <li class="flex items-center gap-1.5"><span class="text-plly-muted text-xs font-bold w-4">5</span><span
+                  class="text-xs text-plly-muted">Jazz</span></li>
+            </ol>
+          </div>
+        </div>
+      </div>
+
+      <!-- 인기장르 TOP 탭 -->
+      <div id="trend-top" class="trend-content hidden">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- 글로벌 TOP10 -->
+          <div class="glass rounded-xl p-5">
+            <h3 class="text-sm font-bold text-white mb-4 flex items-center gap-2">🏆 글로벌 스트리밍 TOP 10 <span
+                class="text-xs font-normal text-plly-muted">(Spotify 2025)</span></h3>
+            <div class="space-y-2">
+              <div class="flex items-center gap-3">
+                <span
+                  class="w-6 h-6 rounded-full bg-amber-400 text-black text-xs font-black flex items-center justify-center">1</span>
+                <div class="flex-1">
+                  <div class="flex justify-between"><span class="text-xs text-white font-medium">Hip-Hop /
+                      Rap</span><span class="text-xs text-amber-400">28%</span></div>
+                  <div class="h-1.5 bg-white/5 rounded-full mt-1">
+                    <div class="h-full rounded-full bg-gradient-to-r from-amber-400 to-orange-400" style="width:88%">
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="flex items-center gap-3">
+                <span
+                  class="w-6 h-6 rounded-full bg-slate-400 text-black text-xs font-black flex items-center justify-center">2</span>
+                <div class="flex-1">
+                  <div class="flex justify-between"><span class="text-xs text-white font-medium">Pop</span><span
+                      class="text-xs text-slate-400">23%</span></div>
+                  <div class="h-1.5 bg-white/5 rounded-full mt-1">
+                    <div class="h-full rounded-full bg-gradient-to-r from-slate-400 to-slate-300" style="width:74%">
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="flex items-center gap-3">
+                <span
+                  class="w-6 h-6 rounded-full bg-orange-400 text-black text-xs font-black flex items-center justify-center">3</span>
+                <div class="flex-1">
+                  <div class="flex justify-between"><span class="text-xs text-white font-medium">Latin /
+                      Reggaeton</span><span class="text-xs text-orange-400">18%</span></div>
+                  <div class="h-1.5 bg-white/5 rounded-full mt-1">
+                    <div class="h-full rounded-full bg-gradient-to-r from-orange-400 to-yellow-400" style="width:58%">
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="flex items-center gap-3">
+                <span
+                  class="w-6 h-6 rounded-full bg-white/20 text-white text-xs font-black flex items-center justify-center">4</span>
+                <div class="flex-1">
+                  <div class="flex justify-between"><span class="text-xs text-white font-medium">R&B / Soul</span><span
+                      class="text-xs text-plly-muted">12%</span></div>
+                  <div class="h-1.5 bg-white/5 rounded-full mt-1">
+                    <div class="h-full rounded-full bg-gradient-to-r from-purple-400 to-pink-400" style="width:40%">
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="flex items-center gap-3">
+                <span
+                  class="w-6 h-6 rounded-full bg-white/20 text-white text-xs font-black flex items-center justify-center">5</span>
+                <div class="flex-1">
+                  <div class="flex justify-between"><span class="text-xs text-white font-medium">Afrobeats</span><span
+                      class="text-xs text-plly-muted">📈 급성장</span></div>
+                  <div class="h-1.5 bg-white/5 rounded-full mt-1">
+                    <div class="h-full rounded-full bg-gradient-to-r from-green-400 to-teal-400" style="width:32%">
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="flex items-center gap-3">
+                <span
+                  class="w-6 h-6 rounded-full bg-white/10 text-white/60 text-xs font-black flex items-center justify-center">6</span>
+                <div class="flex-1">
+                  <div class="flex justify-between"><span class="text-xs text-white/70">K-Pop</span><span
+                      class="text-xs text-plly-muted">📈 급성장</span></div>
+                  <div class="h-1.5 bg-white/5 rounded-full mt-1">
+                    <div class="h-full rounded-full bg-gradient-to-r from-pink-400 to-rose-400" style="width:28%"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="flex items-center gap-3">
+                <span
+                  class="w-6 h-6 rounded-full bg-white/10 text-white/60 text-xs font-black flex items-center justify-center">7</span>
+                <div class="flex-1">
+                  <div class="flex justify-between"><span class="text-xs text-white/70">EDM / Dance</span><span
+                      class="text-xs text-plly-muted">8%</span></div>
+                  <div class="h-1.5 bg-white/5 rounded-full mt-1">
+                    <div class="h-full rounded-full bg-gradient-to-r from-cyan-400 to-blue-400" style="width:25%"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="flex items-center gap-3">
+                <span
+                  class="w-6 h-6 rounded-full bg-white/10 text-white/60 text-xs font-black flex items-center justify-center">8</span>
+                <div class="flex-1">
+                  <div class="flex justify-between"><span class="text-xs text-white/70">Rock / Alt</span><span
+                      class="text-xs text-plly-muted">6%</span></div>
+                  <div class="h-1.5 bg-white/5 rounded-full mt-1">
+                    <div class="h-full rounded-full bg-gradient-to-r from-red-400 to-orange-400" style="width:20%">
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="flex items-center gap-3">
+                <span
+                  class="w-6 h-6 rounded-full bg-white/10 text-white/60 text-xs font-black flex items-center justify-center">9</span>
+                <div class="flex-1">
+                  <div class="flex justify-between"><span class="text-xs text-white/70">Lo-Fi / Chillhop</span><span
+                      class="text-xs text-plly-muted">4%</span></div>
+                  <div class="h-1.5 bg-white/5 rounded-full mt-1">
+                    <div class="h-full rounded-full bg-gradient-to-r from-amber-400/50 to-yellow-400/50"
+                      style="width:14%"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="flex items-center gap-3">
+                <span
+                  class="w-6 h-6 rounded-full bg-white/10 text-white/60 text-xs font-black flex items-center justify-center">10</span>
+                <div class="flex-1">
+                  <div class="flex justify-between"><span class="text-xs text-white/70">Bollywood</span><span
+                      class="text-xs text-plly-muted">3%</span></div>
+                  <div class="h-1.5 bg-white/5 rounded-full mt-1">
+                    <div class="h-full rounded-full bg-gradient-to-r from-indigo-400/50 to-purple-400/50"
+                      style="width:10%"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 급상승 Hot Trend -->
+          <div class="glass rounded-xl p-5">
+            <h3 class="text-sm font-bold text-white mb-4 flex items-center gap-2">🔥 2025 급상승 Hot Trends</h3>
+            <div class="space-y-3">
+              <div class="flex items-start gap-3 bg-white/5 rounded-xl p-3">
+                <span class="text-2xl">📈</span>
+                <div>
+                  <p class="text-xs font-bold text-white">Afrobeats × Global Fusion</p>
+                  <p class="text-xs text-plly-muted mt-0.5">나이지리아·가나 출신 아티스트의 글로벌 침투. 서양 팝과 결합해 역대 최대 스트리밍 기록.</p>
+                </div>
+              </div>
+              <div class="flex items-start gap-3 bg-white/5 rounded-xl p-3">
+                <span class="text-2xl">📈</span>
+                <div>
+                  <p class="text-xs font-bold text-white">Amapiano (남아공)</p>
+                  <p class="text-xs text-plly-muted mt-0.5">로그 드럼 베이스 중심의 남아공 사운드. 2023 대비 520% 성장. 유럽·미국 확산 중.</p>
+                </div>
+              </div>
+              <div class="flex items-start gap-3 bg-white/5 rounded-xl p-3">
+                <span class="text-2xl">📈</span>
+                <div>
+                  <p class="text-xs font-bold text-white">Japanese City Pop Revival</p>
+                  <p class="text-xs text-plly-muted mt-0.5">80년대 일본 시티팝의 재발견. YouTube 알고리즘으로 전 세계 2030대 열풍. Phonk처럼 틱톡
+                    확산.</p>
+                </div>
+              </div>
+              <div class="flex items-start gap-3 bg-white/5 rounded-xl p-3">
+                <span class="text-2xl">📈</span>
+                <div>
+                  <p class="text-xs font-bold text-white">Punjabi Hip Hop</p>
+                  <p class="text-xs text-plly-muted mt-0.5">인도 펀자비 랩이 Spotify 인도·UK 차트 동시 장악. Desi Trap 서브장르와 함께 성장세.
+                  </p>
+                </div>
+              </div>
+              <div class="flex items-start gap-3 bg-white/5 rounded-xl p-3">
+                <span class="text-2xl">🤖</span>
+                <div>
+                  <p class="text-xs font-bold text-white">AI 생성 음악 (Suno / Udio)</p>
+                  <p class="text-xs text-plly-muted mt-0.5">AI 음악 스트리밍 10억 뷰 돌파. 인디 아티스트들의 프로덕션 도구로 부상. 장르 경계 무너짐.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
 
     <!-- ═══ Main Content Grid ═══ -->
     <div class="grid lg:grid-cols-5 gap-6">
@@ -1509,6 +1996,19 @@
         toast.classList.remove('show');
         setTimeout(() => toast.remove(), 400);
       }, 3000);
+    }
+
+    // ═══════════════════════════════════════════════════════
+    // 📊 Trend Tab Switch
+    // ═══════════════════════════════════════════════════════
+    function switchTrendTab(tab) {
+      // 모든 컨텐츠 숨기기
+      document.querySelectorAll('.trend-content').forEach(el => el.classList.add('hidden'));
+      // 모든 탭 비활성화
+      document.querySelectorAll('.trend-tab').forEach(el => el.classList.remove('active'));
+      // 선택된 탭 표시
+      document.getElementById(`trend-${tab}`).classList.remove('hidden');
+      document.getElementById(`tab-${tab}`).classList.add('active');
     }
 
     // ═══════════════════════════════════════════════════════
