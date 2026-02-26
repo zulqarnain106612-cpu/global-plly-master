@@ -517,6 +517,19 @@ app.get('/admin.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'admin.html'));
 });
 
+// 강제 로그아웃 (localStorage 초기화 + 로그인 페이지로 이동)
+app.get('/logout', (req, res) => {
+    res.send(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>로그아웃</title></head><body style="background:#0a0a0f;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;font-family:sans-serif;color:white;">
+    <div style="text-align:center"><p style="font-size:20px">🔐 로그아웃 중...</p></div>
+    <script>
+      localStorage.removeItem('gpm_token');
+      localStorage.removeItem('gpm_role');
+      localStorage.removeItem('gpm_username');
+      localStorage.removeItem('gpm_realname');
+      setTimeout(() => { window.location.href = '/login.html'; }, 500);
+    </script></body></html>`);
+});
+
 // ─────────────────── 회원가입 신청 ───────────────────
 app.post('/api/auth/register', async (req, res) => {
     try {
