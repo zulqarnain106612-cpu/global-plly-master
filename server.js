@@ -139,97 +139,195 @@ const COUNTRY_STYLES = {
 };
 
 const GENRE_MAP = {
+    // ── 글로벌 메인스트림 ──────────────────────────────────
     phonk: {
         name: 'Phonk',
-        tags: ['phonk', 'Memphis rap', 'cowbell', 'drift phonk', 'dark bass', '808 bass'],
-        bpm: '130-160',
-        style: 'aggressive bass drops, distorted cowbell, Memphis vocal samples'
-    },
-    bollywood: {
-        name: 'Bollywood',
-        tags: ['Bollywood', 'Indian cinema', 'filmi music', 'orchestral Indian', 'dhol beats'],
-        bpm: '90-140',
-        style: 'dramatic strings, tabla rhythms, soaring vocal melody, cinematic build'
-    },
-    chillpop: {
-        name: 'Chillpop',
-        tags: ['chill pop', 'bedroom pop', 'dreamy', 'lo-fi pop', 'soft vocals'],
-        bpm: '75-100',
-        style: 'warm pads, soft guitar, airy vocals, gentle reverb, cozy atmosphere'
-    },
-    acoustic: {
-        name: 'Acoustic',
-        tags: ['acoustic', 'unplugged', 'fingerpicking', 'folk', 'singer-songwriter'],
-        bpm: '70-110',
-        style: 'acoustic guitar fingerpicking, warm vocals, intimate recording, natural reverb'
-    },
-    edm: {
-        name: 'EDM',
-        tags: ['EDM', 'electronic dance music', 'festival', 'big room', 'progressive house'],
-        bpm: '125-150',
-        style: 'massive synth leads, euphoric build-ups, heavy drops, crowd energy'
+        tags: ['phonk', 'Memphis rap', 'drift phonk', 'dark bass', '808'],
+        bpm: '130-160', style: 'aggressive bass drops, distorted cowbell, Memphis vocal samples'
     },
     hiphop: {
         name: 'Hip-Hop',
         tags: ['hip-hop', 'rap', 'boom bap', 'trap', 'urban'],
-        bpm: '80-100',
-        style: 'hard-hitting drums, rhythmic flow, bass-heavy, lyrical delivery'
+        bpm: '80-100', style: 'hard-hitting drums, rhythmic flow, bass-heavy, lyrical delivery'
+    },
+    edm: {
+        name: 'EDM',
+        tags: ['EDM', 'electronic dance music', 'festival', 'big room', 'progressive house'],
+        bpm: '125-150', style: 'massive synth leads, euphoric build-ups, heavy drops, crowd energy'
     },
     jazz: {
         name: 'Jazz',
         tags: ['jazz', 'smooth jazz', 'swing', 'bebop', 'jazz fusion'],
-        bpm: '100-140',
-        style: 'complex chord progressions, improvisation, swing feel, sophisticated harmony'
+        bpm: '100-140', style: 'complex chord progressions, improvisation, swing feel, sophisticated harmony'
     },
     lofi: {
         name: 'Lo-Fi',
         tags: ['lo-fi', 'lo-fi hip-hop', 'chillhop', 'study beats', 'vinyl crackle'],
-        bpm: '70-90',
-        style: 'dusty samples, vinyl crackle, mellow piano, tape saturation, jazzy chords'
+        bpm: '70-90', style: 'dusty samples, vinyl crackle, mellow piano, tape saturation, jazzy chords'
     },
     rock: {
         name: 'Rock',
         tags: ['rock', 'alternative rock', 'indie rock', 'power chords', 'driving drums'],
-        bpm: '110-140',
-        style: 'distorted guitars, powerful drums, energetic performance, anthem-like chorus'
+        bpm: '110-140', style: 'distorted guitars, powerful drums, energetic performance, anthem-like chorus'
     },
     rnb: {
         name: 'R&B',
         tags: ['R&B', 'soul', 'neo-soul', 'contemporary R&B', 'smooth'],
-        bpm: '65-95',
-        style: 'silky vocals, lush harmonies, groove-oriented, emotional delivery'
+        bpm: '65-95', style: 'silky vocals, lush harmonies, groove-oriented, emotional delivery'
     },
     classical: {
         name: 'Classical',
         tags: ['classical', 'orchestral', 'symphony', 'cinematic score', 'neoclassical'],
-        bpm: '60-120',
-        style: 'full orchestra, dynamic range, emotional movements, classical structure'
+        bpm: '60-120', style: 'full orchestra, dynamic range, emotional movements, classical structure'
     },
-    reggaeton: {
-        name: 'Reggaeton',
-        tags: ['reggaeton', 'dembow', 'Latin urban', 'perreo', 'Latin trap'],
-        bpm: '85-100',
-        style: 'dembow rhythm, Latin percussion, catchy hooks, dance energy'
+    chillpop: {
+        name: 'Chillpop',
+        tags: ['chill pop', 'bedroom pop', 'dreamy', 'lo-fi pop', 'soft vocals'],
+        bpm: '75-100', style: 'warm pads, soft guitar, airy vocals, gentle reverb, cozy atmosphere'
     },
-    kpop: {
-        name: 'K-Pop',
-        tags: ['K-Pop', 'Korean pop', 'idol music', 'K-pop dance', 'Korean R&B'],
-        bpm: '100-130',
-        style: 'polished production, catchy hooks, dynamic arrangement, dance break'
-    },
-    afrobeats: {
-        name: 'Afrobeats',
-        tags: ['Afrobeats', 'Afropop', 'Afrofusion', 'amapiano', 'West African'],
-        bpm: '100-120',
-        style: 'percussive groove, log drum, infectious rhythm, joyful energy'
+    acoustic: {
+        name: 'Acoustic',
+        tags: ['acoustic', 'unplugged', 'fingerpicking', 'folk', 'singer-songwriter'],
+        bpm: '70-110', style: 'acoustic guitar fingerpicking, warm vocals, intimate recording, natural reverb'
     },
     ambient: {
         name: 'Ambient',
         tags: ['ambient', 'atmospheric', 'soundscape', 'drone', 'ethereal'],
-        bpm: '60-80',
-        style: 'evolving textures, spacious reverb, meditative, floating pads'
-    }
+        bpm: '60-80', style: 'evolving textures, spacious reverb, meditative, floating pads'
+    },
+
+    // ── 🇰🇷 한국 ──────────────────────────────────────────
+    kpop: {
+        name: '🇰🇷 K-Pop',
+        tags: ['K-Pop', 'Korean pop', 'idol music', 'K-pop dance', 'Korean R&B'],
+        bpm: '100-130', style: 'polished production, catchy hooks, dynamic arrangement, dance break'
+    },
+    khiphop: {
+        name: '🇰🇷 K-Hip Hop',
+        tags: ['K-hip hop', 'Korean rap', 'Korean trap', 'K-R&B', 'Seoul hip hop'],
+        bpm: '85-110', style: 'Korean language flow, boom bap meets K-pop aesthetics, emotional hooks'
+    },
+    trot: {
+        name: '🇰🇷 트로트',
+        tags: ['trot', 'Korean trot', 'K-trot', 'ppongjjak', 'Korean traditional pop'],
+        bpm: '100-130', style: 'bouncy rhythm, emotional vocal ornaments, Korean folk melody, vibrato'
+    },
+    kindie: {
+        name: '🇰🇷 K-Indie',
+        tags: ['K-indie', 'Korean indie', 'Korean alternative', 'Hongdae music', 'K-folk'],
+        bpm: '80-120', style: 'heartfelt lyrics, guitar-driven, raw emotion, cafe vibes, indie aesthetic'
+    },
+
+    // ── 🇯🇵 일본 ──────────────────────────────────────────
+    jpop: {
+        name: '🇯🇵 J-Pop',
+        tags: ['J-Pop', 'Japanese pop', 'idol pop', 'Oricon chart', 'Japanese mainstream'],
+        bpm: '95-130', style: 'bright melodies, polished production, emotional chorus, Japanese aesthetics'
+    },
+    citypop: {
+        name: '🇯🇵 City Pop',
+        tags: ['city pop', 'Japanese city pop', '80s Japan', 'Shibuya-kei', 'bubble era'],
+        bpm: '90-115', style: 'smooth bass, retro synthesizer, breezy summer feel, nostalgic 80s Tokyo'
+    },
+    anisong: {
+        name: '🇯🇵 Anime OST',
+        tags: ['anime', 'anisong', 'J-anime soundtrack', 'opening theme', 'otaku culture'],
+        bpm: '120-160', style: 'soaring vocals, epic build-up, dramatic strings, hero theme, emotional peak'
+    },
+    jrock: {
+        name: '🇯🇵 J-Rock',
+        tags: ['J-rock', 'Japanese rock', 'visual kei', 'J-metal', 'anime rock'],
+        bpm: '120-160', style: 'power chords, dramatic vocals, Japanese lyrical style, rock theatrics'
+    },
+
+    // ── 🇮🇳 인도 ──────────────────────────────────────────
+    bollywood: {
+        name: '🇮🇳 Bollywood',
+        tags: ['Bollywood', 'Indian cinema', 'filmi music', 'orchestral Indian', 'dhol beats'],
+        bpm: '90-140', style: 'dramatic strings, tabla rhythms, soaring vocal melody, cinematic build'
+    },
+    bhangra: {
+        name: '🇮🇳 Bhangra',
+        tags: ['Bhangra', 'Punjabi music', 'dhol', 'Punjabi folk', 'Bhangra pop'],
+        bpm: '140-160', style: 'pounding dhol drum, Punjabi vocals, high-energy folk dance, celebration'
+    },
+    punjabihiphop: {
+        name: '🇮🇳 Punjabi Hip Hop',
+        tags: ['Punjabi hip hop', 'Desi hip hop', 'Punjabi rap', 'brown trap', 'Desi trap'],
+        bpm: '90-130', style: 'Punjabi language rap, dhol-influenced trap, desi swagger, street energy'
+    },
+    indianclassical: {
+        name: '🇮🇳 Indian Classical',
+        tags: ['Indian classical', 'Hindustani', 'raga', 'classical Indian', 'sitar fusion'],
+        bpm: '60-120', style: 'raga improvisation, sitar meditation, tabla cycles, spiritual depth'
+    },
+
+    // ── 🇧🇷 브라질 ────────────────────────────────────────
+    samba: {
+        name: '🇧🇷 Samba',
+        tags: ['samba', 'Brazilian samba', 'carnival', 'Rio rhythm', 'pagode'],
+        bpm: '95-115', style: 'syncopated 2/4 rhythm, surdo bass, festive brass, joyful celebration'
+    },
+    bossanova: {
+        name: '🇧🇷 Bossa Nova',
+        tags: ['bossa nova', 'Brazilian jazz', 'Ipanema', 'saudade', 'Brazilian guitar'],
+        bpm: '100-120', style: 'subtle swing, nylon guitar, breathy vocals, saudade emotion, summer calm'
+    },
+    bailefunk: {
+        name: '🇧🇷 Baile Funk',
+        tags: ['baile funk', 'funk carioca', 'Brazilian funk', 'favela funk', 'tamborzao'],
+        bpm: '125-140', style: 'hard tamborzão beat, bass-heavy, Rio de Janeiro street energy, raw and loud'
+    },
+
+    // ── 🌍 라틴 / 카리브 ──────────────────────────────────
+    reggaeton: {
+        name: '🌍 Reggaeton',
+        tags: ['reggaeton', 'dembow', 'Latin urban', 'perreo', 'Latin trap'],
+        bpm: '85-100', style: 'dembow rhythm, Latin percussion, catchy hooks, dance energy'
+    },
+    salsa: {
+        name: '🌍 Salsa',
+        tags: ['salsa', 'Cuban salsa', 'salsa romántica', 'Latin brass', 'clave rhythm'],
+        bpm: '160-230', style: 'clave pattern, energetic brass section, congas, passionate Latin dance'
+    },
+    latin_pop: {
+        name: '🌍 Latin Pop',
+        tags: ['Latin pop', 'Spanish pop', 'Latino', 'pop en español', 'Latin crossover'],
+        bpm: '95-130', style: 'catchy hooks in Spanish, radio-friendly production, warm Latin rhythms'
+    },
+
+    // ── 🌍 아프리카 ───────────────────────────────────────
+    afrobeats: {
+        name: '🌍 Afrobeats',
+        tags: ['Afrobeats', 'Afropop', 'Afrofusion', 'West African', 'Lagos sound'],
+        bpm: '100-120', style: 'percussive groove, log drum, infectious rhythm, joyful energy'
+    },
+    amapiano: {
+        name: '🌍 Amapiano',
+        tags: ['amapiano', 'South African', 'log drum', 'piano house', 'Joburg sound'],
+        bpm: '100-115', style: 'deep log drum bass, jazzy piano riffs, South African township vibes'
+    },
+
+    // ── 🌍 중동 / 북아프리카 ──────────────────────────────
+    arabpop: {
+        name: '🌍 Arab Pop',
+        tags: ['Arabic pop', 'Arab music', 'Middle Eastern', 'khaleeji', 'Lebanese pop'],
+        bpm: '95-125', style: 'Arabic maqam scale, oud-inspired melodies, emotional Arabic vocals, oriental'
+    },
+
+    // ── 🌍 유럽 ───────────────────────────────────────────
+    frenchpop: {
+        name: '🇫🇷 French Pop',
+        tags: ['French pop', 'chanson', 'variété française', 'Parisian', 'French electronic'],
+        bpm: '90-120', style: 'romantic French lyrics, accordion hints, café atmosphere, chic sophistication'
+    },
+    europop: {
+        name: '🌍 Euro Pop',
+        tags: ['Euro pop', 'dance pop', 'Euro dance', 'Scandinavian pop', 'Swedish pop'],
+        bpm: '110-130', style: 'four-on-the-floor beat, bright synths, melodic hooks, catchy chorus'
+    },
 };
+
 
 const MOOD_MAP = {
     dawn: {
