@@ -1172,6 +1172,22 @@ function generateImagePrompt(country, genre, mood) {
         `8k uhd, detailed, artstation trending`
     ].join(', ') + `\n\nNegative: ${imageCountry.neg}, watermark, text, signature, low quality, pixelated, amateur`;
 
+    // ── 나노바나나 프롬프트 (한국 이미지 AI · SD 계열 혼합 형식)
+    // 나노바나나는 한국어 설명 + 영문 태그 혼합, 짧고 직관적인 형식이 최적
+    const nanoBananaPrompt = [
+        `${genreName} 플레이리스트 커버 이미지`,
+        `분위기: ${moodEmoji} ${moodName}`,
+        `배경: ${imageCountry.scene}`,
+        ``,
+        `[영문 태그]`,
+        `${imageGenre.element}, ${imageMood.lighting}`,
+        `${imageMood.palette} color palette, ${imageGenre.style}`,
+        `album cover art, high quality, detailed, 1:1 ratio`,
+        ``,
+        `[제외 태그]`,
+        `${imageCountry.neg}, 글자, 워터마크, 저화질, 흐림`
+    ].join('\n');
+
     // ── 공통 컨셉 키워드 (어떤 AI에도 붙여쓸 수 있는 핵심 태그)
     const conceptTags = [
         genreName,
@@ -1193,6 +1209,7 @@ function generateImagePrompt(country, genre, mood) {
             dalle: dallePrompt,
             nijijourney: nijiPrompt,
             stableDiffusion: sdPrompt,
+            nanobanana: nanoBananaPrompt,
         },
         conceptTags,
         colorPalette: imageMood.palette,
