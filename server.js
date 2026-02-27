@@ -12,6 +12,7 @@ require('dotenv').config();
 const { createClient } = require('@supabase/supabase-js');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const { GoogleGenAI } = require('@google/genai');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'global-plly-master-secret-key-2025';
 const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'admin';
@@ -685,7 +686,17 @@ function generateSunoPrompt(country, genre, mood, tempo, vocal = 'auto', structu
     // ═══ 가사 주제(Lyrics Theme) 설정 ═══
     let lyricsThemeTxt = themeText.trim();
     if (!lyricsThemeTxt) {
-        lyricsThemeTxt = `${moodData.description}, inspired by ${selectedVibe}`;
+        // ✨ 다이나믹 가사 프롬프트 생성 (매번 동일 조건이어도 다른 내용이 나오도록)
+        const timeOfDay = ['at midnight', 'during a golden sunset', 'in the early morning mist', 'under a neon-lit sky', 'on a rainy afternoon'];
+        const characters = ['a lone wanderer', 'two star-crossed lovers', 'a passionate dreamer', 'someone seeking peace', 'a rebel with a cause'];
+        const actions = ['finding hidden beauty', 'letting go of the past', 'racing towards the future', 'reflecting on memories', 'embracing the chaos'];
+
+        const rdTime = timeOfDay[Math.floor(Math.random() * timeOfDay.length)];
+        const rdChar = characters[Math.floor(Math.random() * characters.length)];
+        const rdAct = actions[Math.floor(Math.random() * actions.length)];
+
+        // 키워드 조합으로 그럴듯한 스토리라인/프롬프트 생성
+        lyricsThemeTxt = `A story about ${rdChar} in ${countryData.name} ${rdTime}, ${rdAct}. Vibe: ${selectedVibe}. Mood: ${moodData.description}.`;
     }
 
     // ═══ 메타태그 형식 포맷팅 ═══
@@ -1014,10 +1025,59 @@ app.post('/api/generate-music', async (req, res) => {
             });
         }
 
-        // 1단계: 프롬프트 생성
-        const promptResult = generateSunoPrompt(country, genre, mood, tempo, vocal, structure, creativity, themeText);
+        // 1단계: 프롬프트 기본 생성
+        let promptResult = generateSunoPrompt(country, genre, mood, tempo, vocal, structure, creativity, themeText);
 
-        // 2단계: Suno AI API 호출
+        //  Gemini API Key가 있다면, Gemini를 사용해 '작사' 및 '곡 스타일' 리라이팅
+        const { apiKey, aiModel } = req.body;
+        if (apiKey) {
+            try {
+                const ai = new GoogleGenAI({ apiKey: apiKey });
+                const promptText = `
+                당신은 Suno AI로 히트곡을 만드는 천재 프롬프트 엔지니어이자 작사가입니다.
+                다음 사용자 설정에 맞춰 JSON 데이터를 생성하세요.
+
+                [입력 정보]
+                국가: ${COUNTRY_STYLES[country]?.name}
+                장르: ${GENRE_MAP[genre]?.name}
+                분위기: ${MOOD_MAP[mood]?.name}
+                속도: ${tempo}
+                보컬: ${vocal}
+                구조: ${structure}
+                사용자 추가 테마: ${themeText || '없음, 창의적으로 생성할 것'}
+                
+                [Suno AI의 특성]
+                - 'Style of Music' 필드는 음악의 장르, 악기, 분위기를 콤마(,)로 나열하며, 200자를 초과하면 안 됩니다! 
+                - 가사 테마(Lyrics Theme)는 곡의 전체 스토리나 상황극 설정 등을 매혹적으로 서술형으로 표현합니다.
+
+                아래 JSON 포맷을 정확히 유지하여 응답하세요 (마크다운 백틱 없이):
+                {
+                    "styleOfMusic": "콤마로 구분된 200자 이내의 영어 프롬프트 (예: energetic k-pop, 120bpm, bright synths, female vocal...)",
+                    "titleSuggestion": "이 곡에 어울리는 추천 제목 1개",
+                    "lyricsTheme": "영어 문장으로 된 멋진 곡 주제 / 배경 설명 (2~3문장)"
+                }
+                `;
+                const response = await ai.models.generateContent({
+                    model: aiModel || 'gemini-2.5-flash',
+                    contents: promptText,
+                    config: { responseMimeType: 'application/json' }
+                });
+
+                let text = response.text.replace(/```json/g, '').replace(/```/g, '').trim();
+                const parsed = JSON.parse(text);
+
+                // 덮어쓰기
+                if (parsed.styleOfMusic) promptResult.prompt = parsed.styleOfMusic.substring(0, 198);
+                if (parsed.titleSuggestion) promptResult.titleSuggestions = [parsed.titleSuggestion];
+                if (parsed.lyricsTheme) promptResult.fullPrompt.lyricsTheme = parsed.lyricsTheme;
+                promptResult.fullPrompt.styleOfMusic = promptResult.prompt;
+
+            } catch (geminiError) {
+                console.error("Gemini Music Prompt failed, falling back:", geminiError);
+            }
+        }
+
+        // 2단계: Suno AI API 호출 (시뮬레이션)
         const musicResult = await callSunoAPI(
             promptResult.prompt,
             promptResult.titleSuggestions[0]
@@ -1065,40 +1125,40 @@ app.post('/api/generate-music', async (req, res) => {
 
 const IMAGE_STYLE_MAP = {
     india: {
-        scene: 'Indian temple courtyard bathed in golden hour light, cascading marigold garlands, intricate mandala stone carvings, sacred fire pit glow, geometric rangoli patterns on marble floor',
-        atmosphere: 'ethereal spiritual energy, incense smoke trails, devotional grandeur',
-        texture: 'rough hand-carved stone, silk fabric, gold leaf, worn terracotta',
-        composition: 'centered symmetrical composition, low angle looking up, depth through archways',
-        artist: 'Raja Ravi Varma, Sudhir Patwardhan, Indian miniature painting tradition',
-        camera: 'wide angle 24mm, f/2.8, golden hour backlight, rich saturation',
-        neg: 'ugly, blurry, low quality, western, modern clutter',
+        scene: 'majestic Indian temple courtyard bathed in cinematic golden hour light, hyper-detailed cascading marigold garlands, intricate high-resolution mandala stone carvings, sacred fire pit with volumetric smoke, geometric rangoli patterns on polished marble',
+        atmosphere: 'ethereal spiritual energy, breathtaking grandeur, cinematic lighting',
+        texture: 'hyper-realistic carved stone, glowing silk fabric, gleaming gold leaf',
+        composition: 'epic symmetrical composition, depth of field, grand scale architectural framing',
+        artist: 'award-winning architectural photography, high-end travel editorial, Unreal Engine 5 render',
+        camera: '24mm wide angle, f/2.8, cinematic backlight, ray-traced global illumination',
+        neg: 'flat, silhouette, ugly, blurry, low quality, vector art, cartoon, dull',
     },
     brazil: {
-        scene: 'Rio de Janeiro Carnival night stage alive with feathered costumes in electric blues and greens, neon signs reflecting off tropical rain puddles, street art murals of samba dancers, dense favela hillside sparkling with lights in the distance',
-        atmosphere: 'explosive joyful energy, heat and rhythm, vibrant chaos turned beautiful',
-        texture: 'sequined fabric, mosaic tile, tropical leaves, rain-slicked concrete',
-        composition: 'dynamic diagonal composition, foreground bokeh of sparkle, layers of depth',
-        artist: 'tropicália art movement, Hélio Oiticica, Brazilian graphic modernism',
-        camera: '35mm street photography, dramatic flash fill, vivid filmic look',
-        neg: 'ugly, blurry, low quality, dull colors, sterile',
+        scene: 'Rio de Janeiro Carnival stage, hyper-detailed feathered costumes in vibrant electric blues and greens, glowing neon signs reflecting off rain-slicked concrete, dynamic volumetric laser lights, massive stadium energy',
+        atmosphere: 'explosive joyful energy, cinematic high-budget performance, vibrant heat',
+        texture: 'sparkling sequined fabric, hyper-realistic rain droplets, glowing neon tubes',
+        composition: 'dynamic diagonal action shot, foreground glowing bokeh, epic depth',
+        artist: 'high-end festival photography, 8k concert key visual, contemporary hyper-realism',
+        camera: '35mm lens, flash fill, vivid high-contrast color grading, sharp focus',
+        neg: 'flat, silhouette, ugly, blurry, low quality, vector art, monotone, generic',
     },
     usa: {
-        scene: 'American downtown at blue hour, neon bar signs casting pools of colored light on rain-slicked streets, steam rising from a grate, lone figure with headphones, towering glass and steel skyline silhouette',
-        atmosphere: 'cinematic solitude, urban cool, restless American energy',
-        texture: 'wet asphalt reflections, neon glow, graffiti concrete, denim and chrome',
-        composition: 'rule-of-thirds street composition, foreground rain puddle mirror reflection, leading lines of road',
-        artist: 'Edward Hopper, Gregory Crewdson, Saul Leiter street photography',
-        camera: '50mm lens, long exposure 1/15s, wide aperture, street film grain',
-        neg: 'ugly, blurry, low quality, suburban cliché, generic',
+        scene: 'American downtown at blue hour, hyper-detailed neon signs casting radiant glowing pools on wet asphalt, steam rising with volumetric light rays, towering glass and steel skyscrapers with ray-traced reflections',
+        atmosphere: 'cinematic urban cool, high-end cyberpunk aesthetic, breathtaking cityscapes',
+        texture: 'wet asphalt mirror reflections, glowing neon glass, brushed steel',
+        composition: 'epic rule-of-thirds street view, foreground puddle mirror reflection, incredible scale',
+        artist: 'cinematic blockbuster movie still, award-winning urban photography, Unreal Engine 5 environment',
+        camera: '50mm lens, f/1.4, flawless night photography, blooming neon highlights',
+        neg: 'flat, silhouette, generic, ugly, blurry, low quality, cartoon, flat shading',
     },
     korea: {
-        scene: 'Midnight Seoul rooftop overflowing with cherry blossom petals whipped by wind, holographic K-pop advertisements reflecting purple and cyan on wet streets below, traditional hanji lanterns alongside neon signage, geometric hanok roofline silhouette against electric sky',
-        atmosphere: 'hyper-modern yet deeply rooted, electric tension, youthful and emotionally charged',
-        texture: 'glossy neon-lit surfaces, traditional hanji paper, embroidered silk, chrome finish',
-        composition: 'high contrast foreground/background, centered subject, dynamic petals in motion',
-        artist: 'Korean webtoon illustration, WYSIWYG graphic design, contemporary K-pop art direction',
-        camera: '85mm lens, f/1.4, Seoul neon mixed lighting, teal and pink color grade',
-        neg: 'ugly, blurry, low quality, generic Asian cliché',
+        scene: 'Midnight Seoul skyline, hyper-detailed holographic K-pop advertisements glowing with cyan and magenta, traditional hanok roofs blended with futuristic glass towers, cherry blossoms carried by wind in cinematic lighting',
+        atmosphere: 'futuristic hyper-modernity, high-budget K-pop music video, dynamic electric tension',
+        texture: 'glossy neon-lit surfaces, hyper-realistic flower petals, highly reflective chrome',
+        composition: 'epic depth of field, striking contrast between tradition and future, dynamic motion',
+        artist: 'contemporary cinematic concept art, high-end Korean commercial photography, 8K 3D render',
+        camera: '85mm lens, f/1.2, breathtaking bokeh, cyberpunk-lite color grading',
+        neg: 'flat, silhouette, ugly, blurry, low quality, vector art, generic Asian cliché, cartoon',
     },
     japan: {
         scene: 'Tokyo at twilight—bustling Shibuya crossing glowing with neon and holograms, rain puddles reflecting vivid advertisements, intricate modern Japanese architecture blending with high-tech elements, cherry blossom petals caught in cinematic volumetric lighting',
@@ -1110,123 +1170,123 @@ const IMAGE_STYLE_MAP = {
         neg: 'flat, silhouette, monotone, vector art, ugly, blurry, low quality, generic anime',
     },
     mexico: {
-        scene: 'High desert Mexican village at sunset dusk—papel picado banners in magenta and gold strung between adobe buildings, marigold petals forming a path, sugar skull altar glowing with candles and photographs, giant saguaro cactus silhouette against burnt orange sky',
-        atmosphere: 'vibrant celebration intertwined with reverence for the dead, folk beauty, warmth of family',
-        texture: 'rough adobe clay, hand-painted ceramic tiles, woven wool, dried marigold petals',
-        composition: 'centered altar composition, leading lines of petal path, sun behind cactus halo',
-        artist: 'Diego Rivera muralism, Frida Kahlo self-portrait aesthetic, Mexican folk art ofrenda',
-        camera: 'medium format richness, polarizing filter on sky, warm Fuji Velvia saturation',
-        neg: 'ugly, blurry, low quality, stereotypical, cartoonish',
+        scene: 'High desert Mexican village at magical twilight, hyper-detailed papel picado banners glowing against the sky, intricate sugar skull altars with thousands of realistic marigold petals, thousands of luminous candles, giant saguaro cactus',
+        atmosphere: 'breathtaking vibrant celebration, magical realism, warm cinematic glow',
+        texture: 'hyper-realistic adobe clay, glowing candle wax, delicate flower petals',
+        composition: 'epic altar focus, leading lines of glowing petals, majestic sky gradient',
+        artist: 'Pixar-level high end 3D animation style, award-winning National Geographic photography',
+        camera: 'medium format, flawless dynamic range, vivid warm saturation',
+        neg: 'flat, silhouette, vector, ugly, blurry, low quality, cartoonish cliché',
     },
     france: {
-        scene: 'Parisian rooftop terrace at blue hour—wrought iron railing draped with jasmine, Eiffel Tower glowing gold in soft bokeh distance, accordion sound implied by atmosphere, wine glass catching warm light, art nouveau iron details, chimney pots and zinc rooftops rolling into the horizon',
-        atmosphere: 'refined romantic melancholy, sophisticated leisure, joie de vivre',
-        texture: 'aged zinc, fine linen, worn leather, dewy glass, worn painted iron',
-        composition: 'intimate medium shot, foreground vineglass bokeh, tower in rule-of-thirds, dusk gradient sky',
-        artist: 'Toulouse-Lautrec poster art, Henri Cartier-Bresson photography, French New Wave film stills',
-        camera: '50mm f/2 with soft diffusion, Kodak Portra 400, blue-to-gold dusk exposure',
-        neg: 'ugly, blurry, low quality, tourist cliché, oversaturated',
+        scene: 'Parisian rooftop terrace at blue hour, hyper-detailed wrought iron railings, the Eiffel Tower sparkling brilliantly in the background, luxurious table setting with crystal wine glasses catching cinematic ambient light',
+        atmosphere: 'luxurious romantic elegance, high-end fashion editorial, dreamy sophistication',
+        texture: 'gleaming crystal, hyper-realistic zinc roofs, soft velvet night sky',
+        composition: 'intimate cinematic close-up with majestic background, perfect golden ratio',
+        artist: 'high-end Vogue editorial photography, cinematic European film still',
+        camera: '50mm f/1.2, creamy bokeh, flawless elegant lighting, cinematic color grade',
+        neg: 'flat, silhouette, tourist cliché, ugly, blurry, low quality, cartoon, flat lighting',
     },
     uk: {
-        scene: 'London at 3AM in gentle drizzle—brutalist concrete flyover lit by amber streetlights, vintage record shop window glowing with album art, underground station entrance exhaling warm air, puddle reflections of red double-decker, figure in trench coat with headphones',
-        atmosphere: 'post-punk urban alienation, creative underground energy, melancholic cool',
-        texture: 'wet concrete, worn leather records, fog-softened amber light, grimy brick',
-        composition: 'low angle worm-eye view of brutalist architecture, foreground puddle reflection, narrow depth of field',
-        artist: 'Peter Blake, Martin Parr photography, Banksy visual language, British New Wave album covers',
-        camera: '28mm street lens, push-processed Ilford HP5 grain, amber sodium vapor color cast',
-        neg: 'ugly, blurry, low quality, generic European, overly cheerful',
+        scene: 'London streets at night, hyper-detailed rain droplets on cobblestones reflecting vivid warm amber streetlights, glowing vintage shopfronts, a classic red double-decker bus passing with motion blur',
+        atmosphere: 'cinematic moody elegance, high-end urban realism, dramatic lighting',
+        texture: 'hyper-realistic wet cobblestone, glowing glass windows, sharp architectural details',
+        composition: 'dramatic low angle, incredible depth of field, leading lines along the wet street',
+        artist: 'cinematic blockbuster cinematography, award-winning architectural lighting',
+        camera: '35mm lens, ultra-sharp focus, cinematic teal and orange grading',
+        neg: 'flat, silhouette, dull, ugly, blurry, low quality, cartoon, generic',
     },
     nigeria: {
-        scene: 'Lagos Victoria Island rooftop at magic hour—cascading kente and ankara print fabric as banners, skyline of glass towers against vermillion sunset, Afrofusion DJ setup silhouetted, crowd energy implied by blurred gold light trails, palm trees framing the scene',
-        atmosphere: 'bursting joyful pride, pan-African creative energy, Lagos hustle meeting beauty',
-        texture: 'woven kente silk, corrugated metal, tropical leaves, DJ equipment chrome',
-        composition: 'wide panoramic rooftop shot, strong silhouettes against sunset, rhythm implied by repetitive pattern',
-        artist: 'contemporary Afrofuturism, Kehinde Wiley portraits, Nigerian graphic poster art',
-        camera: '16mm wide angle, golden sunset backlight, high-key shadows, vivid saturation',
-        neg: 'ugly, blurry, low quality, stereotypical poverty imagery, desaturated',
+        scene: 'Lagos Victoria Island rooftop party, hyper-detailed vibrant fashion, majestic skyline of glass towers glowing against a cinematic vermillion sunset, dynamic light trails, high-end DJ equipment gleaming',
+        atmosphere: 'luxurious high-energy celebration, contemporary Afrofuturism, breathtaking vibrancy',
+        texture: 'hyper-realistic woven fabrics, glowing skin tones, highly reflective glass',
+        composition: 'epic panoramic club scene, beautiful backlit subjects, dynamic framing',
+        artist: 'high-end fashion campaign, masterpiece contemporary African art, 8K cinematic render',
+        camera: '16mm wide angle, flawless sunset backlight, high dynamic range',
+        neg: 'flat, silhouette, dull, ugly, blurry, low quality, vector art, flat colors',
     },
     turkey: {
-        scene: 'Istanbul at golden sunset—Bosphorus strait shimmering with ferry lights, Blue Mosque domes and minarets in silhouette, Grand Bazaar archway hung with intricate Iznik tile lanterns casting turquoise and cobalt patterns, sea breeze moving thin muslin curtains',
-        atmosphere: 'ancient mystique meeting vibrant modern life, sensory richness of East meeting West',
-        texture: 'hand-painted Iznik ceramic, hammered copper, raw silk, weathered Byzantine stone',
-        composition: 'framed through keyhole arch, Bosphorus in the distance, optical center lantern',
-        artist: 'Ottoman miniature painting, Osman Hamdi Bey orientalism reinterpreted, Turkish Art Nouveau',
-        camera: 'tilt-shift medium format, golden hour warm grade, deep shadow detail retention',
-        neg: 'ugly, blurry, low quality, orientalist cliché, generic Middle East',
+        scene: 'Istanbul at magnificent golden sunset, hyper-detailed Bosphorus strait shimmering with hundreds of lights, majestic Blue Mosque domes, intricate high-resolution Iznik tile patterns glowing under warm lanterns',
+        atmosphere: 'breathtaking historical majesty, cinematic magical lighting, luxurious sensory richness',
+        texture: 'hyper-realistic ceramic glaze, gleaming copper, rich silk, highly detailed stone',
+        composition: 'epic framing through an ornate archway, stunning depth of field to the sea',
+        artist: 'high-end travel editorial, masterpiece architectural visualization, cinematic lighting',
+        camera: 'medium format, flawless golden hour grade, ultra-sharp details',
+        neg: 'flat, silhouette, orientalist cliché, ugly, blurry, low quality, cartoon',
     },
     egypt: {
-        scene: 'Cairo rooftop apartment at twilight—Great Pyramid silhouette against ultramarine sky, arabesque mashrabiya wooden lattice casting star patterns of gold light on the wall, fragrant jasmine in a clay pot, city call to prayer implied by vista of minarets and glowing windows stretching to the horizon',
-        atmosphere: 'timeless layering of ancient and contemporary, mystical weight of history, quiet evening beauty',
-        texture: 'carved wood mashrabiya, rough-plastered walls, burnished brass, worn linen',
-        composition: 'two-point perspective interior looking out to pyramid, framing within frame of mashrabiya',
-        artist: 'Egyptian Art Deco revival, Mahmoud Said painting, pharaonic graphic symbolism modernized',
-        camera: '35mm, deep blue/amber dusk split tone, strong contrast, VSCO A6 preset reference',
-        neg: 'ugly, blurry, low quality, hieroglyph clipart, tourist kitsch',
+        scene: 'Cairo rooftop at magical twilight, hyper-detailed Great Pyramid perfectly illuminated against a deep ultramarine sky, intricate carved wood mashrabiya catching golden indoor light, luxurious modern-ancient blend',
+        atmosphere: 'majestic timelessness, luxurious cinematic evening, breathtaking scale',
+        texture: 'hyper-realistic carved wood, smooth brass, highly detailed ancient stone',
+        composition: 'epic architectural framing, perfect symmetrical alignment, cinematic depth',
+        artist: 'high-end architectural render, majestic National Geographic photography',
+        camera: '35mm, cinematic contrast, stunning deep blue and gold split tone',
+        neg: 'flat, silhouette, hieroglyph clipart, ugly, blurry, low quality, cartoon',
     },
     jamaica: {
-        scene: 'Kingston beach at sunset—wave-worn driftwood covered in faded reggae mural paint, Rasta colors in weathered palette, fishermens boats bobbing in turquoise cove, Blue Mountains rising through purple haze, single palm silhouette against gradient sky from coral to indigo',
-        atmosphere: 'sun-bleached peace, roots and memory, island time infinite loop',
-        texture: 'salt-worn paint on wood, sand-polished stone, frayed rope, sun-bleached fabric',
-        composition: 'wide coastal shot, horizon-thirds rule, palm as strong vertical, reflection in wet sand',
-        artist: 'Caribbean folk art, Jamaican intuitive art movement, vintage Studio One album covers',
-        camera: 'medium format slide film, cross-processed greens and purples, haze diffusion filter',
-        neg: 'ugly, blurry, low quality, resort stock photo, artificial',
+        scene: 'Kingston luxury beach cove at sunset, hyper-detailed crystal clear glowing turquoise water, lush highly detailed palm trees, dynamic sky gradient from deep coral to indigo, high-end island party setup',
+        atmosphere: 'luxurious tropical paradise, high-budget music video energy, cinematic warmth',
+        texture: 'hyper-realistic crystal water ripples, glowing white sand, lush foliage',
+        composition: 'epic wide landscape, perfect rule of thirds, breathtaking lighting',
+        artist: 'high-end resort commercial, cinematic masterpiece 8k, vibrant lighting',
+        camera: 'medium format, ultra-wide dynamic range, polarized vivid colors',
+        neg: 'flat, silhouette, vector, ugly, blurry, low quality, dull, cliché',
     },
 };
 
 const MOOD_VISUAL_MAP = {
-    dawn: { lighting: 'soft dawn light, pastel pink and gold horizon, morning mist', palette: 'soft lavender, warm gold, misty blue' },
-    running: { lighting: 'dynamic motion blur, high contrast sunlight, energy trails', palette: 'electric orange, deep black, neon green' },
-    cafe: { lighting: 'warm cafe window light, bokeh, golden hour interior', palette: 'warm amber, cream, coffee brown' },
-    night_drive: { lighting: 'neon reflections on wet asphalt, streaking headlights, city glow', palette: 'deep navy, hot pink neon, cyan glow' },
-    study: { lighting: 'clean desk lamp light, minimal shadows, focused midday', palette: 'white, soft gray, subtle blue' },
-    party: { lighting: 'strobe flash, fog machine, laser beams, confetti explosion', palette: 'electric purple, hot pink, UV white' },
-    romantic: { lighting: 'candlelight, soft bokeh, golden fairy lights', palette: 'deep rose, warm gold, soft cream' },
-    melancholy: { lighting: 'overcast grey sky, rain on glass, diffused cold light', palette: 'slate blue, muted silver, deep grey' },
-    epic: { lighting: 'dramatic volumetric god rays, storm clouds, cinematic wide shot', palette: 'dark crimson, gold, storm grey' },
-    chill: { lighting: 'gentle diffused sunlight, open nature, peaceful', palette: 'sage green, sky blue, soft white' },
-    cyberpunk: { lighting: 'neon rain, holographic HUD, dark cyberpunk streets at 3AM', palette: 'hot pink, electric blue, acid yellow on black' },
-    summer: { lighting: 'bright beach sunlight, sparkling ocean, clear sky', palette: 'turquoise, sunshine yellow, coral pink' },
-    gym: { lighting: 'stark floodlight, power shadows, dynamic diagonal lines', palette: 'cold steel, aggressive red, matte black' },
-    roadtrip: { lighting: 'window-gold afternoon sun, open highway heat shimmer', palette: 'dusty orange, sky blue, warm yellow' },
-    gaming: { lighting: 'RGB monitor glow, dark room, pixel art accent lights', palette: 'deep purple, RGB rainbow, black' },
-    nostalgia: { lighting: 'vintage film grain, faded VHS tone, warm sepia', palette: 'faded orange, dusty rose, warm sepia' },
-    heartbreak: { lighting: 'cold moonlight, empty room window shadow, stark contrast', palette: 'midnight blue, pale grey, lone amber' },
-    confidence: { lighting: 'spotlight center stage, luxury evening, sharp shadows', palette: 'matte gold, obsidian black, champagne' },
-    hopeful: { lighting: 'first spring morning light, volumetric rays through clouds', palette: 'soft yellow, fresh green, sky blue' },
-    anger: { lighting: 'harsh red emergency light, cracked concrete, raw energy', palette: 'blood red, charcoal black, raw white' },
-    rain: { lighting: 'overcast diffused grey, wet reflections, cozy window glow indoors', palette: 'silver grey, deep blue, amber window' },
-    forest: { lighting: 'dappled sunlight through tree canopy, morning mist', palette: 'deep green, golden amber, earthy brown' },
-    club: { lighting: 'strobing UV blacklight, laser grid, smoke machine, high energy darkness', palette: 'UV white, electric green, deep black' },
-    wedding: { lighting: 'soft golden afternoon ceremony light, floral bokeh', palette: 'ivory white, blush pink, champagne gold' },
-    sleep: { lighting: 'moonlight through curtains, deep quiet blue-black night', palette: 'midnight blue, soft silver, pale lavender' },
-    meditation: { lighting: 'dawn sunrise rays, ethereal light pillars, serene', palette: 'warm white, soft gold, sage' },
-    horror: { lighting: 'single flickering light source, deep shadows, eerie green tint', palette: 'sickly green, shadow black, cold white' },
+    dawn: { lighting: 'cinematic morning golden hour, breathtaking volumetric sun rays, soft luminous mist', palette: 'luminous pastel pink, glowing gold, ethereal blue' },
+    running: { lighting: 'dynamic motion blur, high-octane cinematic sunlight, glowing energy trails', palette: 'electric orange, pitch black, hyper-neon green' },
+    cafe: { lighting: 'luxurious high-end interior lighting, cinematic window light, beautiful creamy bokeh', palette: 'rich amber, elegant cream, warm espresso' },
+    night_drive: { lighting: 'hyper-realistic neon reflections on wet asphalt, cinematic volumetric headlights', palette: 'deep cinematic navy, glowing hot pink, vibrant cyan' },
+    study: { lighting: 'flawless studio lighting, crisp shadows, ultra-clean aesthetic', palette: 'pure white, sleek grey, luminous soft blue' },
+    party: { lighting: 'high-end nightclub laser grid, volumetric smoke, cinematic strobe, glowing particles', palette: 'vivid electric purple, hot pink, glowing UV cyan' },
+    romantic: { lighting: 'luxurious candlelit glow, breathtaking soft bokeh, cinematic rim lighting', palette: 'deep rose red, luminous gold, velvet cream' },
+    melancholy: { lighting: 'cinematic overcast lighting, hyper-detailed rain on glass, beautifully diffused glow', palette: 'slate blue, metallic silver, deep cinematic grey' },
+    epic: { lighting: 'majestic volumetric god rays piercing storm clouds, blockbuster movie lighting', palette: 'dramatic dark crimson, glowing gold, storm grey' },
+    chill: { lighting: 'breathtaking natural sunlight, ethereal soft diffusion, peaceful glowing ambiance', palette: 'luminous sage green, clear sky blue, pure white' },
+    cyberpunk: { lighting: 'hyper-detailed neon rain, glowing holographic elements, volumetric fog, Unreal Engine 5 lighting', palette: 'acid yellow, glowing hot pink, electric blue on pitch black' },
+    summer: { lighting: 'brilliant high-end commercial sunlight, sparkling crystal water, flawless clear sky', palette: 'vibrant turquoise, sunshine yellow, glowing coral' },
+    gym: { lighting: 'dramatic high-contrast athletic studio lighting, cinematic shadows, edge lighting', palette: 'cool brushed steel, intense glowing red, matte black' },
+    roadtrip: { lighting: 'majestic golden hour highway sunlight, cinematic heat shimmer, glowing horizon', palette: 'warm intense orange, vivid sky blue, glowing yellow' },
+    gaming: { lighting: 'flawless RGB ambient glow, high-end streamer room lighting, glowing screens', palette: 'deep luminous purple, glowing RGB spectrum, dark obsidian' },
+    nostalgia: { lighting: 'cinematic warm luminous glow, beautiful soft focus, nostalgic golden hour', palette: 'luminous faded orange, warm soft rose, rich sepia' },
+    heartbreak: { lighting: 'dramatic cinematic moonlight, striking high-contrast shadows, highly emotional lighting', palette: 'deep midnight blue, cool silver, singular glowing amber' },
+    confidence: { lighting: 'high-end fashion runway spotlight, flawless luxurious edge lighting, sharp elegant shadows', palette: 'gleaming gold, pure obsidian, glowing champagne' },
+    hopeful: { lighting: 'breathtaking dawn sunlight bursting through clouds, majestic volumetric rays', palette: 'luminous yellow, fresh glowing green, vivid sky blue' },
+    anger: { lighting: 'cinematic intense red emergency lighting, stark high-contrast shadows, aggressive glare', palette: 'glowing blood red, absolute black, piercing white' },
+    rain: { lighting: 'hyper-detailed cinematic rain, glowing interior window lights, beautiful specular reflections', palette: 'cool cinematic grey, deep blue, glowing amber' },
+    forest: { lighting: 'majestic dappled sunlight through ultra-detailed leaves, glowing volumetric morning mist', palette: 'vibrant emerald green, glowing gold, rich dark earth' },
+    club: { lighting: 'high-budget music video laser lighting, volumetric fog, glowing neon accents', palette: 'glowing UV white, neon electric green, absolute black' },
+    wedding: { lighting: 'flawless luxurious golden afternoon light, ethereal floral bokeh, breathtaking glow', palette: 'luminous ivory, soft blush pink, gleaming champagne gold' },
+    sleep: { lighting: 'beautiful ethereal moonlight, soft luminous stars, peaceful diffused night glow', palette: 'deep midnight blue, glowing silver, soft luminous lavender' },
+    meditation: { lighting: 'ethereal glowing light pillars, majestic sunrise rays, divine volumetric lighting', palette: 'glowing warm white, soft radiant gold, luminous sage' },
+    horror: { lighting: 'cinematic creeping shadows, highly detailed eerie glowing light, masterpiece horror lighting', palette: 'sickly glowing green, absolute pitch black, stark cold white' },
     anime: { lighting: 'cinematic ray tracing, god rays through intricate clouds, rim lighting, glowing magical particles', palette: 'vibrant cinematic anime colors, rich sky blue, glowing gold, deep atmospheric shadows' },
-    dinner: { lighting: 'candlelit fine dining, warm amber glow, elegant shadows', palette: 'deep burgundy, warm gold, ivory cream' },
-    kids: { lighting: 'bright cheerful primary colors, cartoon sun, playful soft light', palette: 'primary red, sunny yellow, sky blue' },
+    dinner: { lighting: 'luxurious Michelin-star restaurant lighting, warm elegant glow, flawless specular highlights', palette: 'deep elegant burgundy, glowing gold, pristine ivory' },
+    kids: { lighting: 'flawless bright commercial lighting, cheerful and luminous, high-end 3D animation feel', palette: 'vibrant primary red, glowing sunny yellow, bright sky blue' },
 };
 
 const GENRE_VISUAL_MAP = {
-    kpop: { element: 'K-pop idol stage, holographic stage effects, synchronized performance', style: 'Korean webtoon, glossy magazine cover' },
-    hiphop: { element: 'urban graffiti mural, basketball court, streetwear fashion', style: 'hip-hop album cover art, bold typography' },
-    edm: { element: 'massive festival stage, laser grid, crowd hands raised, LED matrix', style: 'electronic music poster, glitch art' },
-    jazz: { element: 'smoky jazz club stage, saxophone spotlight, vintage microphone', style: 'Blue Note Records era album art' },
-    lofi: { element: 'cozy desk with vinyl records, rain on window, cat silhouette, warm lamp', style: 'lo-fi anime aesthetic, Studio Ghibli soft' },
-    rock: { element: 'concert stage explosion, guitar pick, crowd mosh pit, smoke', style: 'classic rock album cover, high contrast photography' },
-    rnb: { element: 'luxury apartment balcony at night, velvet textures, soft lighting', style: 'R&B album cover, fashion photography' },
-    classical: { element: 'grand concert hall interior, orchestra silhouette, chandelier', style: 'romantic era oil painting, architectural photography' },
-    citypop: { element: '80s Japanese city, retro car, rooftop pool, sunset highway', style: 'Hiroshi Nagai poster, vaporwave aesthetic' },
-    bollywood: { element: 'Bollywood film set, ornate costumes, dramatic lighting, flower petals', style: 'Indian film poster, cinematic Bollywood' },
-    afrobeats: { element: 'Lagos rooftop party, colorful kente print, tropical setting', style: 'Afrofuturist art, vibrant graphic design' },
-    reggaeton: { element: 'rooftop party, urban Latin city, palm trees at night', style: 'Latin urban music video aesthetic' },
-    phonk: { element: 'drift car at night, smoke trail, aggressive neon, dark industrial', style: 'phonk cassette aesthetic, grunge' },
+    kpop: { element: 'high-budget K-pop idol stage, hyper-detailed futuristic costumes, spectacular glowing stage effects', style: 'masterpiece cinematic music video, 8k resolution, flawless beauty' },
+    hiphop: { element: 'high-end urban streetwear editorial, hyper-detailed luxury cars, dramatic dynamic angles', style: 'masterpiece commercial photography, hyper-realistic, vivid contrast' },
+    edm: { element: 'colossal Tomorrowland festival mainstage, mind-blowing intricate laser geometry, massive crowd', style: 'Unreal Engine 5 epic render, masterpiece digital art' },
+    jazz: { element: 'luxurious underground jazz club, hyper-detailed gleaming brass saxophone, cinematic stage smoke', style: 'high-end cinematic photography, masterpiece moody lighting' },
+    lofi: { element: 'hyper-detailed cozy aesthetic room, rain on glass with ray-traced reflections, glowing warm lamp', style: 'masterpiece anime background art, Makoto Shinkai quality, extremely detailed' },
+    rock: { element: 'massive stadium rock concert, towering pyrotechnics, hyper-detailed stage lighting, explosive energy', style: 'masterpiece cinematic live photography, striking high contrast' },
+    rnb: { element: 'luxurious high-end penthouse interior, glowing neon accents, hyper-detailed velvet and silk textures', style: 'Vogue fashion editorial photography, masterpiece luxury aesthetic' },
+    classical: { element: 'majestic grand opera house interior, hyper-detailed gold leaf architecture, glowing crystal chandeliers', style: 'Unreal Engine 5 architectural visualization, flawless photorealism' },
+    citypop: { element: 'hyper-detailed vibrant modern Tokyo cityscape, glowing neon signs, flawless ray-traced reflections on cars', style: 'masterpiece contemporary high-end anime aesthetic, vibrant and crisp' },
+    bollywood: { element: 'epic grand Bollywood palace set, thousands of hyper-detailed ornate costumes, breathtaking cinematic lighting', style: 'high-budget blockbuster cinematography, 8k flawless rendering' },
+    afrobeats: { element: 'luxurious vibrant Afrobeats party, hyper-detailed high-fashion outfits, glowing skin, tropical modernism', style: 'masterpiece high-end fashion campaign, wildly vibrant colors' },
+    reggaeton: { element: 'high-energy luxurious beach club at night, hyper-vibrant tropical lighting, massive party energy', style: 'high-budget Latin music video aesthetic, flawless production' },
+    phonk: { element: 'hyper-detailed aggressive JDM drift car, cinematic volumetric neon smoke, high-octane action angles', style: 'Unreal Engine 5 cinematic render, hyper-realistic street racing' },
     anisong: { element: 'highly detailed main character in dynamic pose, complex stylish outfit, detailed expressive eyes, flowing hair in the wind, magical energy aura', style: 'masterpiece anime illustration, Kyoto Animation high quality, cinematic key visual, hyper-detailed rendering' },
-    ambient: { element: 'vast empty landscape, cosmic sky, floating particles, minimalist', style: 'Brian Eno album art, abstract digital art' },
-    acoustic: { element: 'wooden cabin interior, guitar by fireplace, autumn window', style: 'folk album cover, warm film photography' },
-    amapiano: { element: 'South African township sunset, log drum, colorful township murals', style: 'Afrofuturism, contemporary African art' },
-    trot: { element: 'Korean traditional stage, vibrant lights, emotional performance', style: 'Korean TV show poster, retro K-entertainment' },
-    default: { element: 'abstract music visualization, sound waves, artistic concert', style: 'contemporary digital art' },
+    ambient: { element: 'breathtaking ethereal cosmic landscape, glowing hyper-detailed flora, floating luminous particles', style: 'masterpiece sci-fi concept art, breathtaking 8k render' },
+    acoustic: { element: 'hyper-detailed cozy high-end acoustic studio, gorgeous natural cinematic window light, gleaming wood textures', style: 'award-winning interior photography, beautiful depth of field' },
+    amapiano: { element: 'vibrant hyper-detailed luxury club interior, dynamic glowing colors, high-end Afrofuturism elements', style: 'masterpiece cinematic lighting, luxurious contemporary aesthetic' },
+    trot: { element: 'grandiose high-budget contemporary stage, hyper-detailed glittering luxury costumes, brilliant spotlighting', style: '8K television broadcast quality, flawless studio production' },
+    default: { element: 'majestic breathtaking abstract audio visualization, hyper-detailed glowing sound waves, luminous particles', style: 'masterpiece contemporary digital art, 8k Unreal Engine 5' },
 };
 
 /**
@@ -1249,133 +1309,98 @@ function generateImagePrompt(country, genre, mood) {
     const genreBpm = genreData ? genreData.bpm : '';
     const genreStyle = genreData ? genreData.style : '';
 
-    // ══════════════════════════════════════════════════════
-    // 🧿 MIDJOURNEY v6 — 전문 파라미터 최적화
-    // 구도, 피사체, 재질, 조명, 카메라, 아티스트 레퍼런스 포함
-    // ══════════════════════════════════════════════════════
-    const midjourneyPrompt =
-        `/imagine prompt: ${C.scene}, ${G.element},
+    const prompts = { whisk: [], grok: [], flow: [] };
 
-Atmosphere: ${C.atmosphere}, ${M.lighting},
-Color grading: ${M.palette} palette, rich tonal depth,
-Textures: ${C.texture},
-Composition: ${C.composition}, golden ratio framing, album cover 1:1 crop,
-Subject detail: ${G.style}, ${genreStyle},
-Art direction: inspired by ${C.artist},
-Camera: ${C.camera}, tack-sharp focus on subject, soft cinematic bokeh background,
-Post-processing: subtle film grain, contrast-lifted shadows, luminous highlights,
-Render quality: ultra-detailed, hyperrealistic, 8K resolution, award-winning editorial photography
+    // ✨ 5가지 베리에이션 조합을 위한 다이나믹 수식어 풀
+    const variations = [
+        { accent: 'cinematic blockbuster lighting', camera: '35mm wide angle', feel: 'epic and majestic' },
+        { accent: 'intimate soft bokeh', camera: '85mm portrait lens', feel: 'emotional and personal' },
+        { accent: 'dynamic high-contrast shadows', camera: '16mm ultra-wide', feel: 'high-energy and edgy' },
+        { accent: 'dreamy ethereal glow', camera: '50mm standard lens', feel: 'surreal and poetic' },
+        { accent: 'hyper-realistic macro detail', camera: 'medium format 100mm', feel: 'flawless and luxurious' }
+    ];
 
---ar 1:1 --stylize 900 --v 6 --quality 2`;
+    for (let i = 0; i < 5; i++) {
+        const v = variations[i];
 
-    // ══════════════════════════════════════════════════════
-    // 🤖 DALL-E 3 — 풍부한 자연어 서술형
-    // ChatGPT에 그대로 붙여넣기 최적화
-    // ══════════════════════════════════════════════════════
-    const dallePrompt =
-        `Create a premium, editorial-quality album cover artwork for a "${genreName}" music playlist with a "${moodName}" (${moodEmoji}) emotional tone.
+        // ══════════════════════════════════════════════════════
+        // 🌀 WHISK (Google Labs)
+        // ══════════════════════════════════════════════════════
+        const whiskPrompt = `🌟 Style Prompt for Google Whisk (Variation ${i + 1})
 
-**Scene & Setting:**
-${C.scene}. The environment breathes with ${C.atmosphere}.
+🎨 Style Description
+${C.scene}, ${G.element}.
+The overall visual feel is ${v.feel} with ${C.atmosphere}.
 
-**Visual Elements:**
-Prominently feature: ${G.element}. The subject matter should visually communicate the essence of ${genreName} music — specifically: ${genreStyle}.
+💡 Atmosphere & Lighting
+${M.lighting}, ${v.accent}.
+Color mood: ${M.palette}.
 
-**Texture & Materials:**
-The surfaces in the image should have tactile richness: ${C.texture}. Every detail should feel physically real and tangible.
+🖼️ Composition Guide
+${C.composition}. Shot with ${v.camera} style. 16:9 widescreen landscape.
 
-**Lighting & Color:**
-Lighting style: ${M.lighting}. The entire image should be bathed in a ${M.palette} color palette — consistent, mood-driven, and emotionally resonant.
+ℹ️ Whisk 사용 방법:
+1. labs.google/fx/tools/whisk 접속
+2. [참고 이미지] 업로드 (선택사항)
+3. 아래 Style Prompt를 텍스트로 입력하세요
+4. 설정 부분에 다음를 추가: &quot;Generate in landscape 16:9 ratio&quot;
 
-**Composition:**
-${C.composition}. Frame it like a professional music editorial cover — bold, graphic, and immediately striking.
+📋 간결한 스타일 태그 (Whisk 입력용)
+${genreName}, ${moodName} mood, ${countryName} aesthetics, ${M.palette}, ${v.feel}, ${G.element}, 16:9 widescreen, hyperrealistic, 8K`;
 
-**Art Direction Reference:**
-Visual style inspired by: ${C.artist}, and the graphic tradition of ${G.style}.
+        // ══════════════════════════════════════════════════════
+        // 🤖 GROK (xAI Aurora)
+        // ══════════════════════════════════════════════════════
+        const grokPrompt = `Generate a stunning 16:9 widescreen image (1920x1080) for a "${genreName}" music playlist with a "${moodName}" ${moodEmoji} atmosphere, inspired by ${countryName} culture.
 
-**Camera & Lens Feel:**
-Render it as if shot with: ${C.camera}. The image should feel like a high-end music publication editorial photograph or illustration.
+🎬 Scene:
+${C.scene}. ${G.element}.
+💡 Mood & Lighting:
+${M.lighting}, ${v.accent}. Palette: ${M.palette}.
+🎨 Style:
+${G.style}. ${v.feel}. Inspired by ${C.artist}.
+📷 Camera:
+${v.camera}, ${C.camera}. Cinematic 16:9 widescreen landscape.
+⭐ Quality:
+Ultra-detailed, 8K resolution, hyperrealistic, professional editorial, award-winning photography. No text, no watermarks, no logos.`;
 
-Do NOT include any text, letters, watermarks, or logos. The image must be exactly square (1:1). Maximum detail, ultra high resolution.`;
+        // ══════════════════════════════════════════════════════
+        // 🎬 FLOW (AI 영상 생성)
+        // ══════════════════════════════════════════════════════
+        const flowPrompt = `🎬 AI Video Generation Prompt (Variation ${i + 1})
+Aspect Ratio: 16:9 Widescreen (1920x1080)
 
-    // ══════════════════════════════════════════════════════
-    // ✨ NIJIJOURNEY v6 — 애니/일러스트 특화 상세 프롬프트
-    // ══════════════════════════════════════════════════════
-    const nijiPrompt =
-        `/imagine prompt: ${genreName} playlist cover art, ${moodName} mood, ${moodEmoji} emotional tone,
+📹 Scene Description:
+${C.scene}. ${G.element}.
+Camera slowly pans across the scene with ${v.camera} perspective.
+The atmosphere is ${v.feel}, bathed in ${M.lighting}.
 
-Scene: ${C.scene}, ${G.element},
-Style: beautiful anime key visual illustration, ${G.style},
-Color palette: ${M.palette}, rich saturated storytelling colors,
-Lighting: ${M.lighting}, painted light quality, luminous shading,
-Character design: expressive face, detailed costume reflecting ${countryName} cultural aesthetics,
-Background: ${C.scene}, intricate background detail, depth and atmosphere,
-Art quality: Kyoto Animation level detail, cinematic anime frame, concept art quality,  detailed linework, studio-quality coloring,
-Reference artists: ${C.artist}, contemporary anime key visual style
+🎨 Visual Style:
+${G.style}. ${C.atmosphere}.
+Color palette: ${M.palette}.
+Texture: ${C.texture}.
 
---niji 6 --ar 1:1 --stylize 700 --quality 2`;
+🎵 Motion & Rhythm:
+Gentle camera movement synchronized to ${genreName} (${genreBpm || 'moderate'} BPM).
+Visual rhythm matches ${moodName} energy - ${v.accent}.
+Inspired by ${C.artist} visual storytelling.
 
-    // ══════════════════════════════════════════════════════
-    // ⚡ STABLE DIFFUSION — WebUI 가중치 최적화
-    // PromptPositive + Negative 분리 형식
-    // ══════════════════════════════════════════════════════
-    const sdPrompt =
-        `[POSITIVE PROMPT]
-(${G.element}:1.4), (${M.lighting}:1.3), (${C.scene}:1.2),
-(${M.palette} color palette:1.3), (${G.style}:1.2),
-(album cover composition:1.3), (${C.texture}:1.1),
-(${C.atmosphere}:1.1), (${C.composition}:1.1),
-masterpiece, best quality, ultra-detailed, 8k uhd, RAW photo, sharp focus,
-(professional editorial photography:1.2), (cinematic color grading:1.2),
-(hyperrealistic:1.1), artstation trending, award winning,
-inspired by ${C.artist}, shot on ${C.camera}
+⚙️ Technical:
+16:9 widescreen, cinematic grain, ${v.camera}, professional color grading.
+No text overlays, no watermarks.`;
 
-[NEGATIVE PROMPT]
-${C.neg}, watermark, text, signature, logo, username, blurry, out of focus,
-low quality, low res, jpeg artifacts, oversaturated, bad anatomy, deformed,
-ugly, amateur photography, stock photo, generic, cliché, boring composition,
-bad lighting, overexposed, underexposed, flat colors, washed out`;
-
-    // ══════════════════════════════════════════════════════
-    // 🍌 나노바나나 — 한국어 설명 + 영문 태그 혼합, 구조화 형식
-    // ══════════════════════════════════════════════════════
-    const nanoBananaPrompt =
-        `📋 이미지 요청 정보
-─────────────────────
-🎵 장르: ${genreName}
-${moodEmoji} 분위기: ${moodName}
-🌍 국가/문화: ${countryName}
-
-📝 원하는 이미지 설명 (한국어)
-─────────────────────
-${genreName} 플레이리스트의 앨범 커버 이미지를 만들어주세요.
-배경: ${C.scene}
-분위기: ${C.atmosphere}
-조명: ${M.lighting}
-시각적 요소: ${G.element}
-
-🏷️ 영문 긍정 태그 (그대로 붙여넣기)
-─────────────────────
-${G.element}, ${M.lighting},
-${M.palette} color palette, ${G.style},
-${C.texture}, ${C.composition},
-album cover art, square format 1:1,
-masterpiece, best quality, ultra detailed, 8K, hyperrealistic,
-inspired by ${C.artist}
-
-🚫 영문 부정 태그 (제외할 것)
-─────────────────────
-${C.neg}, text, watermark, logo, blurry, low quality,
-bad anatomy, deformed, ugly, oversaturated, stock photo`;
+        prompts.whisk.push(whiskPrompt);
+        prompts.grok.push(grokPrompt);
+        prompts.flow.push(flowPrompt);
+    }
 
     const conceptTags = [
         genreName,
         `${moodEmoji} ${moodName}`,
-        `${countryName} 문화 미학`,
-        G.style,
-        M.palette,
+        `${countryName} 미학`,
+        G.style.substring(0, 15) + '...',
+        M.palette.substring(0, 15) + '...',
         '앨범 커버 아트',
-        '플레이리스트 커버',
     ];
 
     return {
@@ -1384,13 +1409,7 @@ bad anatomy, deformed, ugly, oversaturated, stock photo`;
         mood: moodName,
         moodEmoji,
         genreBpm,
-        prompts: {
-            midjourney: midjourneyPrompt,
-            dalle: dallePrompt,
-            nijijourney: nijiPrompt,
-            stableDiffusion: sdPrompt,
-            nanobanana: nanoBananaPrompt,
-        },
+        prompts,
         conceptTags,
         colorPalette: M.palette,
         artStyle: G.style,
@@ -1399,15 +1418,156 @@ bad anatomy, deformed, ugly, oversaturated, stock photo`;
 }
 
 // 이미지 프롬프트 생성 API
-app.post('/api/generate-image-prompt', (req, res) => {
+app.post('/api/generate-image-prompt', async (req, res) => {
     try {
-        const { country, genre, mood } = req.body;
+        const { country, genre, mood, apiKey, aiModel } = req.body;
         if (!country || !genre || !mood) {
             return res.status(400).json({ success: false, error: 'country, genre, mood 파라미터가 필요합니다.' });
         }
-        const result = generateImagePrompt(country, genre, mood);
+
+        let result = generateImagePrompt(country, genre, mood);
+
+        // Gemini API Key가 있다면, Gemini로 더 풍부한 5개 프롬프트 배열 생성
+        if (apiKey) {
+            try {
+                const ai = new GoogleGenAI({ apiKey: apiKey });
+                const promptText = `
+                당신은 세계 최고 수준의 AI 이미지 프롬프트 엔지니어입니다.
+                다음 조건에 맞춰 각결별로 5개의 다채롭고 매우 디테일한 (V1~V5) 영어 프롬프트 문자열 배열을 생성하세요.
+
+                조건:
+                - 국가: ${COUNTRY_STYLES[country]?.name}
+                - 음악 장르: ${GENRE_MAP[genre]?.name}
+                - 분위기: ${MOOD_MAP[mood]?.name}
+
+                변동 요소 (각 프롬프트마다 변형을 줄 것):
+                1. 피사체/장면 (현지 문화, 랜드마크, 사람상 등 반영)
+                2. 조명/분위기 (Cinematic lighting, neon glow 등 다르게)
+                3. 카메라/구도 (35mm, Extreme close up, drone shot 등 다르게, 반드시 16:9 와이드스크린 구도)
+                4. 예술 스타일 (Unreal Engine 5, 8k resolution, award-winning photography 등)
+                
+                ⚠️ 중요: 모든 프롬프트는 반드시 16:9 와이드스크린(1920x1080) 비율로 생성하세요.
+                - Whisk: 간결한 자연어 프롬프트, 16:9 명시
+                - Grok: 서술적 영문 설명, 16:9 1920x1080 명시
+                - Flow: AI 영상 생성용 프롬프트, 16:9 와이드스크린, 카메라 움직임 포함
+                
+                각 툴(Whisk, Grok, Flow)에 맞춰 5개의 프롬프트 배열을 반환하세요.
+                Flow는 AI 영상 생성용으로 16:9 와이드스크린, 카메라 무빙, 장면 전환 등을 포함하세요.
+                
+                반드시 아래 JSON 포맷만 반환하세요 (마크다운 백틱 없이):
+                {
+                    "prompts": {
+                        "whisk": ["prompt1...", "prompt2...", "prompt3...", "prompt4...", "prompt5..."],
+                        "grok": ["prompt1...", "prompt2...", "prompt3...", "prompt4...", "prompt5..."],
+                        "flow": ["prompt1...", "prompt2...", "prompt3...", "prompt4...", "prompt5..."]
+                    },
+                    "conceptTags": ["Tag1", "Tag2", "Tag3"],
+                    "colorPalette": "설명적 팜레트 문구"
+                }
+                `;
+                const response = await ai.models.generateContent({
+                    model: aiModel || 'gemini-2.5-flash',
+                    contents: promptText,
+                    config: { responseMimeType: 'application/json' }
+                });
+
+                let text = response.text.replace(/```json/g, '').replace(/```/g, '').trim();
+                let parsed = JSON.parse(text);
+
+                // 생성된 데이터를 덮어쓰기
+                result.prompts = parsed.prompts;
+                result.conceptTags = parsed.conceptTags || result.conceptTags;
+                result.colorPalette = parsed.colorPalette || result.colorPalette;
+            } catch (geminiError) {
+                console.error("Gemini Image prompt failed, falling back to static:", geminiError);
+                // 실패 시 기본 로직 result 유지
+            }
+        }
+
         res.json({ success: true, data: result });
     } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// ═══════════════════════════════════════════════════════════════
+// 🌐 Gemini 실시간 트렌드 데이터 API
+// 오늘 날짜 기반으로 국가별 연령별 음악 트렌드를 AI로 생성
+// ═══════════════════════════════════════════════════════════════
+
+app.post('/api/gemini-trends', async (req, res) => {
+    try {
+        const { apiKey, aiModel } = req.body;
+
+        if (!apiKey) {
+            return res.status(400).json({ success: false, error: 'Gemini API 키가 필요합니다.' });
+        }
+
+        const today = new Date();
+        const dateStr = `${today.getFullYear()}년 ${today.getMonth() + 1}월 ${today.getDate()}일`;
+        const seasonMap = ['겨울', '겨울', '봄', '봄', '봄', '여름', '여름', '여름', '가을', '가을', '가을', '겨울'];
+        const season = seasonMap[today.getMonth()];
+
+        const ai = new GoogleGenAI({ apiKey });
+
+        const promptText = `
+당신은 전 세계 음악 트렌드 전문가입니다.
+오늘 날짜(${dateStr}, ${season} 시즌)를 기반으로 각 국가별·연령대별 인기 음악 장르 TOP 5를 분석하세요.
+
+분석 국가: 한국(kr), 일본(jp), 미국(us), 인도(in), 브라질(br), 나이지리아(ng), 멕시코(mx), 영국(gb), 독일(de), 중국(cn)
+연령대: 10대, 20대, 30대, 40대, 50대+
+
+각 장르는 [genre_name, badge] 형식이며 badge는 '🔥'(1위 장르), '📈'(급상승), '' (일반) 중 하나.
+
+현재 날짜의 시즌(${season}), 글로벌 트렌드(AI 음악, 소셜미디어 등), 각 국가의 문화적 특성을 반영하여 약간씩 현실적인 변동을 줄 것.
+예를 들어 사용자가 매일 접속할 때마다 미묘하게 다른 트렌드 결과가 나와야 합니다.
+
+반드시 아래 JSON 구조로만 응답하세요 (마크다운 백틱 없이):
+{
+  "date": "${dateStr}",
+  "season": "${season}",
+  "fetchedAt": "HH:MM",
+  "kr": {
+    "name": "한국", "flag": "🇰🇷",
+    "ages": {
+      "10대": { "color": "pink", "icon": "🧒", "label": "Gen Z", "genres": [["K-Pop", "🔥"], ["Phonk", "📈"], ["Hip-Hop / Trap", ""], ["Anime OST", ""], ["EDM", ""]] },
+      "20대": { "color": "purple", "icon": "🧑", "label": "밀레니얼Z", "genres": [["K-Hip Hop", "🔥"], ["Indie Pop", ""], ["Lo-Fi", "📈"], ["R&B / Soul", ""], ["EDM", ""]] },
+      "30대": { "color": "cyan", "icon": "🧑‍💼", "label": "밀레니얼", "genres": [["K-Pop", "🔥"], ["R&B / Soul", ""], ["발라드", ""], ["Indie", ""], ["재즈", ""]] },
+      "40대": { "color": "teal", "icon": "🧑‍🦱", "label": "X세대", "genres": [["트로트", "🔥"], ["발라드", ""], ["Pop Ballad", ""], ["Classic Rock", ""], ["R&B", ""]] },
+      "50대+": { "color": "emerald", "icon": "🧓", "label": "Baby Boom", "genres": [["트로트", "🔥"], ["발라드", ""], ["클래식", ""], ["Oldies Pop", ""], ["재즈", ""]] }
+    }
+  },
+  "jp": { ... },
+  "us": { ... },
+  "in": { ... },
+  "br": { ... },
+  "ng": { ... },
+  "mx": { ... },
+  "gb": { ... },
+  "de": { ... },
+  "cn": { ... }
+}
+
+**매우 중요**: 모든 10개 국가의 완전한 데이터를 위 예시 구조와 동일하게 반환하세요. color 값은 pink/purple/cyan/teal/emerald 중 하나여야 합니다.
+        `;
+
+        const response = await ai.models.generateContent({
+            model: aiModel || 'gemini-2.5-flash',
+            contents: promptText,
+            config: { responseMimeType: 'application/json' }
+        });
+
+        let text = response.text.replace(/```json/g, '').replace(/```/g, '').trim();
+        const parsed = JSON.parse(text);
+
+        // 현재 시각 추가
+        const now = new Date();
+        parsed.fetchedAt = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+
+        res.json({ success: true, data: parsed });
+
+    } catch (error) {
+        console.error('Gemini Trends Error:', error.message);
         res.status(500).json({ success: false, error: error.message });
     }
 });
@@ -1423,15 +1583,73 @@ app.post('/api/generate-batch', async (req, res) => {
         const batchCount = Math.min(Math.max(parseInt(count) || 10, 1), 10); // 1~10개 제한
         const results = [];
 
-        for (let i = 0; i < batchCount; i++) {
-            const result = generateSunoPrompt(country, genre, mood, tempo, vocal, structure, creativity, themeText);
-            results.push({
-                index: i + 1,
-                prompt: result.prompt,
-                title: result.titleSuggestions[0],
-                metaTags: result.metaTags,
-                fullPrompt: result.fullPrompt
-            });
+        const { apiKey, aiModel } = req.body;
+
+        let batchResults = [];
+
+        // Gemini API로 10개 배치를 한 번에 요청 (토큰 및 시간 절약을 위해 prompt를 1개로 요청)
+        if (apiKey) {
+            try {
+                const ai = new GoogleGenAI({ apiKey: apiKey });
+                const promptText = `
+                당신은 Suno AI 전문가입니다.
+                다음 조건으로 서로 다른 매력을 가진 프롬프트 ${batchCount}개를 생성하세요.
+                국가: ${COUNTRY_STYLES[country]?.name}, 장르: ${GENRE_MAP[genre]?.name}, 무드: ${MOOD_MAP[mood]?.name}, 속도: ${tempo}
+                
+                - "styleOfMusic": Suno AI 입력용 영문 장르/악기 키워드 조합 (최대 180자, 각 프롬프트마다 편곡 스타일 변형 필수)
+                - "title": 곡 제목
+                - "lyricsTheme": 곡 스토리 소개 (영문 1문장)
+                
+                반드시 아래 JSON 포맷에 맞춘 배열을 반환하세요:
+                [
+                  { "styleOfMusic": "...", "title": "...", "lyricsTheme": "..." },
+                  ... // 총 ${batchCount}개
+                ]
+                `;
+                const response = await ai.models.generateContent({
+                    model: aiModel || 'gemini-2.5-flash',
+                    contents: promptText,
+                    config: { responseMimeType: 'application/json' }
+                });
+                let text = response.text.replace(/```json/g, '').replace(/```/g, '').trim();
+                const parsedArr = JSON.parse(text);
+
+                if (Array.isArray(parsedArr)) {
+                    for (let i = 0; i < Math.min(parsedArr.length, batchCount); i++) {
+                        const item = parsedArr[i];
+                        const baseResult = generateSunoPrompt(country, genre, mood, tempo, vocal, structure, creativity, themeText);
+
+                        baseResult.prompt = item.styleOfMusic ? item.styleOfMusic.substring(0, 198) : baseResult.prompt;
+                        baseResult.titleSuggestions = item.title ? [item.title] : baseResult.titleSuggestions;
+                        baseResult.fullPrompt.lyricsTheme = item.lyricsTheme || baseResult.fullPrompt.lyricsTheme;
+
+                        results.push({
+                            index: i + 1,
+                            prompt: baseResult.prompt,
+                            title: baseResult.titleSuggestions[0],
+                            metaTags: baseResult.metaTags,
+                            fullPrompt: baseResult.fullPrompt
+                        });
+                    }
+                    batchResults = results;
+                }
+            } catch (err) {
+                console.error("Gemini Batch Failed:", err);
+            }
+        }
+
+        // Gemini 실패 혹은 미입력 시 기존 루프 처리
+        if (batchResults.length === 0) {
+            for (let i = 0; i < batchCount; i++) {
+                const result = generateSunoPrompt(country, genre, mood, tempo, vocal, structure, creativity, themeText);
+                results.push({
+                    index: i + 1,
+                    prompt: result.prompt,
+                    title: result.titleSuggestions[0],
+                    metaTags: result.metaTags,
+                    fullPrompt: result.fullPrompt
+                });
+            }
         }
 
         res.json({ success: true, count: batchCount, results });
@@ -1472,6 +1690,289 @@ app.get('/api/options', (req, res) => {
     const creativities = Object.entries(CREATIVITY_MAP).map(([key, val]) => ({ value: key, label: val.label }));
 
     res.json({ countries, genres, moods, tempos, vocals, structures, creativities });
+});
+
+// ═══════════════════════════════════════════════════════════════
+// 🎵 Suno AI 비공식 API 연동 (음원 자동 생성)
+// ═══════════════════════════════════════════════════════════════
+//
+// ⚠️ 비공식 API 사용 시 주의사항:
+// 1. 쿠키(__client)는 24~72시간마다 만료될 수 있으므로 주기적으로 갱신 필요
+// 2. 갱신방법: suno.com 로그인 → F12 → Application → Cookies → __client 값 복사 → .env에 업데이트
+// 3. 과도한 요청 시 계정 차단 위험 - 반드시 딜레이를 두고 요청할 것
+// 4. Suno API 구조가 변경될 수 있으므로 응답 형식이 달라지면 파싱 코드 수정 필요
+//
+// ═══════════════════════════════════════════════════════════════
+
+const SUNO_COOKIE = process.env.SUNO_COOKIE || '';
+const SUNO_BASE_URL = process.env.SUNO_BASE_URL || 'https://studio-api.suno.ai';
+const SUNO_DELAY = parseInt(process.env.SUNO_REQUEST_DELAY || '3000', 10);
+
+/**
+ * 🔧 유틸: 지정된 ms만큼 대기
+ */
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+/**
+ * 🔑 Suno API 공통 헤더 생성
+ * 쿠키 기반 인증을 위한 헤더를 반환합니다.
+ */
+function getSunoHeaders() {
+    return {
+        'Content-Type': 'application/json',
+        'Cookie': `__client=${SUNO_COOKIE}`,
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Referer': 'https://suno.com/',
+        'Origin': 'https://suno.com'
+    };
+}
+
+/**
+ * 🎵 Suno에 단일 음악 생성 요청 전송
+ * @param {string} prompt - 음악 생성 프롬프트
+ * @param {string} title - 곡 제목
+ * @param {boolean} instrumental - 인스트루멘탈 여부
+ * @returns {object} - { clipIds: [...], taskId: ... }
+ */
+async function requestSunoGeneration(prompt, title = '', instrumental = false) {
+    const payload = {
+        prompt: prompt,
+        tags: '',                // 자동 감지
+        title: title || '',
+        make_instrumental: instrumental,
+        mv: 'chirp-v4',         // Suno v4 모델
+        wait_audio: false       // 즉시 반환 (폴링으로 완료 확인)
+    };
+
+    const response = await fetch(`${SUNO_BASE_URL}/api/generate/v2/`, {
+        method: 'POST',
+        headers: getSunoHeaders(),
+        body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Suno API error (${response.status}): ${errorText}`);
+    }
+
+    const data = await response.json();
+
+    // Suno는 보통 2개의 클립(곡)을 반환
+    const clipIds = (data.clips || []).map(clip => clip.id);
+    return {
+        clipIds,
+        clips: data.clips || [],
+        taskId: data.id || null
+    };
+}
+
+/**
+ * 🔄 Suno 클립 상태 폴링 (완료될 때까지 대기)
+ * @param {string} clipId - 클립 ID
+ * @param {number} maxRetries - 최대 폴링 시도 횟수 (기본 60회 × 5초 = 5분)
+ * @returns {object} - 완료된 클립 데이터 (audio_url, image_url, title 등)
+ */
+async function pollSunoClipStatus(clipId, maxRetries = 60) {
+    for (let i = 0; i < maxRetries; i++) {
+        try {
+            const response = await fetch(`${SUNO_BASE_URL}/api/feed/?ids=${clipId}`, {
+                method: 'GET',
+                headers: getSunoHeaders()
+            });
+
+            if (!response.ok) {
+                console.warn(`Polling error (${response.status}), retry ${i + 1}/${maxRetries}`);
+                await sleep(5000);
+                continue;
+            }
+
+            const data = await response.json();
+            const clip = Array.isArray(data) ? data[0] : data;
+
+            if (!clip) {
+                await sleep(5000);
+                continue;
+            }
+
+            // 상태 확인: complete, streaming, error 등
+            const status = clip.status || '';
+
+            if (status === 'complete' && clip.audio_url) {
+                return {
+                    id: clip.id,
+                    title: clip.title || 'Untitled',
+                    audioUrl: clip.audio_url,
+                    imageUrl: clip.image_url || clip.image_large_url || '',
+                    duration: clip.metadata?.duration_formatted || clip.metadata?.duration || '',
+                    tags: clip.metadata?.tags || '',
+                    status: 'complete',
+                    createdAt: clip.created_at
+                };
+            }
+
+            if (status === 'error') {
+                return {
+                    id: clip.id,
+                    title: clip.title || 'Error',
+                    status: 'error',
+                    error: clip.metadata?.error_message || 'Unknown error'
+                };
+            }
+
+            // 아직 처리 중... (streaming, queued 등)
+            console.log(`  ⏳ Clip ${clipId}: status=${status}, retry ${i + 1}/${maxRetries}`);
+            await sleep(5000);
+        } catch (err) {
+            console.warn(`  ⚠️ Polling exception: ${err.message}, retry ${i + 1}/${maxRetries}`);
+            await sleep(5000);
+        }
+    }
+
+    return {
+        id: clipId,
+        title: 'Timeout',
+        status: 'timeout',
+        error: '생성 시간 초과 (5분). 나중에 Suno 대시보드에서 확인하세요.'
+    };
+}
+
+/**
+ * 🚀 POST /api/suno-generate
+ * 
+ * 클라이언트로부터 프롬프트 배열을 받아 Suno API로 순차 전송합니다.
+ * Rate Limit 방지를 위해 요청 사이에 SUNO_DELAY(기본 3초) 딜레이를 둡니다.
+ * 
+ * Request Body:
+ *   { prompts: [{ prompt: string, title: string, instrumental?: boolean }] }
+ * 
+ * Response:
+ *   { success: true, results: [{ index, title, audioUrl, imageUrl, duration, status }] }
+ */
+app.post('/api/suno-generate', async (req, res) => {
+    try {
+        // ── 1. 유효성 검사 ──
+        if (!SUNO_COOKIE || SUNO_COOKIE === '여기에_suno_쿠키를_붙여넣으세요') {
+            return res.status(400).json({
+                success: false,
+                error: 'Suno 쿠키가 설정되지 않았습니다. .env 파일의 SUNO_COOKIE를 업데이트해주세요.'
+            });
+        }
+
+        const { prompts } = req.body;
+        if (!prompts || !Array.isArray(prompts) || prompts.length === 0) {
+            return res.status(400).json({
+                success: false,
+                error: '프롬프트 배열(prompts)이 비어있습니다.'
+            });
+        }
+
+        console.log(`\n🎵 Suno 음악 생성 시작: ${prompts.length}개 프롬프트`);
+        console.log(`⏱️  요청 간 딜레이: ${SUNO_DELAY}ms`);
+
+        const results = [];
+
+        // ── 2. 순차적으로 Suno API 호출 (Rate Limit 방지) ──
+        for (let i = 0; i < prompts.length; i++) {
+            const item = prompts[i];
+            console.log(`\n  [${i + 1}/${prompts.length}] "${item.title || 'Untitled'}" 생성 요청 중...`);
+
+            try {
+                // Suno에 생성 요청
+                const genResult = await requestSunoGeneration(
+                    item.prompt,
+                    item.title || `Track ${i + 1}`,
+                    item.instrumental || false
+                );
+
+                console.log(`  ✅ 클립 ID: ${genResult.clipIds.join(', ')}`);
+
+                // 첫 번째 클립만 사용 (Suno는 2개씩 생성하지만 1개만 취함)
+                if (genResult.clipIds.length > 0) {
+                    // 폴링으로 완료 대기
+                    console.log(`  ⏳ 완료 대기 중...`);
+                    const completed = await pollSunoClipStatus(genResult.clipIds[0]);
+
+                    results.push({
+                        index: i + 1,
+                        inputTitle: item.title || `Track ${i + 1}`,
+                        inputPrompt: item.prompt,
+                        ...completed
+                    });
+
+                    console.log(`  🎵 결과: ${completed.status} - ${completed.title}`);
+                } else {
+                    results.push({
+                        index: i + 1,
+                        inputTitle: item.title || `Track ${i + 1}`,
+                        inputPrompt: item.prompt,
+                        status: 'error',
+                        error: 'Suno가 클립을 반환하지 않았습니다.'
+                    });
+                }
+            } catch (err) {
+                console.error(`  ❌ Error: ${err.message}`);
+                results.push({
+                    index: i + 1,
+                    inputTitle: item.title || `Track ${i + 1}`,
+                    inputPrompt: item.prompt,
+                    status: 'error',
+                    error: err.message
+                });
+            }
+
+            // ── Rate Limit 방지: 마지막 요청이 아니면 딜레이 ──
+            if (i < prompts.length - 1) {
+                console.log(`  ⏰ ${SUNO_DELAY}ms 대기 중...`);
+                await sleep(SUNO_DELAY);
+            }
+        }
+
+        // ── 3. 결과 반환 ──
+        const successCount = results.filter(r => r.status === 'complete').length;
+        console.log(`\n🏁 Suno 생성 완료: ${successCount}/${prompts.length} 성공`);
+
+        res.json({
+            success: true,
+            total: prompts.length,
+            completed: successCount,
+            results: results
+        });
+
+    } catch (err) {
+        console.error('Suno generate error:', err);
+        res.status(500).json({
+            success: false,
+            error: err.message || 'Suno 음악 생성 중 알 수 없는 오류가 발생했습니다.'
+        });
+    }
+});
+
+/**
+ * 🔍 GET /api/suno-status
+ * Suno 연결 상태 확인 (쿠키 유효성 체크)
+ */
+app.get('/api/suno-status', async (req, res) => {
+    try {
+        if (!SUNO_COOKIE || SUNO_COOKIE === '여기에_suno_쿠키를_붙여넣으세요') {
+            return res.json({ connected: false, reason: 'SUNO_COOKIE not configured' });
+        }
+
+        // Suno 피드 API로 연결 테스트
+        const response = await fetch(`${SUNO_BASE_URL}/api/feed/?page=0`, {
+            method: 'GET',
+            headers: getSunoHeaders()
+        });
+
+        if (response.ok) {
+            res.json({ connected: true, status: 'active' });
+        } else {
+            res.json({ connected: false, reason: `API returned ${response.status}`, hint: '쿠키가 만료되었을 수 있습니다. .env의 SUNO_COOKIE를 갱신해주세요.' });
+        }
+    } catch (err) {
+        res.json({ connected: false, reason: err.message });
+    }
 });
 
 // ═══════════════════════════════════════════════════════════════

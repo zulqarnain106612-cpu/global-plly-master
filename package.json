@@ -17,6 +17,7 @@
   "license": "ISC",
   "description": "Suno AI 맞춤형 프롬프트 생성 및 음원 제작 자동화 웹서비스",
   "dependencies": {
+    "@google/genai": "^1.43.0",
     "@supabase/supabase-js": "^2.97.0",
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",
