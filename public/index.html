@@ -518,6 +518,21 @@
           <div id="prompts-grid" class="grid grid-cols-1 lg:grid-cols-2 gap-4"></div>
         </div>
 
+        <!-- ═══ 직접 포함: 글로벌 트렌드 섹션 ═══ -->
+        <section id="trends-section" style="animation: fadeUp 0.5s 0.3s ease-out forwards; opacity:0;">
+          <div class="flex items-center gap-4 mb-6">
+            <div class="flex-1 h-px bg-white/5"></div>
+            <div class="flex items-center gap-3">
+              <span class="text-2xl">🌍</span>
+              <h3 class="text-xl font-black text-white tracking-tight">Global Trends</h3>
+              <span class="text-[10px] font-black px-2.5 py-1 rounded-full bg-cyan-500/15 text-cyan-400 border border-cyan-500/20 uppercase tracking-widest">Live</span>
+            </div>
+            <div class="flex-1 h-px bg-white/5"></div>
+          </div>
+          <p class="text-center text-xs text-slate-500 mb-6">트렌드 카드를 클릭하면 모든 설정이 자동 적용됩니다 ⚡</p>
+          <div id="trend-cards" class="grid grid-cols-3 gap-3"></div>
+        </section>
+
       </div><!-- /prompt-form -->
 
       <!-- ═══ History View ═══ -->
@@ -530,21 +545,6 @@
         <p id="history-empty" class="text-center text-slate-500 py-20 text-sm hidden">아직 생성된 기록이 없습니다.</p>
       </div>
 
-      <!-- ═══ Trends View ═══ -->
-      <div id="view-trends" class="hidden mt-2">
-        <div class="flex items-center gap-4 mb-8">
-          <button onclick="switchView('dashboard')" class="text-slate-400 hover:text-white transition-colors text-sm">← 대시보드</button>
-          <h3 class="text-2xl font-black text-white">🌍 글로벌 트렌드</h3>
-        </div>
-        <div class="grid grid-cols-2 gap-4" id="trends-grid">
-          <div class="glass-card text-center py-10 col-span-2">
-            <div class="text-4xl mb-4">🌐</div>
-            <p class="text-white font-black text-lg">글로벌 음악 트렌드</p>
-            <p class="text-slate-400 text-sm mt-2">현재 가장 인기 있는 장르와 스타일을 확인하세요.</p>
-            <div class="mt-6 grid grid-cols-3 gap-3" id="trend-cards"></div>
-          </div>
-        </div>
-      </div>
 
       <footer class="mt-24 pt-10 border-t border-white/5 flex items-center justify-between text-[10px] text-plly-muted font-black uppercase tracking-[0.3em] opacity-40">
         <div>Powered by Gemini AI</div>
@@ -1137,12 +1137,11 @@
       // 생성 버튼 활성화
       checkFormReady();
 
-      // 대시보드로 전환 + 스크롤
-      switchView('dashboard');
+      // 상단으로 스크롤 (트렌드는 이제 대시보드에 있으므로 폼으로 이동)
       setTimeout(() => {
-        const btn = document.getElementById('btn-generate');
-        if (btn) btn.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }, 200);
+        const formEl = document.getElementById('select-country');
+        if (formEl) formEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 100);
 
       showToast(`🌍 ${t.flag} ${t.label} 트렌드 적용 완료!`, 'success');
     }
@@ -1199,7 +1198,16 @@
       }
     }
 
-    // 페이지 로드 후 3초 뒤 상태 체크 (서버 응답 대기)
+    // 스크롤: switchView는 history만 처리 (trends는 항상 대시보드에 표시)
+    function switchView(view) {
+      document.getElementById('prompt-form').classList.toggle('hidden', view !== 'dashboard');
+      const hv = document.getElementById('view-history');
+      if (hv) hv.classList.toggle('hidden', view !== 'history');
+      if (view === 'history') renderHistory();
+    }
+
+    // 페이지 로드 시 트렌드 + Gemini 상태 자동
+    renderTrends();
     setTimeout(checkGeminiStatus, 1500);
   </script>
 
