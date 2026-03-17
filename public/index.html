@@ -137,11 +137,38 @@
       color: #c4b5fd;
     }
     .age-row {
-      padding: 10px 12px; border-radius: 12px;
-      border: 1px solid rgba(255,255,255,0.05);
-      background: rgba(255,255,255,0.02);
-      margin-bottom: 8px;
+      padding: 14px 14px 10px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.06);
+      background: rgba(255,255,255,0.025);
+      margin-bottom: 10px;
+      transition: border-color 0.2s;
     }
+    .age-row:hover { border-color: rgba(124,58,237,0.2); }
+    .age-row-header {
+      display: flex; align-items: center; gap: 8px;
+      margin-bottom: 10px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .genre-list-item {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 7px 8px; border-radius: 8px;
+      cursor: pointer; transition: background 0.15s;
+      width: 100%;
+    }
+    .genre-list-item:hover { background: rgba(124,58,237,0.12); }
+    .genre-list-item .rank {
+      font-size: 11px; font-weight: 800; color: #4b5563;
+      min-width: 18px; margin-right: 8px;
+    }
+    .genre-list-item .rank-1 { color: #a78bfa; }
+    .genre-list-item .gname {
+      flex: 1; font-size: 12.5px; font-weight: 600; color: #e2e8f0;
+    }
+    .genre-list-item.hot .gname { color: #fca5a5; }
+    .genre-list-item.rising .gname { color: #86efac; }
+    .genre-list-item .badge { font-size: 13px; }
     .genre-chip {
       display: inline-flex; align-items: center; gap: 4px;
       padding: 4px 10px; border-radius: 20px;
@@ -1518,19 +1545,24 @@
       if (!body) return;
       const country = _trendsData[countryKey];
       if (!country) return;
-      const ageEntries = Object.entries(country.ages);
-      body.innerHTML = ageEntries.map(([age, data]) => {
-        const chips = data.genres.map(([gname, badge]) => {
+      body.innerHTML = Object.entries(country.ages).map(([age, data]) => {
+        const items = data.genres.map(([gname, badge], idx) => {
           const cls = badge === '🔥' ? 'hot' : badge === '📈' ? 'rising' : '';
-          return `<button class="genre-chip ${cls}" onclick="applyGenreChip('${gname}','${countryKey}')">${gname}${badge ? ' '+badge : ''}</button>`;
+          const rankCls = idx === 0 ? 'rank-1' : '';
+          return `<button class="genre-list-item ${cls}"
+            onclick="applyGenreChip('${gname.replace(/'/g,"\\'").replace(/&/g,'&amp;')}','${countryKey}')">
+            <span class="rank ${rankCls}">${idx + 1}</span>
+            <span class="gname">${gname}</span>
+            ${badge ? `<span class="badge">${badge}</span>` : ''}
+          </button>`;
         }).join('');
         return `<div class="age-row">
-          <div class="flex items-center gap-2 mb-2">
-            <span class="text-base">${data.icon}</span>
-            <span class="text-xs font-black text-white/80">${age}</span>
-            <span class="text-[10px] text-slate-500 font-semibold">${data.label}</span>
+          <div class="age-row-header">
+            <span style="font-size:15px">${data.icon}</span>
+            <span style="font-size:13px;font-weight:800;color:#f1f5f9">${age}</span>
+            <span style="font-size:10px;color:#64748b;font-weight:600">${data.label}</span>
           </div>
-          <div>${chips}</div>
+          <div style="display:flex;flex-direction:column;gap:1px">${items}</div>
         </div>`;
       }).join('');
     }
