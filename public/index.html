@@ -289,11 +289,31 @@
         <span class="flex-1">최근 결과</span>
         <span id="nav-results-badge" class="text-[9px] font-black px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/20"></span>
       </a>
+      <button class="nav-link w-full text-left" onclick="switchView('history')">
+        <span class="w-8 flex justify-center">📋</span>
+        <span class="flex-1">작업 기록</span>
+      </button>
+      <button class="nav-link w-full text-left" onclick="switchView('trends')">
+        <span class="w-8 flex justify-center">🌍</span>
+        <span class="flex-1">글로벌 트렌드</span>
+      </button>
       <a class="nav-link" href="/timeline.html">
         <span class="w-8 flex justify-center">🎬</span>
         <span class="flex-1">타임라인 추출기</span>
         <span class="text-[9px] font-black px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/20">NEW</span>
       </a>
+
+      <!-- Gemini AI Status -->
+      <div class="mt-4 mx-2 p-3 rounded-xl border border-white/5 bg-white/[0.02]">
+        <div class="flex items-center gap-2.5">
+          <div id="gemini-dot" class="w-2.5 h-2.5 rounded-full bg-slate-600 flex-shrink-0" style="transition:background 0.4s;"></div>
+          <div class="flex-1 min-w-0">
+            <p class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Gemini AI</p>
+            <p id="gemini-status-text" class="text-[9px] text-slate-600 truncate">확인 중...</p>
+          </div>
+          <span id="gemini-icon" class="text-base">⏳</span>
+        </div>
+      </div>
     </nav>
 
     <!-- User Info -->
@@ -326,7 +346,7 @@
           <span id="admin-badge" class="hidden px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-[10px] font-black text-amber-500 uppercase tracking-widest">Master Admin</span>
         </div>
         <h2 class="text-5xl font-black text-white leading-[1.1] tracking-tight">Design the Sound<br>
-          <span style="background: linear-gradient(135deg, #8b5cf6, #06b6d4); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">of Tomorrow.</span>
+          <span style="background: linear-gradient(135deg, #8b5cf6, #06b6d4); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;">of Tomorrow.</span>
         </h2>
         <p class="text-plly-muted mt-5 text-lg font-medium">조건을 선택하면 Gemini AI가 Suno AI용 프롬프트 10개를 자동으로 생성합니다.</p>
       </header>
@@ -442,6 +462,12 @@
               onfocus="this.style.borderColor='#8b5cf6'; this.style.boxShadow='0 0 0 3px rgba(139,92,246,0.12)'"
               onblur="this.style.borderColor='rgba(255,255,255,0.1)'; this.style.boxShadow='none'" />
           </div>
+          <!-- 추천 아티스트 칩 -->
+          <div id="artist-chips-wrap" class="mt-4 hidden">
+            <label class="input-label">⭐ 추천 아티스트 <span class="text-slate-500 font-normal normal-case tracking-normal" style="font-size:11px;">(클릭 시 자동 입력)</span></label>
+            <div id="artist-chips" class="flex flex-wrap gap-2 mt-2"></div>
+          </div>
+
           <div class="mt-4">
             <label class="input-label">테마 / 스탠스 <span class="text-slate-500 font-normal normal-case tracking-normal" style="font-size:11px;">(선택)</span></label>
             <textarea id="theme-text" rows="2"
@@ -493,6 +519,32 @@
         </div>
 
       </div><!-- /prompt-form -->
+
+      <!-- ═══ History View ═══ -->
+      <div id="view-history" class="hidden mt-2">
+        <div class="flex items-center gap-4 mb-8">
+          <button onclick="switchView('dashboard')" class="text-slate-400 hover:text-white transition-colors text-sm">← 대시보드</button>
+          <h3 class="text-2xl font-black text-white">📋 작업 기록</h3>
+        </div>
+        <div id="history-list" class="space-y-3"></div>
+        <p id="history-empty" class="text-center text-slate-500 py-20 text-sm hidden">아직 생성된 기록이 없습니다.</p>
+      </div>
+
+      <!-- ═══ Trends View ═══ -->
+      <div id="view-trends" class="hidden mt-2">
+        <div class="flex items-center gap-4 mb-8">
+          <button onclick="switchView('dashboard')" class="text-slate-400 hover:text-white transition-colors text-sm">← 대시보드</button>
+          <h3 class="text-2xl font-black text-white">🌍 글로벌 트렌드</h3>
+        </div>
+        <div class="grid grid-cols-2 gap-4" id="trends-grid">
+          <div class="glass-card text-center py-10 col-span-2">
+            <div class="text-4xl mb-4">🌐</div>
+            <p class="text-white font-black text-lg">글로벌 음악 트렌드</p>
+            <p class="text-slate-400 text-sm mt-2">현재 가장 인기 있는 장르와 스타일을 확인하세요.</p>
+            <div class="mt-6 grid grid-cols-3 gap-3" id="trend-cards"></div>
+          </div>
+        </div>
+      </div>
 
       <footer class="mt-24 pt-10 border-t border-white/5 flex items-center justify-between text-[10px] text-plly-muted font-black uppercase tracking-[0.3em] opacity-40">
         <div>Powered by Gemini AI</div>
@@ -874,7 +926,160 @@
       updateCopyProgress();
       showToast('전체 복사 완료!', 'success');
     }
+
+    // ══════════════════════════════════════════════════════
+    // ─── 추천 아티스트 칩 (장르 변경 시 자동 표시) ───
+    // ══════════════════════════════════════════════════════
+    const RECOMMENDED_ARTISTS_MAP = {
+      kpop:    [{ name:'aespa',emoji:'🤖'},{name:'(G)I-DLE',emoji:'👊'},{name:'BLACKPINK',emoji:'🖤'},{name:'NewJeans',emoji:'💙'},{name:'IVE',emoji:'✨'},{name:'LE SSERAFIM',emoji:'🔥'},{name:'BTS',emoji:'💜'},{name:'TWICE',emoji:'💕'},{name:'Stray Kids',emoji:'⚡'}],
+      khiphop: [{name:'ZICO',emoji:'🎤'},{name:'pH-1',emoji:'🎯'},{name:'Epik High',emoji:'📖'},{name:'BewhY',emoji:'🌊'},{name:'Crush',emoji:'🎸'},{name:'Dean',emoji:'🌙'}],
+      hiphop:  [{name:'Drake',emoji:'🦉'},{name:'Kendrick Lamar',emoji:'✊'},{name:'Travis Scott',emoji:'🌵'},{name:'J. Cole',emoji:'📝'},{name:'Tyler, the Creator',emoji:'🌈'},{name:'Frank Ocean',emoji:'🌊'}],
+      edm:     [{name:'Martin Garrix',emoji:'🦊'},{name:'Marshmello',emoji:'☁️'},{name:'Flume',emoji:'🌊'},{name:'Skrillex',emoji:'💥'},{name:'Kygo',emoji:'🌅'},{name:'Porter Robinson',emoji:'🌸'}],
+      rnb:     [{name:'The Weeknd',emoji:'🌙'},{name:'SZA',emoji:'🌿'},{name:'Daniel Caesar',emoji:'🍂'},{name:'Brent Faiyaz',emoji:'🖤'},{name:'PinkPantheress',emoji:'🩷'}],
+      pop:     [{name:'Taylor Swift',emoji:'✨'},{name:'Billie Eilish',emoji:'🖤'},{name:'Dua Lipa',emoji:'💃'},{name:'Olivia Rodrigo',emoji:'💜'},{name:'Sabrina Carpenter',emoji:'🍒'},{name:'Charli XCX',emoji:'💥'}],
+      jpop:    [{name:'Fujii Kaze',emoji:'🌸'},{name:'Ado',emoji:'🎭'},{name:'King Gnu',emoji:'👑'},{name:'YOASOBI',emoji:'🌙'},{name:'Kenshi Yonezu',emoji:'✨'}],
+      phonk:   [{name:'KORDHELL',emoji:'🖤'},{name:'Ghostemane',emoji:'💀'},{name:'Night Lovell',emoji:'🌑'},{name:'Soudiere',emoji:'⛓️'}],
+      jazz:    [{name:'Norah Jones',emoji:'☕'},{name:'Kamasi Washington',emoji:'🎷'},{name:'Esperanza Spalding',emoji:'🌿'},{name:'Robert Glasper',emoji:'🎹'}],
+      rock:    [{name:'Arctic Monkeys',emoji:'🎸'},{name:'Radiohead',emoji:'🌀'},{name:'Tame Impala',emoji:'🌈'},{name:'The Strokes',emoji:'🎵'}],
+      ballad:  [{name:'IU',emoji:'🌸'},{name:'Kim Kwangseok',emoji:'🎸'},{name:'Celine Dion',emoji:'💫'},{name:'Whitney Houston',emoji:'🎤'}],
+      trot:    [{name:'임영웅',emoji:'⭐'},{name:'나훈아',emoji:'🎤'},{name:'조용필',emoji:'🌸'},{name:'송가인',emoji:'🌺'},{name:'이찬원',emoji:'🎵'}],
+      kindie:  [{name:'혁오',emoji:'🎸'},{name:'잔나비',emoji:'🌿'},{name:'새소년',emoji:'🌸'},{name:'검정치마',emoji:'🖤'},{name:'실리카겔',emoji:'💎'}],
+      afrobeats:[{name:'Wizkid',emoji:'⭐'},{name:'Burna Boy',emoji:'🔥'},{name:'Davido',emoji:'🦁'},{name:'Rema',emoji:'🌊'},{name:'Tems',emoji:'🌿'}],
+      reggaeton:[{name:'Bad Bunny',emoji:'🐰'},{name:'J Balvin',emoji:'🌈'},{name:'Daddy Yankee',emoji:'👑'},{name:'Ozuna',emoji:'🌙'},{name:'Karol G',emoji:'💚'}],
+      bollywood:[{name:'A.R. Rahman',emoji:'🎵'},{name:'Pritam',emoji:'🎼'},{name:'Arijit Singh',emoji:'🌹'},{name:'Shreyaa Ghoshal',emoji:'💫'}],
+      citypop: [{name:'Tatsuro Yamashita',emoji:'🌃'},{name:'Mariya Takeuchi',emoji:'🌸'},{name:'Anri',emoji:'☀️'},{name:'Miki Matsubara',emoji:'💿'}],
+      anisong: [{name:'LiSA',emoji:'🔥'},{name:'Aimer',emoji:'🌙'},{name:'YOASOBI',emoji:'✨'},{name:'Hiroyuki Sawano',emoji:'⚔️'}],
+      lofi:    [{name:'Lofi Girl',emoji:'📚'},{name:'Nujabes',emoji:'🌿'},{name:'j³³',emoji:'☁️'},{name:'Idealism',emoji:'🌙'}],
+      indiepop:[{name:'Clairo',emoji:'🌿'},{name:'Beabadoobee',emoji:'✨'},{name:'Rex Orange County',emoji:'🍊'},{name:'Phoebe Bridgers',emoji:'🔭'},{name:'Beach House',emoji:'🌊'}],
+    };
+
+    function renderArtistChips(genre) {
+      const artists = RECOMMENDED_ARTISTS_MAP[genre] || [];
+      const wrap = document.getElementById('artist-chips-wrap');
+      const container = document.getElementById('artist-chips');
+      if (!artists.length) { wrap.classList.add('hidden'); return; }
+      wrap.classList.remove('hidden');
+      container.innerHTML = artists.map(a =>
+        `<button class="substyle-tag" onclick="selectArtist('${a.name.replace(/'/g,"\\'")}')">
+          ${a.emoji} ${a.name}
+        </button>`
+      ).join('');
+    }
+
+    function selectArtist(name) {
+      const input = document.getElementById('ref-artist-input');
+      if (!input) return;
+      const cur = input.value.trim();
+      if (cur && !cur.toLowerCase().includes(name.toLowerCase())) {
+        input.value = cur + ', ' + name;
+      } else if (!cur) {
+        input.value = name;
+      }
+      input.focus();
+    }
+
+    // 장르 change 시 아티스트 칩 갱신
+    document.getElementById('select-genre').addEventListener('change', function() {
+      renderArtistChips(this.value);
+      renderSubstyles(this.value);
+      checkFormReady();
+    });
+
+    // ══════════════════════════════════════════════════════
+    // ─── View 전환 ───
+    // ══════════════════════════════════════════════════════
+    function switchView(view) {
+      document.getElementById('prompt-form').classList.toggle('hidden', view !== 'dashboard');
+      document.getElementById('view-history').classList.toggle('hidden', view !== 'history');
+      document.getElementById('view-trends').classList.toggle('hidden', view !== 'trends');
+      if (view === 'history')  renderHistory();
+      if (view === 'trends')   renderTrends();
+    }
+
+    // ─── 작업 기록 렌더 ───
+    function renderHistory() {
+      const list  = document.getElementById('history-list');
+      const empty = document.getElementById('history-empty');
+      let raw;
+      try { raw = JSON.parse(localStorage.getItem('plly_results') || 'null'); } catch(e) { raw = null; }
+      if (!raw) { list.innerHTML = ''; empty.classList.remove('hidden'); return; }
+      empty.classList.add('hidden');
+      const input = (() => { try { return JSON.parse(localStorage.getItem('plly_input') || '{}'); } catch(e) { return {}; } })();
+      const items = (raw.type === 'batch' ? raw.data : [raw]) || [];
+      list.innerHTML = items.map((p, i) => {
+        const prompt = p.prompt || '';
+        const escaped = prompt.replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        return `<div class="glass-card p-4">
+          <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center gap-2">
+              <div class="num-badge text-xs">${i+1}</div>
+              <span class="text-sm font-bold text-white">${p.title || 'Track ' + (i+1)}</span>
+            </div>
+            <button class="btn-copy text-xs" onclick="copyText('${prompt.replace(/'/g,"\\'")}'); this.textContent='✅ 복사됨'; this.classList.add('copied');">📋 복사</button>
+          </div>
+          <div class="prompt-text text-[11px]">${escaped}</div>
+        </div>`;
+      }).join('');
+    }
+
+    // ─── 글로벌 트렌드 렌더 ───
+    function renderTrends() {
+      const trends = [
+        {genre:'K-Pop',country:'🇰🇷',hot:'걸크러쉬, 뉴진스 바이브'},
+        {genre:'Afrobeats',country:'🌍',hot:'Amapiano 퓨전, 리드미컬'},
+        {genre:'Phonk',country:'🌎',hot:'Drift Phonk, 다크 트랩'},
+        {genre:'Latin Pop',country:'🇲🇽',hot:'레게톤, 팝 퓨전'},
+        {genre:'City Pop',country:'🇯🇵',hot:'시티팝 리바이벌'},
+        {genre:'Indie Pop',country:'🌐',hot:'베드룸 팝, 드림팝'},
+      ];
+      const container = document.getElementById('trend-cards');
+      if (!container) return;
+      container.innerHTML = trends.map((t,i) => `
+        <div class="glass-card p-4 text-left cursor-default hover:border-purple-500/30 transition-all">
+          <div class="text-2xl mb-1">${t.country}</div>
+          <div class="font-black text-white text-sm">${t.genre}</div>
+          <div class="text-[11px] text-slate-400 mt-1">${t.hot}</div>
+          <div class="mt-2 inline-block px-2 py-0.5 rounded-full bg-purple-500/10 text-[9px] text-purple-400 font-black">#${i+1} HOT</div>
+        </div>`).join('');
+    }
+
+    // ══════════════════════════════════════════════════════
+    // ─── Gemini AI 연결 상태 실시간 확인 ───
+    // ══════════════════════════════════════════════════════
+    async function checkGeminiStatus() {
+      const dot  = document.getElementById('gemini-dot');
+      const text = document.getElementById('gemini-status-text');
+      const icon = document.getElementById('gemini-icon');
+      try {
+        const token = localStorage.getItem('gpm_token');
+        const resp = await fetch('/api/gemini-status', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await resp.json();
+        if (data.connected) {
+          dot.style.background  = '#10b981';
+          dot.style.boxShadow   = '0 0 8px rgba(16,185,129,0.6)';
+          text.textContent      = data.model || 'Connected';
+          text.style.color      = '#6ee7b7';
+          icon.textContent      = '✅';
+        } else {
+          dot.style.background  = '#ef4444';
+          dot.style.boxShadow   = '0 0 8px rgba(239,68,68,0.5)';
+          text.textContent      = 'API 키 미설정';
+          text.style.color      = '#fca5a5';
+          icon.textContent      = '❌';
+        }
+      } catch(e) {
+        dot.style.background = '#f59e0b';
+        text.textContent = '서버 확인 필요';
+        icon.textContent = '⚠️';
+      }
+    }
+
+    // 페이지 로드 후 3초 뒤 상태 체크 (서버 응답 대기)
+    setTimeout(checkGeminiStatus, 1500);
   </script>
+
 
 </body>
 </html>

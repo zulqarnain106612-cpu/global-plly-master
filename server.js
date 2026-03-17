@@ -1639,6 +1639,25 @@ app.get('/api/auth/verify', verifyToken, (req, res) => {
     res.json({ success: true, user: req.user });
 });
 
+// ─────────────────── Gemini AI 연결 상태 확인 ───────────────────
+app.get('/api/gemini-status', verifyToken, async (req, res) => {
+    try {
+        if (!GEMINI_API_KEY || GEMINI_API_KEY === '여기에_Gemini_API_키를_붙여넣으세요') {
+            return res.json({ connected: false, model: null, reason: 'API Key not configured' });
+        }
+        // 간단한 ping 테스트 (빠르게 끝나는 최소 요청)
+        const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
+        await ai.models.generateContent({
+            model: GEMINI_MODEL,
+            contents: [{ role: 'user', parts: [{ text: 'ping' }] }],
+            config: { maxOutputTokens: 1 }
+        });
+        res.json({ connected: true, model: GEMINI_MODEL });
+    } catch (err) {
+        res.json({ connected: false, model: GEMINI_MODEL, reason: err.message });
+    }
+});
+
 // ═══════════════════════════════════════════════════════════════
 // �🛣️ API 라우터
 // ═══════════════════════════════════════════════════════════════
