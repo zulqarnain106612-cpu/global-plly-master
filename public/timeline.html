@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CapCut 타임라인 추출기 - Global Plly Master</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['JetBrains Mono', 'monospace'] },
+                    colors: {
+                        plly: { bg: '#0a0a0f', card: '#12121a', border: '#1e1e2e', accent: '#7c3aed', text: '#e2e8f0', muted: '#64748b' }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0a0a0f;
+            color: #e2e8f0;
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* ═══ SIDEBAR ═══ */
+        .app-sidebar {
+            width: 260px;
+            min-width: 260px;
+            height: 100vh;
+            background: rgba(255, 255, 255, 0.02);
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+            z-index: 10;
+        }
+
+        .sidebar-section-label {
+            font-size: 10px;
+            font-weight: 900;
+            color: #64748b;
+            padding: 0 16px;
+            margin-top: 24px;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            opacity: 0.5;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 16px;
+            border-radius: 14px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #94a3b8;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            border: 1px solid transparent;
+            margin: 0 4px;
+        }
+
+        .nav-link:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: #e2e8f0;
+        }
+
+        .nav-link.active {
+            background: rgba(124, 58, 237, 0.15);
+            color: #c4b5fd;
+            border-color: rgba(124, 58, 237, 0.25);
+        }
+
+        /* ═══ MAIN ═══ */
+        .main-viewport {
+            flex: 1;
+            height: 100vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #080810;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(124, 58, 237, 0.3);
+            border-radius: 10px;
+        }
+
+        .top-bar {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background: rgba(10, 10, 15, 0.85);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 14px 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 20px;
+            padding: 24px;
+            transition: all 0.3s ease;
+        }
+
+        .glass-card:hover {
+            border-color: rgba(124, 58, 237, 0.2);
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        /* ═══ DROP ZONE ═══ */
+        #drop-zone {
+            border: 2px dashed rgba(124, 58, 237, 0.35);
+            border-radius: 24px;
+            background: rgba(124, 58, 237, 0.04);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #drop-zone::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse at 50% 50%, rgba(124, 58, 237, 0.08), transparent 70%);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        #drop-zone.dragover {
+            border-color: rgba(124, 58, 237, 0.9);
+            background: rgba(124, 58, 237, 0.12);
+            transform: scale(1.01);
+        }
+
+        #drop-zone.dragover::before {
+            opacity: 1;
+        }
+
+        /* ═══ TIMELINE TABLE ═══ */
+        .timeline-row {
+            display: grid;
+            grid-template-columns: 56px 1fr 110px;
+            align-items: center;
+            gap: 16px;
+            padding: 14px 20px;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.2s;
+            animation: rowSlideIn 0.35s ease-out forwards;
+            opacity: 0;
+        }
+
+        .timeline-row:hover {
+            background: rgba(124, 58, 237, 0.07);
+            border-color: rgba(124, 58, 237, 0.2);
+        }
+
+        @keyframes rowSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(12px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .track-num {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #7c3aed, #6d28d9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            font-size: 14px;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .timestamp-badge {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            font-weight: 600;
+            color: #a78bfa;
+            background: rgba(124, 58, 237, 0.12);
+            border: 1px solid rgba(124, 58, 237, 0.25);
+            padding: 6px 14px;
+            border-radius: 10px;
+            white-space: nowrap;
+            text-align: center;
+        }
+
+        .btn-action {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 9px 18px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+
+        .output-box {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(124, 58, 237, 0.2);
+            border-radius: 16px;
+            padding: 20px 24px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+            line-height: 2;
+            color: #c4b5fd;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        @keyframes pulse-glow {
+
+            0%,
+            100% {
+                box-shadow: 0 0 15px rgba(124, 58, 237, 0.4);
+            }
+
+            50% {
+                box-shadow: 0 0 30px rgba(124, 58, 237, 0.7);
+            }
+        }
+
+        .animate-pulse-glow {
+            animation: pulse-glow 3s ease-in-out infinite;
+        }
+
+        .connection-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        /* ═══ FORMAT TABS ═══ */
+        .fmt-tab {
+            padding: 7px 16px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.03);
+            color: #94a3b8;
+            transition: all 0.2s;
+        }
+
+        .fmt-tab:hover {
+            background: rgba(255, 255, 255, 0.07);
+            color: #e2e8f0;
+        }
+
+        .fmt-tab.active {
+            background: rgba(124, 58, 237, 0.2);
+            border-color: rgba(124, 58, 237, 0.4);
+            color: #c4b5fd;
+        }
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-up {
+            animation: fadeUp 0.5s ease-out forwards;
+            opacity: 0;
+        }
+
+        /* ═══ STATS GRID ═══ */
+        .stat-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 16px;
+            padding: 18px 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- ════ SIDEBAR ════ -->
+    <aside class="app-sidebar">
+        <div class="p-8">
+            <div class="flex items-center gap-4">
+                <div
+                    class="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-600 to-cyan-500 flex items-center justify-center text-2xl shadow-xl shadow-purple-500/20 animate-pulse-glow">
+                    🎵</div>
+                <div>
+                    <h1 class="font-black text-xl leading-none tracking-tighter uppercase">PLLY <span
+                            class="text-purple-500">MASTER</span></h1>
+                    <p class="text-[9px] text-plly-muted mt-1.5 uppercase tracking-[0.2em] font-black opacity-60">AI
+                        Music Dashboard</p>
+                </div>
+            </div>
+        </div>
+
+        <nav class="flex-1 px-4 py-2 space-y-1 overflow-y-auto">
+            <div class="sidebar-section-label">Main Control</div>
+            <a class="nav-link" href="/">
+                <span class="w-8 flex justify-center">🏠</span> <span>대시보드</span>
+            </a>
+
+            <div class="sidebar-section-label">Insights</div>
+            <!-- 현재 페이지 -->
+            <a class="nav-link active" href="/timeline.html"
+                style="background:rgba(139,92,246,0.12);border-color:rgba(139,92,246,0.25);">
+                <span class="w-8 flex justify-center">🎬</span>
+                <span class="flex-1">타임라인 추출기</span>
+                <span
+                    class="text-[9px] font-black px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/20">NEW</span>
+            </a>
+        </nav>
+
+        <!-- User Info -->
+        <div class="p-4 mt-auto border-t border-white/5 bg-white/[0.01]">
+            <div class="flex items-center gap-4 p-4 rounded-2xl hover:bg-white/5 transition-all cursor-default group">
+                <div
+                    class="w-10 h-10 rounded-xl bg-gradient-to-tr from-purple-500 to-rose-400 flex items-center justify-center font-black text-white shadow-lg">
+                    👤</div>
+                <div class="flex-1 min-w-0">
+                    <p id="user-display" class="text-sm font-bold truncate">User</p>
+                    <p class="text-[10px] text-emerald-400 font-bold uppercase tracking-wider">Pro Active</p>
+                </div>
+                <button onclick="doLogout()" title="로그아웃"
+                    class="text-plly-muted hover:text-rose-400 p-2 rounded-xl hover:bg-rose-500/10 transition-all">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </aside>
+
+    <!-- ════ MAIN VIEWPORT ════ -->
+    <main class="main-viewport">
+        <!-- Top Bar -->
+        <div class="top-bar">
+            <div class="flex items-center gap-3">
+                <span class="text-plly-muted text-sm">Tools</span>
+                <span class="text-plly-muted mx-1">›</span>
+                <span class="text-sm font-bold text-white/90">🎬 CapCut 타임라인 추출기</span>
+            </div>
+            <div class="flex items-center gap-3">
+                <button id="btn-copy-output" onclick="copyOutput()"
+                    class="btn-action bg-purple-500/10 border-purple-500/20 text-purple-300 hover:bg-purple-500/20 hidden">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                    <span id="copy-btn-text">타임라인 복사</span>
+                </button>
+                <button id="btn-reset" onclick="resetAll()"
+                    class="btn-action bg-rose-500/10 border-rose-500/20 text-rose-400 hover:bg-rose-500/20 hidden">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    초기화
+                </button>
+                <a href="/" class="btn-action bg-white/5 border-white/10 text-white hover:bg-white/10"
+                    style="border:1px solid rgba(255,255,255,0.1);">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    대시보드
+                </a>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="p-10">
+
+            <!-- 초기 화면: 드롭존 -->
+            <div id="upload-section">
+                <!-- 헤더 -->
+                <div class="mb-10 fade-up">
+                    <div class="flex items-center gap-4 mb-3">
+                        <div
+                            class="w-14 h-14 rounded-2xl bg-gradient-to-br from-cyan-500 to-purple-600 flex items-center justify-center text-3xl shadow-xl shadow-cyan-500/20">
+                            🎬</div>
+                        <div>
+                            <h2 class="text-3xl font-black text-white">CapCut 타임라인 추출기</h2>
+                            <p class="text-sm text-plly-muted mt-1">draft_content.json 파일을 드래그하면 트랙 제목과 타임스탬프를 자동으로
+                                추출합니다</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 파일 경로 안내 -->
+                <div class="glass-card mb-6 fade-up" style="animation-delay:0.05s">
+                    <div class="flex items-start gap-4">
+                        <div
+                            class="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-xl flex-shrink-0">
+                            📂</div>
+                        <div class="flex-1">
+                            <h3 class="font-bold text-white mb-2">CapCut 프로젝트 파일 위치</h3>
+                            <div class="space-y-2">
+                                <div class="flex items-center gap-3 p-3 rounded-xl bg-black/30 border border-white/5">
+                                    <span
+                                        class="text-[10px] font-black bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded-md border border-blue-500/20 uppercase tracking-wider flex-shrink-0">Windows</span>
+                                    <code
+                                        class="font-mono text-xs text-amber-300 break-all">C:\Users\[사용자명]\AppData\Local\CapCut\User Data\Projects\com.lveditor.draft\[프로젝트ID]\</code>
+                                </div>
+                                <div class="flex items-center gap-3 p-3 rounded-xl bg-black/30 border border-white/5">
+                                    <span
+                                        class="text-[10px] font-black bg-slate-500/20 text-slate-300 px-2 py-0.5 rounded-md border border-slate-500/20 uppercase tracking-wider flex-shrink-0">파일명</span>
+                                    <code class="font-mono text-xs text-emerald-300">draft_content.json</code>
+                                    <span class="text-xs text-plly-muted">또는</span>
+                                    <code class="font-mono text-xs text-emerald-300">draft_info.json</code>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 드롭존 -->
+                <div id="drop-zone" class="fade-up p-20 text-center" style="animation-delay:0.1s;"
+                    onclick="document.getElementById('file-input').click()" ondragover="handleDragOver(event)"
+                    ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
+                    <input type="file" id="file-input" accept=".json" style="display:none"
+                        onchange="handleFileSelect(event)">
+                    <div id="drop-icon" class="text-6xl mb-5 transition-transform duration-300">📄</div>
+                    <p class="text-xl font-black text-white mb-2">draft_content.json 을 여기에 드래그하세요</p>
+                    <p class="text-sm text-plly-muted mb-6">또는 클릭해서 파일 선택</p>
+                    <div
+                        class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-purple-500/20 border border-purple-500/30 text-purple-300 font-bold text-sm">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                        </svg>
+                        파일 선택
+                    </div>
+                    <p class="text-[11px] text-plly-muted mt-6 opacity-50">⚡ 서버 전송 없음 — 파일은 브라우저에서만 처리됩니다</p>
+                </div>
+            </div>
+
+            <!-- 결과 화면 -->
+            <div id="result-section" class="hidden">
+
+                <!-- 통계 카드 -->
+                <div id="stats-grid" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 fade-up"></div>
+
+                <!-- 메인 레이아웃 -->
+                <div class="grid grid-cols-1 xl:grid-cols-5 gap-8">
+
+                    <!-- 왼쪽: 타임라인 리스트 -->
+                    <div class="xl:col-span-3">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-black text-white">🎵 트랙 타임라인</h3>
+                            <div class="flex gap-2">
+                                <button class="fmt-tab active" id="tab-youtube" onclick="switchFmt('youtube')">YouTube
+                                    챕터</button>
+                                <button class="fmt-tab" id="tab-simple" onclick="switchFmt('simple')">심플</button>
+                                <button class="fmt-tab" id="tab-secs" onclick="switchFmt('secs')">초(秒) 단위</button>
+                            </div>
+                        </div>
+                        <div id="timeline-list" class="space-y-2"></div>
+                    </div>
+
+                    <!-- 오른쪽: 복사용 텍스트 출력 -->
+                    <div class="xl:col-span-2">
+                        <div class="sticky top-8 space-y-4">
+                            <div class="flex items-center justify-between mb-1">
+                                <h3 class="text-lg font-black text-white">📋 복사용 출력</h3>
+                                <button onclick="copyOutput()"
+                                    class="btn-action bg-purple-500/10 border border-purple-500/20 text-purple-300 hover:bg-purple-500/20 text-xs px-3 py-2">
+                                    📋 복사
+                                </button>
+                            </div>
+                            <div id="output-box" class="output-box min-h-[300px]"></div>
+
+                            <!-- 포맷 설명 -->
+                            <div class="glass-card !p-4 text-xs text-plly-muted space-y-1.5">
+                                <p class="font-bold text-white/70 mb-2">💡 활용 방법</p>
+                                <p>• <span class="text-purple-300 font-semibold">YouTube 챕터</span> — 동영상 설명란에 붙여넣기</p>
+                                <p>• <span class="text-purple-300 font-semibold">심플</span> — SNS 게시글, 커뮤니티 공유</p>
+                                <p>• <span class="text-purple-300 font-semibold">초 단위</span> — CapCut 자막 타이밍 계산</p>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- 에러 화면 -->
+            <div id="error-section" class="hidden text-center py-20 fade-up">
+                <div class="text-5xl mb-4">⚠️</div>
+                <h3 class="text-xl font-black text-white mb-2">파싱 실패</h3>
+                <p id="error-msg" class="text-plly-muted text-sm mb-6"></p>
+                <button onclick="resetAll()"
+                    class="px-6 py-3 rounded-xl bg-purple-500/20 border border-purple-500/30 text-purple-300 font-bold text-sm hover:bg-purple-500/30 transition-all">
+                    다시 시도
+                </button>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Toast -->
+    <div id="toast-container" class="fixed top-8 right-8 z-[300] flex flex-col gap-4" style="position:fixed;"></div>
+
+    <script>
+            // ═══ Auth Guard ═══
+            (function () {
+                var token = localStorage.getItem('gpm_token');
+                if (!token) { window.location.href = '/login.html'; return; }
+                var name = localStorage.getItem('gpm_realname') || localStorage.getItem('gpm_username') || 'User';
+                var el = document.getElementById('user-display');
+                if (el) el.textContent = name;
+            })();
+
+        function doLogout() {
+            if (confirm('로그아웃 하시겠습니까?')) {
+                localStorage.removeItem('gpm_token');
+                window.location.href = '/login.html';
+            }
+        }
+
+        // ═══ Sidebar badge ═══
+        (function () {
+            var prev = localStorage.getItem('plly_results');
+            if (prev) {
+                try {
+                    var d = JSON.parse(prev);
+                    var badge = document.getElementById('sidebar-results-badge');
+                    if (badge) badge.textContent = d.type === 'batch' ? (d.data.length + '개') : '1개';
+                } catch (e) { }
+            }
+        })();
+
+        // ═══ Connection status (v2 - server-side key, no client key) ═══
+        // Gemini API Key는 서버에서만 관리되므로 상태 표시 생략
+
+        // ═══ Toast ═══
+        function showToast(msg, type) {
+            type = type || 'info';
+            var container = document.getElementById('toast-container');
+            var colors = {
+                success: 'from-emerald-600/90 to-teal-600/90 border-emerald-500/30',
+                error: 'from-rose-600/90 to-red-600/90 border-rose-500/30',
+                info: 'from-purple-600/90 to-violet-600/90 border-purple-500/30'
+            };
+            var icons = { success: '✅', error: '❌', info: 'ℹ️' };
+            var t = document.createElement('div');
+            t.className = 'rounded-xl px-5 py-3 bg-gradient-to-r ' + (colors[type] || colors.info) + ' border flex items-center gap-3 shadow-2xl max-w-sm';
+            t.style.cssText = 'transform:translateX(110%);transition:all 0.4s;';
+            t.innerHTML = '<span class="text-lg">' + (icons[type] || 'ℹ️') + '</span><span class="text-sm text-white font-medium">' + msg + '</span>';
+            container.appendChild(t);
+            requestAnimationFrame(function () { t.style.transform = 'translateX(0)'; });
+            setTimeout(function () { t.style.transform = 'translateX(110%)'; setTimeout(function () { t.remove(); }, 400); }, 3500);
+        }
+
+        // ═══ Clipboard ═══
+        async function copyText(text) {
+            try { await navigator.clipboard.writeText(text); }
+            catch (e) {
+                var ta = document.createElement('textarea');
+                ta.value = text;
+                ta.style.cssText = 'position:fixed;opacity:0;';
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand('copy');
+                ta.remove();
+            }
+        }
+
+        // ═══ Drag & Drop ═══
+        function handleDragOver(e) {
+            e.preventDefault();
+            document.getElementById('drop-zone').classList.add('dragover');
+            document.getElementById('drop-icon').style.transform = 'scale(1.15) rotate(-5deg)';
+        }
+
+        function handleDragLeave(e) {
+            document.getElementById('drop-zone').classList.remove('dragover');
+            document.getElementById('drop-icon').style.transform = '';
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            document.getElementById('drop-zone').classList.remove('dragover');
+            document.getElementById('drop-icon').style.transform = '';
+            var file = e.dataTransfer.files[0];
+            if (file) processFile(file);
+        }
+
+        function handleFileSelect(e) {
+            var file = e.target.files[0];
+            if (file) processFile(file);
+        }
+
+        // ═══ State ═══
+        var _tracks = [];
+        var _fmt = 'youtube';
+        var _totalDuration = 0;
+
+        // ═══ 핵심: CapCut JSON 파서 ═══
+        function processFile(file) {
+            if (!file.name.endsWith('.json')) {
+                showError('JSON 파일만 지원합니다. draft_content.json 또는 draft_info.json 파일을 선택하세요.');
+                return;
+            }
+
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                try {
+                    var json = JSON.parse(e.target.result);
+                    var tracks = parseCapCutJson(json);
+                    if (tracks.length === 0) {
+                        showError('오디오 트랙을 찾을 수 없습니다.\n이 파일에 음악 클립이 있는지 확인해주세요.\n\n파일명: ' + file.name);
+                        return;
+                    }
+                    _tracks = tracks;
+                    renderResults(file.name);
+                } catch (err) {
+                    showError('JSON 파싱 오류: ' + err.message + '\n\n유효한 CapCut 프로젝트 파일인지 확인해주세요.');
+                }
+            };
+            reader.readAsText(file, 'utf-8');
+        }
+
+        /**
+         * CapCut draft_content.json 구조 파서
+         * 다양한 버전의 CapCut 포맷을 모두 처리합니다.
+         *
+         * 핵심 구조:
+         *   tracks[] → segments[] → target_timerange.start / duration (마이크로초)
+         *   materials.audios[] / materials.videos[] → name, path (파일명)
+         */
+        function parseCapCutJson(json) {
+            var results = [];
+
+            // 1. 재료(materials) 인덱스 먼저 빌드 — id → name 매핑
+            var materialMap = {};
+            var materialSections = ['audios', 'videos', 'music', 'sounds'];
+
+            function indexMaterials(obj) {
+                if (!obj || typeof obj !== 'object') return;
+                materialSections.forEach(function (section) {
+                    var arr = obj[section];
+                    if (Array.isArray(arr)) {
+                        arr.forEach(function (item) {
+                            if (!item || !item.id) return;
+                            // 이름 우선순위: name > path의 파일명 > id
+                            var name = item.name || '';
+                            if (!name && item.path) {
+                                // path에서 파일명 추출 (확장자 제거)
+                                name = item.path.replace(/\\/g, '/').split('/').pop().replace(/\.[^.]+$/, '');
+                            }
+                            if (!name) name = item.id;
+                            materialMap[item.id] = name;
+                        });
+                    }
+                });
+            }
+
+            // materials가 최상위 또는 중첩 구조일 수 있음
+            if (json.materials) indexMaterials(json.materials);
+            if (json.content && json.content.materials) indexMaterials(json.content.materials);
+
+            // 2. tracks 배열 탐색 (여러 위치 시도)
+            var tracksArr = json.tracks
+                || (json.content && json.content.tracks)
+                || [];
+
+            // 오디오 트랙만 필터링 (type: 'audio' 또는 'music')
+            var audioTracks = tracksArr.filter(function (t) {
+                return t && (t.type === 'audio' || t.type === 'music' || t.type === 'main_audio');
+            });
+
+            // 오디오 타입 없으면 segments가 있는 모든 트랙 (영상 프로젝트에 따라 다름)
+            if (audioTracks.length === 0) {
+                audioTracks = tracksArr.filter(function (t) {
+                    return t && Array.isArray(t.segments) && t.segments.length > 0;
+                });
+            }
+
+            // 3. 각 트랙의 세그먼트를 평탄화 + 타임스탬프 계산
+            var allSegments = [];
+
+            audioTracks.forEach(function (track) {
+                var segs = track.segments || [];
+                segs.forEach(function (seg) {
+                    if (!seg || !seg.target_timerange) return;
+
+                    var startUs = seg.target_timerange.start || 0;   // 마이크로초
+                    var durUs = seg.target_timerange.duration || 0;   // 마이크로초
+
+                    // 이름 해석: material_id → materialMap, 없으면 seg.name
+                    var name = '';
+                    if (seg.material_id && materialMap[seg.material_id]) {
+                        name = materialMap[seg.material_id];
+                    } else if (seg.name) {
+                        name = seg.name;
+                    } else if (seg.id) {
+                        name = seg.id;
+                    }
+
+                    // 공백/tmp/unnamed 필터링
+                    if (!name || name.trim() === '' || name.toLowerCase().startsWith('tmp') || name.length < 2) {
+                        name = '트랙 ' + (allSegments.length + 1);
+                    }
+
+                    allSegments.push({
+                        name: name,
+                        startUs: startUs,
+                        durUs: durUs,
+                    });
+                });
+            });
+
+            // 4. 시작 시간 기준 정렬
+            allSegments.sort(function (a, b) { return a.startUs - b.startUs; });
+
+            // 5. 중복 시작 시간 제거 (연속 재생 기준 동일 타임스탬프)
+            var seen = {};
+            var unique = allSegments.filter(function (s) {
+                var key = Math.round(s.startUs / 1000000); // 초 단위로 버킷
+                if (seen[key]) return false;
+                seen[key] = true;
+                return true;
+            });
+
+            // 마이크로초 → 초 변환
+            unique.forEach(function (s, i) {
+                var startSec = Math.round(s.startUs / 1000000);
+                var durSec = Math.round(s.durUs / 1000000);
+                results.push({
+                    index: i + 1,
+                    name: cleanTrackName(s.name),
+                    startSec: startSec,
+                    durSec: durSec,
+                    endSec: startSec + durSec,
+                });
+            });
+
+            // 전체 길이
+            if (results.length > 0) {
+                _totalDuration = results[results.length - 1].endSec;
+            }
+
+            return results;
+        }
+
+        // 파일명에서 불필요한 접두사/접미사 제거
+        function cleanTrackName(name) {
+            // 숫자 prefix 제거: "01 - SongName", "1. Title" 등
+            name = name.replace(/^\d+[\.\-\_\s]+/, '');
+            // 확장자 혹시 남아있으면 제거
+            name = name.replace(/\.(mp3|wav|aac|flac|ogg|m4a|mp4|mov)$/i, '');
+            // 앞뒤 공백
+            return name.trim() || name;
+        }
+
+        // ═══ 포맷 변환 ═══
+        function secsToTimestamp(secs, forYoutube) {
+            var h = Math.floor(secs / 3600);
+            var m = Math.floor((secs % 3600) / 60);
+            var s = secs % 60;
+            var ms = String(m).padStart(2, '0');
+            var ss = String(s).padStart(2, '0');
+            if (h > 0 || forYoutube) {
+                return String(h).padStart(2, '0') + ':' + ms + ':' + ss;
+            }
+            return ms + ':' + ss;
+        }
+
+        function secsToReadable(secs) {
+            var m = Math.floor(secs / 60);
+            var s = secs % 60;
+            if (m > 0) return m + '분 ' + s + '초';
+            return s + '초';
+        }
+
+        function buildOutputText() {
+            if (_tracks.length === 0) return '';
+            var lines = [];
+            var useHours = _totalDuration >= 3600;
+            _tracks.forEach(function (t) {
+                var ts = secsToTimestamp(t.startSec, useHours);
+                if (_fmt === 'youtube') {
+                    lines.push(ts + ' ' + t.name);
+                } else if (_fmt === 'simple') {
+                    lines.push('[' + ts + '] ' + t.name);
+                } else if (_fmt === 'secs') {
+                    lines.push(t.startSec + 's - ' + t.name + ' (' + secsToReadable(t.durSec) + ')');
+                }
+            });
+            return lines.join('\n');
+        }
+
+        // ═══ 렌더링 ═══
+        function renderResults(fileName) {
+            document.getElementById('upload-section').classList.add('hidden');
+            document.getElementById('error-section').classList.add('hidden');
+            document.getElementById('result-section').classList.remove('hidden');
+            var copyOutputBtn = document.getElementById('btn-copy-output');
+            if (copyOutputBtn) copyOutputBtn.classList.remove('hidden');
+            var resetBtn = document.getElementById('btn-reset');
+            if (resetBtn) resetBtn.classList.remove('hidden');
+
+            // 통계
+            var statsGrid = document.getElementById('stats-grid');
+            var useTotalH = _totalDuration >= 3600;
+            statsGrid.innerHTML = [
+                { icon: '🎵', label: '트랙 수', value: _tracks.length + '개' },
+                { icon: '⏱️', label: '전체 길이', value: secsToTimestamp(_totalDuration, useTotalH) },
+                { icon: '📄', label: '파일명', value: fileName.replace('draft_content.json', '').replace('draft_info.json', '').trim() || '—' },
+                { icon: '✅', label: '파싱 상태', value: '성공', color: '#10b981' },
+            ].map(function (s, i) {
+                return '<div class="stat-card fade-up" style="animation-delay:' + (i * 0.05) + 's">' +
+                    '<div class="text-2xl mb-2">' + s.icon + '</div>' +
+                    '<p class="text-2xl font-black mb-1" style="color:' + (s.color || '#c4b5fd') + '">' + s.value + '</p>' +
+                    '<p class="text-xs text-plly-muted font-semibold uppercase tracking-wider">' + s.label + '</p>' +
+                    '</div>';
+            }).join('');
+
+            renderTimeline();
+            renderOutput();
+        }
+
+        function renderTimeline() {
+            var list = document.getElementById('timeline-list');
+            var useHours = _totalDuration >= 3600;
+            list.innerHTML = _tracks.map(function (t, i) {
+                var ts = secsToTimestamp(t.startSec, useHours);
+                var dur = secsToReadable(t.durSec);
+                return '<div class="timeline-row" style="animation-delay:' + (i * 0.04) + 's">' +
+                    '<div class="track-num">' + t.index + '</div>' +
+                    '<div class="min-w-0">' +
+                    '<p class="font-bold text-white text-sm truncate">' + escHtml(t.name) + '</p>' +
+                    '<p class="text-xs text-plly-muted mt-0.5">' + dur + '</p>' +
+                    '</div>' +
+                    '<div class="timestamp-badge">' + ts + '</div>' +
+                    '</div>';
+            }).join('');
+        }
+
+        function renderOutput() {
+            document.getElementById('output-box').textContent = buildOutputText();
+        }
+
+        function switchFmt(fmt) {
+            _fmt = fmt;
+            ['youtube', 'simple', 'secs'].forEach(function (f) {
+                document.getElementById('tab-' + f).classList.toggle('active', f === fmt);
+            });
+            renderOutput();
+        }
+
+        function copyOutput() {
+            var text = buildOutputText();
+            if (!text) { showToast('복사할 내용이 없습니다.', 'error'); return; }
+            copyText(text);
+            var btn = document.getElementById('copy-btn-text');
+            if (btn) { btn.textContent = '복사 완료! ✅'; setTimeout(function () { btn.textContent = '타임라인 복사'; }, 2000); }
+            showToast('타임라인이 클립보드에 복사되었습니다!', 'success');
+        }
+
+        function resetAll() {
+            _tracks = [];
+            _totalDuration = 0;
+            _fmt = 'youtube';
+            document.getElementById('result-section').classList.add('hidden');
+            document.getElementById('error-section').classList.add('hidden');
+            document.getElementById('upload-section').classList.remove('hidden');
+            document.getElementById('btn-copy-output').classList.add('hidden');
+            document.getElementById('btn-reset').classList.add('hidden');
+            document.getElementById('file-input').value = '';
+            // 포맷 탭 초기화
+            ['youtube', 'simple', 'secs'].forEach(function (f) {
+                document.getElementById('tab-' + f).classList.toggle('active', f === 'youtube');
+            });
+        }
+
+        function showError(msg) {
+            document.getElementById('upload-section').classList.add('hidden');
+            document.getElementById('result-section').classList.add('hidden');
+            document.getElementById('error-section').classList.remove('hidden');
+            document.getElementById('error-msg').textContent = msg;
+            document.getElementById('btn-reset').classList.remove('hidden');
+        }
+
+        function escHtml(str) {
+            return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+    </script>
+</body>
+
+</html>
