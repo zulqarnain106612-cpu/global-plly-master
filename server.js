@@ -30,6 +30,19 @@ if (!supabase) {
     console.warn('⚠️ Supabase credentials not found. History will not be saved to DB.');
 }
 
+// ═══════════════════════════════════════════════════════════════
+// 🔐 Gemini AI 서버사이드 초기화 (키는 .env에서만 — 클라이언트 노출 금지)
+// ═══════════════════════════════════════════════════════════════
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+const GEMINI_MODEL = 'gemini-3.1-flash-lite-preview';
+
+if (!GEMINI_API_KEY || GEMINI_API_KEY === '여기에_Gemini_API_키를_붙여넣으세요') {
+    console.warn('⚠️ GEMINI_API_KEY not found in .env. /api/generate-prompts will not work.');
+} else {
+    console.log(`✅ Gemini AI initialized: ${GEMINI_MODEL}`);
+}
+
+
 // 미들웨어 설정
 app.use(cors());
 app.use(express.json());
@@ -327,6 +340,23 @@ const GENRE_MAP = {
         tags: ['Euro pop', 'dance pop', 'Euro dance', 'Scandinavian pop', 'Swedish pop'],
         bpm: '110-130', style: 'four-on-the-floor beat, bright synths, melodic hooks, catchy chorus'
     },
+
+    // ── 팝 / 인디팝 / 발라드 ──────────────────────────────
+    pop: {
+        name: 'Pop',
+        tags: ['pop', 'mainstream pop', 'radio pop', 'catchy', 'top 40'],
+        bpm: '95-130', style: 'polished production, hooky melodies, verse-chorus structure, radio-friendly'
+    },
+    indiepop: {
+        name: '🎸 Indie Pop',
+        tags: ['indie pop', 'alternative pop', 'lo-fi pop', 'dream pop', 'jangle pop'],
+        bpm: '80-120', style: 'jangly guitars, layered synths, introspective lyrics, warm DIY production'
+    },
+    ballad: {
+        name: '🎹 Ballad',
+        tags: ['ballad', 'power ballad', 'slow song', 'emotional ballad', 'piano ballad'],
+        bpm: '60-80', style: 'emotive vocal performance, sparse arrangement, piano or acoustic guitar, heartfelt'
+    },
 };
 
 
@@ -604,8 +634,723 @@ const CREATIVITY_MAP = {
     crazy: { label: '🌀 짬뽕 모드' }
 };
 
+const VOCAL_LANG_MAP = {
+    auto: { label: '🤖 자동 (국가 맞춤)', tag: '' },
+    korean: { label: '🇰🇷 한국어', tag: 'Korean lyrics' },
+    english: { label: '🇺🇸 영어', tag: 'English lyrics' },
+    japanese: { label: '🇯🇵 일본어', tag: 'Japanese lyrics' },
+    chinese: { label: '🇨🇳 중국어', tag: 'Chinese lyrics' },
+    spanish: { label: '🇪🇸 스페인어', tag: 'Spanish lyrics' },
+    portuguese: { label: '🇧🇷 포르투갈어', tag: 'Portuguese lyrics' },
+    hindi: { label: '🇮🇳 힌디어', tag: 'Hindi lyrics' },
+    punjabi: { label: '🇮🇳 펀자비어', tag: 'Punjabi lyrics' },
+    french: { label: '🇫🇷 프랑스어', tag: 'French lyrics' },
+    german: { label: '🇩🇪 독일어', tag: 'German lyrics' },
+    arabic: { label: '🇸🇦 아랍어', tag: 'Arabic lyrics' },
+    instrumental: { label: '🎸 가사 없음 (연주)', tag: 'instrumental, no lyrics' }
+};
+
 // ═══════════════════════════════════════════════════════════════
-// 🧠 프롬프트 엔지니어링 엔진
+// 🎨 서브스타일 맵 (장르별 세부 분위기 태그)
+// ═══════════════════════════════════════════════════════════════
+const SUBSTYLE_MAP = {
+    kpop: [
+        { id: 'girlcrush', label: '👊 걸크러쉬', tag: 'girl crush, fierce, powerful female energy, bold', desc: 'BLACKPINK/aespa 스타일의 강렬한 걸크러쉬' },
+        { id: 'cute', label: '🍭 큐티/청량', tag: 'cute, refreshing, bubbly, bright sunshine pop', desc: 'IVE/NewJeans 스타일의 청량하고 사랑스러운 분위기' },
+        { id: 'y2k', label: '💿 Y2K 레트로', tag: 'Y2K aesthetic, retro 2000s, nostalgia pop, vintage synth', desc: '2000년대 감성의 레트로 팝' },
+        { id: 'hybe', label: '🌙 몽환/아련', tag: 'dreamy, ethereal, atmospheric, melancholic K-pop', desc: 'BTS/LE SSERAFIM 스타일의 몽환적 분위기' },
+        { id: 'boygroup', label: '🔥 보이그룹 에너지', tag: 'powerful, intense, synchronized, boy group performance', desc: 'BTS/Stray Kids 스타일의 강렬한 에너지' },
+        { id: 'hiphopkpop', label: '🎤 K-힙합팝 퓨전', tag: 'K-pop hip-hop fusion, trap beats, swag, street', desc: '힙합이 가미된 K-Pop' },
+        { id: 'emotional', label: '💜 감성 K-Pop', tag: 'emotional ballad pop, heartfelt, soft piano, vocal run', desc: '감성적이고 서정적인 K-Pop' },
+        { id: 'classic', label: '🎵 클래식 아이돌', tag: 'classic K-pop idol, catchy hook, synchronized dance', desc: '2NE1/SNSD 시대의 클래식 아이돌 K-Pop' },
+    ],
+    hiphop: [
+        { id: 'trap', label: '⛓️ 트랩/다크', tag: 'dark trap, heavy 808, hi-hats, menacing', desc: '묵직한 808 베이스의 트랩' },
+        { id: 'oldschool', label: '🎙️ 올드스쿨', tag: 'old school hip-hop, boom bap, vinyl samples, raw', desc: '붐뱁 계열의 올드스쿨' },
+        { id: 'drill', label: '🔫 드릴', tag: 'drill music, sliding beats, menacing bass, street energy', desc: 'UK/Chicago 드릴 스타일' },
+        { id: 'lofi_hip', label: '☕ 로파이 힙합', tag: 'lo-fi hip-hop, jazzy samples, chill beats, study music', desc: '공부할 때 듣는 로파이 힙합' },
+        { id: 'emo_rap', label: '💔 이모 랩', tag: 'emo rap, sad trap, melodic vocals, vulnerable', desc: '감성적인 멜로딕 랩' },
+        { id: 'conscious', label: '✊ 컨셔스 랩', tag: 'conscious hip-hop, storytelling, lyrical, thought-provoking', desc: '메시지 중심의 컨셔스 힙합' },
+    ],
+    khiphop: [
+        { id: 'flex', label: '💎 플렉스/스웨그', tag: 'Korean hip-hop flex, luxurious, swag, braggadocious', desc: 'Show Me the Money 스타일의 플렉스' },
+        { id: 'lyrical', label: '📖 서정적 K-힙합', tag: 'lyrical Korean rap, emotional, introspective, poetic', desc: '감성적인 서정 K-힙합' },
+        { id: 'street', label: '🏙️ 스트리트', tag: 'Korean street hip-hop, underground, raw, authentic', desc: '홍대 언더그라운드 씬 스타일' },
+        { id: 'groove', label: '🎷 그루브/훵크', tag: 'Korean hip-hop groove, funky bass, jazz influenced', desc: '훵키하고 그루비한 K-힙합' },
+    ],
+    edm: [
+        { id: 'festival', label: '🎉 페스티벌 뱅어', tag: 'festival EDM, massive drop, euphoric build, crowd energy', desc: 'EDC/Ultra 페스티벌 메인스테이지 급' },
+        { id: 'futurebass', label: '🌊 퓨처 베이스', tag: 'future bass, colorful synths, emotional drop, melodic', desc: 'Flume/Marshmello 스타일의 퓨처 베이스' },
+        { id: 'techno', label: '🖤 다크 테크노', tag: 'dark techno, Berlin underground, industrial, relentless', desc: '베를린 언더그라운드 테크노' },
+        { id: 'house', label: '🏠 딥 하우스', tag: 'deep house, soulful vocals, warm bass, sophisticated', desc: '소울풀한 딥 하우스' },
+        { id: 'hyperpop', label: '💥 하이퍼팝', tag: 'hyperpop, glitchy, maximalist, chaotic energy, PC Music', desc: '카오틱한 하이퍼팝' },
+    ],
+    rnb: [
+        { id: 'neosoul', label: '🌿 네오소울', tag: 'neo soul, organic instruments, spiritual, smooth groove', desc: 'D\'Angelo/H.E.R. 스타일의 네오소울' },
+        { id: 'urban', label: '🌆 어반 R&B', tag: 'urban R&B, modern production, sultry, night drive', desc: '세련된 현대 어반 R&B' },
+        { id: 'alternative', label: '🌀 얼터너티브 R&B', tag: 'alternative R&B, experimental, dark, moody', desc: 'Frank Ocean 스타일의 얼터 R&B' },
+        { id: 'classic_rnb', label: '💿 클래식 소울', tag: 'classic soul, Motown inspired, rich harmonies, gospel', desc: '클래식 소울/모타운 스타일' },
+    ],
+    rock: [
+        { id: 'indierock', label: '🎸 인디 록', tag: 'indie rock, jangly guitars, introspective lyrics, lo-fi', desc: '인디 감성의 기타 록' },
+        { id: 'hardrock', label: '⚡ 하드 록', tag: 'hard rock, power chords, guitar solo, arena rock', desc: '강렬한 하드 록' },
+        { id: 'punk', label: '🔴 펑크', tag: 'punk rock, fast, aggressive, rebellious, three chords', desc: '짧고 강렬한 펑크 록' },
+        { id: 'shoegaze', label: '🌫️ 슈게이징', tag: 'shoegaze, wall of sound, distorted guitars, dreamy vocals', desc: 'My Bloody Valentine 스타일' },
+    ],
+    pop: [
+        { id: 'synthpop', label: '🎹 신스팝', tag: 'synth-pop, 80s inspired, neon aesthetic, catchy hooks', desc: '80년대 신스팝 감성' },
+        { id: 'darkpop', label: '🖤 다크 팝', tag: 'dark pop, haunting, minor key, cinematic tension', desc: 'Billie Eilish 스타일의 다크 팝' },
+        { id: 'bubblegum', label: '🫧 버블검 팝', tag: 'bubblegum pop, ultra-catchy, colorful, happy energy', desc: '밝고 귀여운 버블검 팝' },
+        { id: 'hyperpop2', label: '💥 하이퍼팝', tag: 'hyperpop, autotune heavy, glitchy, chaotic fun', desc: 'Charli XCX 스타일' },
+    ],
+    chillpop: [
+        { id: 'bedroom', label: '🛏️ 베드룸 팝', tag: 'bedroom pop, intimate, DIY production, vulnerable', desc: 'Rex Orange County 스타일의 베드룸 팝' },
+        { id: 'sadgirl', label: '🌧️ 새드걸 팝', tag: 'sad girl pop, melancholic, acoustic soft, emotional', desc: 'Phoebe Bridgers 스타일' },
+        { id: 'cottagecore', label: '🌻 코티지코어', tag: 'cottagecore, folk pop, whimsical, nature, soft acoustic', desc: '전원적이고 따뜻한 분위기' },
+    ],
+    jpop: [
+        { id: 'city_pop', label: '🌃 시티팝', tag: 'city pop, 80s Japan, funky bass, late night Tokyo drive', desc: '야마시타 타츠로 스타일의 시티팝' },
+        { id: 'anime_ost', label: '⚡ 애니메 OP/ED', tag: 'anime opening song, high energy, epic, catchy melody', desc: '애니메이션 오프닝 스타일' },
+        { id: 'vocaloid', label: '🤖 보컬로이드', tag: 'Vocaloid, synthetic vocals, otaku culture, Miku vibes', desc: '하츠네 미쿠 스타일의 보컬로이드' },
+        { id: 'jrock', label: '🎸 J-Rock', tag: 'J-rock, visual kei influence, dramatic, powerful', desc: '원피스/나루토 OST 스타일의 J-Rock' },
+    ],
+    // 기타 장르는 빈 배열 (범용 사용)
+    lofi: [
+        { id: 'study', label: '📚 공부/집중', tag: 'lo-fi study beats, calm, focus, coffee shop ambiance', desc: '집중력을 높이는 로파이' },
+        { id: 'late_night', label: '🌙 심야/감성', tag: 'late night lo-fi, melancholic, city lights, alone time', desc: '혼자 있는 밤의 로파이' },
+    ],
+    afrobeats: [
+        { id: 'afropop', label: '☀️ 아프로팝', tag: 'Afropop, Wizkid style, smooth, rhythmic, party vibes', desc: '위즈키드 스타일의 아프로팝' },
+        { id: 'amapiano', label: '🥁 아마피아노', tag: 'Amapiano, log drum, soulful piano, South African', desc: '남아공 아마피아노' },
+    ],
+    phonk: [
+        { id: 'drift', label: '🚗 드리프트 포크', tag: 'drift phonk, aggressive 808, dark hypnotic, Memphis rap', desc: '드리프트 영상에 쓰이는 짙은 포크' },
+        { id: 'cowbell', label: '🔔 카우벨 포크', tag: 'cowbell phonk, Memphis phonk, repetitive hooks, distorted synth', desc: '카우벨 루프가 특징적인 Memphis 포크' },
+        { id: 'romanian', label: '🌙 루마니안 포크', tag: 'Romanian phonk, dark hypnotic, slow drag, ominous bass', desc: '루마니안 스타일의 느린 포크' },
+        { id: 'rage_phonk', label: '🔥 레이지 포크', tag: 'rage phonk, trap influences, aggressive, adrenaline rush', desc: '공격적이고 강렬한 레이지 포크' },
+    ],
+    jazz: [
+        { id: 'smooth', label: '🥂 스무스 재즈', tag: 'smooth jazz, saxophone, mellow groove, sophisticated', desc: '부드럽고 세련된 스무스 재즈' },
+        { id: 'bebop', label: '🎷 비밥', tag: 'bebop jazz, fast tempo, complex harmony, virtuosic', desc: '빠르고 기교넘치는 비밥' },
+        { id: 'modal', label: '🌌 모달/퓨전', tag: 'modal jazz, fusion, Miles Davis influenced, atmospheric', desc: 'Miles Davis 스타일의 모달 재즈' },
+        { id: 'swing', label: '🎩 스윙/빅밴드', tag: 'swing jazz, big band, brass section, upbeat danceable', desc: '1940년대 빅밴드 스윙' },
+    ],
+    classical: [
+        { id: 'baroque', label: '🎻 바로크', tag: 'baroque music, harpsichord, counterpoint, ornamental, Bach style', desc: '바흐 시대의 바로크 음악' },
+        { id: 'romantic_era', label: '🌹 낭만주의', tag: 'romantic era, sweeping orchestral, emotional, Chopin style', desc: '쇼팽/슈베르트 스타일의 낭만주의' },
+        { id: 'modern_classical', label: '🔬 현대음악', tag: 'modern classical, minimalist, Philip Glass style', desc: '미니멀리즘 현대 음악' },
+        { id: 'cinematic_orch', label: '🎬 시네마틱', tag: 'cinematic orchestral, epic score, Hans Zimmer inspired', desc: '영화음악 스타일의 오케스트라' },
+    ],
+    acoustic: [
+        { id: 'folk', label: '🌿 포크', tag: 'folk acoustic, storytelling, fingerpicking guitar, raw', desc: '어쿠스틱 포크 스타일' },
+        { id: 'fingerstyle', label: '🎸 핑거스타일', tag: 'fingerstyle guitar, intricate, classical guitar technique', desc: '복잡한 기타 핑거스타일' },
+        { id: 'singer_songwriter', label: '✍️ 싱어송라이터', tag: 'singer-songwriter, confessional lyrics, piano or guitar, intimate', desc: '개인적인 이야기를 담은 싱어송라이터' },
+        { id: 'campfire', label: '🔥 캠프파이어', tag: 'campfire acoustic, warm, simple strumming, nostalgic', desc: '따뜻하고 단순한 어쿠스틱' },
+    ],
+    ambient: [
+        { id: 'dark_ambient', label: '🖤 다크 앰비언트', tag: 'dark ambient, ominous drone, industrial texture, unsettling', desc: '불안하고 어두운 분위기' },
+        { id: 'space_amb', label: '🚀 스페이스', tag: 'space ambient, cosmic, ethereal pads, vast emptiness', desc: '우주적이고 광활한 앰비언트' },
+        { id: 'nature_amb', label: '🌊 네이처/힐링', tag: 'nature ambient, rain sounds, forest, healing, meditation', desc: '자연음이 담긴 힐링 앰비언트' },
+        { id: 'drone', label: '🎛️ 드론/실험', tag: 'drone music, experimental, minimalist, Brian Eno style', desc: 'Brian Eno 스타일의 드론' },
+    ],
+    trot: [
+        { id: 'classic_trot', label: '🎤 클래식 트로트', tag: 'classic Korean trot, traditional, heartfelt, melodic', desc: '나훈아/조용필 스타일의 클래식 트로트' },
+        { id: 'modern_trot', label: '✨ 뉴트로 트로트', tag: 'modern trot, youth friendly, pop mix, catchy hook', desc: '임영웅 스타일의 뉴트로 트로트' },
+        { id: 'dance_trot', label: '💃 댄스 트로트', tag: 'dance trot, upbeat, party, electronic trot beats', desc: '흥겨운 댄스 트로트' },
+    ],
+    kindie: [
+        { id: 'dreampop', label: '🌙 드림팝', tag: 'Korean indie dream pop, reverb guitar, hazy, emotional', desc: '몽환적인 한국 드림팝' },
+        { id: 'postrock', label: '🏔️ 포스트록', tag: 'Korean post-rock, instrumental, crescendo, epic buildup', desc: '한국 포스트록 밴드 스타일' },
+        { id: 'acoustic_indie', label: '🎵 어쿠스틱 인디', tag: 'Korean acoustic indie, delicate, honest lyrics, coffee shop', desc: '카페에서 듣는 어쿠스틱 인디' },
+        { id: 'synth_indie', label: '🎹 신스 인디', tag: 'Korean indie synth, retro keyboard, layered textures', desc: '신시사이저 중심의 K-인디' },
+    ],
+    citypop: [
+        { id: 'classic_city', label: '🌃 클래식 시티팝', tag: 'classic city pop, 1983 Tokyo, funky bass, smooth groove', desc: '1980년대 도쿄 밤거리의 시티팝' },
+        { id: 'future_city', label: '🚀 퓨처 시티팝', tag: 'future city pop, modern production, retro aesthetic, vaporwave', desc: '현대적으로 재해석된 시티팝' },
+        { id: 'kcitypop', label: '🌆 K-시티팝', tag: 'Korean city pop, Seoul nights, Korean lyrics, 80s groove', desc: '한국형 시티팝' },
+    ],
+    anisong: [
+        { id: 'shounen', label: '⚔️ 소년만화 OP', tag: 'shonen anime opening, energetic, epic, heroic melody', desc: '나루토/원피스 스타일의 오프닝' },
+        { id: 'emotional_anime', label: '💧 감동 ED', tag: 'anime ending song, emotional, melancholic, heartfelt vocals', desc: '눈물샘 자극하는 감동 엔딩' },
+        { id: 'idol_anime', label: '🌸 아이돌 애니송', tag: 'idol anime song, Love Live style, cheerful, cute', desc: '러브라이브 스타일의 아이돌 애니송' },
+        { id: 'dark_anime', label: '🖤 다크 애니 OST', tag: 'dark anime OST, Attack on Titan style, orchestral, intense', desc: '진격의 거인 스타일의 다크 OST' },
+    ],
+    jrock: [
+        { id: 'visualkei', label: '💄 비주얼 케이', tag: 'visual kei, dramatic, glamorous, dark theatrical', desc: '엑스재팬 스타일의 비주얼 케이' },
+        { id: 'alternative_j', label: '🎸 J-얼터너티브', tag: 'Japanese alternative rock, experimental, RADWIMPS style', desc: 'RADWIMPS 스타일의 J-얼터' },
+        { id: 'punk_j', label: '⚡ J-펑크', tag: 'Japanese punk, fast, aggressive, youthful energy', desc: '빠르고 에너지 넘치는 J-펑크' },
+    ],
+    bollywood: [
+        { id: 'item', label: '💃 아이템 송', tag: 'Bollywood item song, dance, glamorous, festive, dhol beats', desc: '화려하고 신나는 볼리우드 댄스송' },
+        { id: 'romantic_bw', label: '🌹 로맨틱', tag: 'Bollywood romantic, lush strings, heartfelt vocals, emotional', desc: '감동적인 볼리우드 로맨스' },
+        { id: 'sufi', label: '🕌 수피 퓨전', tag: 'Sufi fusion, spiritual, qawwali influence, devotional', desc: '수피 음악 영향의 퓨전' },
+        { id: 'folk_bw', label: '🌾 포크/데시', tag: 'Bollywood folk, desi vibes, regional instruments, earthy', desc: '인도 지역 포크 스타일' },
+    ],
+    bhangra: [
+        { id: 'classic_bhangra', label: '🥁 클래식 방그라', tag: 'classic bhangra, dhol, tumbi, energetic, Punjabi folk', desc: '전통 방그라 스타일' },
+        { id: 'urban_bhangra', label: '🏙️ 어반 방그라', tag: 'urban bhangra, hip-hop mixed, Diljit Dosanjh style', desc: '딜짓 도산 스타일의 어반 방그라' },
+        { id: 'fusion_bhangra', label: '🎛️ EDM 방그라', tag: 'bhangra EDM fusion, festival ready, multicultural', desc: 'EDM과 결합된 방그라 퓨전' },
+    ],
+    punjabihiphop: [
+        { id: 'drill_punjabi', label: '🎤 펀자비 드릴', tag: 'Punjabi drill, dark beats, UK influence, menacing street', desc: 'UK 드릴에 영향받은 펀자비 힙합' },
+        { id: 'desi_trap', label: '⛓️ 데시 트랩', tag: 'desi trap, dark 808, Punjabi lyrics, street energy', desc: '트랩 비트의 펀자비 힙합' },
+        { id: 'melodic_punjabi', label: '🎵 멜로딕 펀자비', tag: 'melodic Punjabi hip-hop, emotional, storytelling', desc: '감성적인 멜로딕 펀자비 랩' },
+    ],
+    indianclassical: [
+        { id: 'raga', label: '🪘 라가', tag: 'Indian classical raga, sitar, tabla, meditative, traditional', desc: '전통 시타르 라가 음악' },
+        { id: 'fusion_ic', label: '🎷 인도 재즈 퓨전', tag: 'Indian classical jazz fusion, sitar meets saxophone, world music', desc: '인도 클래식과 재즈의 퓨전' },
+        { id: 'carnatic', label: '🎶 카르나틱', tag: 'Carnatic music, South Indian classical, vocal ornaments', desc: '남인도 카르나틱 음악' },
+    ],
+    samba: [
+        { id: 'samba_enredo', label: '🥁 카니발 삼바', tag: 'samba enredo, Rio carnival, heavy percussion, celebratory', desc: '리우 카니발 스타일의 삼바' },
+        { id: 'pagode', label: '🍺 파고지', tag: 'pagode, intimate samba, acoustic, Brazilian popular', desc: '친밀한 파고지 삼바' },
+    ],
+    bossanova: [
+        { id: 'classic_bossa', label: '🌺 클래식 보사노바', tag: 'classic bossa nova, Joao Gilberto style, nylon guitar, soft vocals', desc: '조앙 질베르토 스타일의 보사노바' },
+        { id: 'modern_bossa', label: '🌆 모던 보사노바', tag: 'modern bossa nova, jazz influence, sophisticated, lounge', desc: '현대적으로 재해석된 보사노바' },
+    ],
+    bailefunk: [
+        { id: 'classic_baile', label: '💦 클래식 바일레', tag: 'classic baile funk, raw, Brazilian favela, aggressive bass', desc: '브라질 바일레 펑크' },
+        { id: 'phonk_baile', label: '🔊 포크 바일레', tag: 'baile funk phonk fusion, trap influenced, heavy bass', desc: '트랩과 결합된 바일레 퓨전' },
+    ],
+    reggaeton: [
+        { id: 'classic_reg', label: '🌴 클래식 레게톤', tag: 'classic reggaeton, dembow rhythm, street, Bad Bunny style', desc: '전통 레게톤 데모우 리듬' },
+        { id: 'perreo', label: '🔥 페레오', tag: 'perreo, reggaeton sensual, slow dembow, night club', desc: '클럽 분위기의 감각적인 레게톤' },
+        { id: 'pop_reg', label: '✨ 팝 레게톤', tag: 'pop reggaeton, mainstream, radio friendly, catchy', desc: '팝과 결합된 레게톤' },
+    ],
+    salsa: [
+        { id: 'classic_salsa', label: '🎺 클래식 살사', tag: 'classic salsa, brass heavy, New York Cali style, dance floor', desc: '뉴욕/칼리 스타일의 살사' },
+        { id: 'salsa_romantica', label: '🌹 살사 로만티카', tag: 'salsa romantica, slow, emotional, romantic Cuban vocals', desc: '감성적인 로맨틱 살사' },
+    ],
+    latin_pop: [
+        { id: 'tropical', label: '🌺 트로피칼', tag: 'tropical pop, sunny, carefree, marimba, vacation vibes', desc: '열대 분위기의 팝' },
+        { id: 'urban_latin', label: '🏙️ 어반 라틴', tag: 'urban Latin pop, Bad Bunny meets pop, modern production', desc: '현대적인 어반 라틴 팝' },
+        { id: 'flamenco_pop', label: '💃 플라멩코 팝', tag: 'flamenco pop, Spanish guitar, passion, Rosalia style', desc: '로살리아 스타일의 플라멩코 팝' },
+    ],
+    amapiano: [
+        { id: 'log_drum', label: '🥁 로그드럼', tag: 'amapiano log drum, deep bass, South African club music', desc: '특징적인 로그 드럼의 아마피아노' },
+        { id: 'vocal_amp', label: '🎤 보컬 아마피아노', tag: 'vocal amapiano, soulful singing, emotional, house influenced', desc: '보컬이 중심인 아마피아노' },
+    ],
+    arabpop: [
+        { id: 'khaleeji', label: '🌙 칼리지 팝', tag: 'Khaleeji pop, Gulf Arabic, festive, traditional instruments', desc: '걸프 아랍 팝 스타일' },
+        { id: 'levantine', label: '🌿 레반트 팝', tag: 'Levantine pop, Egyptian or Lebanese style, romantic', desc: '레바논/이집트 아랍 팝' },
+        { id: 'arabic_edm', label: '🎛️ 아랍 EDM', tag: 'Arabic EDM fusion, electronic beats with Arabic instruments', desc: 'EDM과 아랍 음악의 퓨전' },
+    ],
+    frenchpop: [
+        { id: 'chanson', label: '🥐 상송', tag: 'French chanson, accordeon, storytelling, romantic Paris', desc: '파리의 낭만 상송' },
+        { id: 'ye_ye', label: '🌸 예-예', tag: 'ye-ye, 60s French pop, carefree, retro vibes', desc: '1960년대 프렌치 예-예' },
+        { id: 'french_house', label: '🏠 프렌치 하우스', tag: 'French house, Daft Punk style, filtered funky retro electronic', desc: '다프트 펑크 스타일의 프렌치 하우스' },
+    ],
+    europop: [
+        { id: 'eurodance', label: '💃 유로댄스', tag: 'Eurodance, 90s, catchy chorus, electronic beats, Ace of Base', desc: '90년대 유로댄스 스타일' },
+        { id: 'schlager', label: '🎵 슐라거', tag: 'Schlager, German pop, catchy, feel-good, simple melody', desc: '독일/스칸디나비아 슐라거' },
+        { id: 'nordic_pop', label: '❄️ 노르딕 팝', tag: 'Nordic pop, clean production, ABBA influenced, melodic', desc: 'ABBA 영향의 노르딕 팝' },
+    ],
+    dawn: [
+        { id: 'peaceful', label: '🌤️ 평화로운 새벽', tag: 'peaceful dawn, soft synths, gentle melody, hopeful morning', desc: '잔잔하고 희망적인 새벽 음악' },
+        { id: 'melancholic_dawn', label: '🌧️ 쓸쓸한 새벽', tag: 'melancholic dawn, minor key, nostalgic, lonely night ending', desc: '혼자 보내는 새벽의 쓸쓸함' },
+    ],
+    running: [
+        { id: 'hype', label: '🔥 하이프 러닝', tag: 'high energy running, trap beats, motivational, adrenaline rush', desc: '강렬한 동기부여 러닝 음악' },
+        { id: 'steady', label: '🏃 스테디 페이스', tag: 'steady running beats, 160BPM, electronic, consistent energy', desc: '꾸준한 페이스 유지 러닝 음악' },
+        { id: 'endurance', label: '💪 지구력/마라톤', tag: 'marathon music, uplifting, long distance running, perseverance', desc: '마라톤 완주를 위한 지구력 음악' },
+    ],
+    cafe: [
+        { id: 'morning_cafe', label: '☀️ 모닝 카페', tag: 'morning cafe, bright acoustic, coffee, cheerful start of day', desc: '좋은 하루를 시작하는 카페 음악' },
+        { id: 'indie_cafe', label: '🎵 인디 카페', tag: 'indie cafe, mellow, creative, bohemian, artsy feel', desc: '감성 인디 카페 분위기' },
+        { id: 'jazz_cafe', label: '🎷 재즈 카페', tag: 'jazz cafe, live piano, sophisticated, background music', desc: '재즈 카페의 라이브 분위기' },
+    ],
+    night_drive: [
+        { id: 'chill_drive', label: '🌙 칠 드라이브', tag: 'chill night drive, synthwave, smooth, city lights blur', desc: '도시 불빛 속 편안한 드라이브' },
+        { id: 'dark_drive', label: '🖤 다크 드라이브', tag: 'dark night drive, dark synth, cinematic tension, highway speed', desc: '긴장감 있는 다크 드라이브' },
+        { id: 'lofi_drive', label: '🎵 로파이 드라이브', tag: 'lo-fi night drive, chill, window down, open road freedom', desc: '창문 열고 달리는 로파이 드라이브' },
+    ],
+    study: [
+        { id: 'lofi_study', label: '📚 로파이 스터디', tag: 'lo-fi study, calm beats, focus, unobtrusive background', desc: '집중력을 높이는 로파이' },
+        { id: 'classical_study', label: '🎻 클래식 스터디', tag: 'classical study music, piano, quiet, deep concentration', desc: '클래식 피아노 스터디 음악' },
+        { id: 'ambient_study', label: '🌌 앰비언트 스터디', tag: 'ambient study, nature sounds, minimal, zen focus state', desc: '자연음이 가미된 앰비언트 공부 음악' },
+    ],
+    party: [
+        { id: 'club', label: '🎉 클럽 파티', tag: 'club party, EDM drops, crowd energy, night club anthem', desc: '클럽 분위기의 파티 음악' },
+        { id: 'pregame', label: '🍻 프리게임', tag: 'pregame party, hip-hop, hype, letting loose, fun vibes', desc: '파티 전 분위기를 달구는 음악' },
+        { id: 'outdoor', label: '🌞 야외 파티', tag: 'outdoor party, tropical, festival, daylight, summer fun', desc: '야외 페스티벌 파티 음악' },
+    ],
+    romantic: [
+        { id: 'classic_romantic', label: '🌹 클래식 로맨틱', tag: 'classic romantic, strings, candlelight dinner, timeless love', desc: '촛불 저녁식사 분위기의 로맨틱' },
+        { id: 'modern_romantic', label: '💫 모던 로맨틱', tag: 'modern romantic, R&B influenced, intimate, first date vibes', desc: '현대적인 로맨틱 분위기' },
+        { id: 'dreamy_romantic', label: '🌸 몽환 로맨틱', tag: 'dreamy romantic, soft synths, floating, fairytale love story', desc: '꿈같은 몽환적 로맨스' },
+    ],
+    melancholy: [
+        { id: 'rainy', label: '🌧️ 비 오는 날', tag: 'rainy day, melancholic piano, introspective, alone with thoughts', desc: '비 오는 날의 감성' },
+        { id: 'bittersweet', label: '🍂 쓸쓸한 가을', tag: 'bittersweet, autumn feeling, nostalgic, looking back at memories', desc: '가을 낙엽 같은 쓸쓸함' },
+        { id: 'heartbreak', label: '💔 이별/상처', tag: 'heartbreak, breakup song, tears, raw emotional vocals', desc: '이별 후의 아픔을 담은 음악' },
+    ],
+    epic: [
+        { id: 'trailer', label: '🎬 트레일러 뮤직', tag: 'trailer music, cinematic, massive orchestra, Hans Zimmer inspired', desc: '영화 트레일러 스타일의 웅장함' },
+        { id: 'battle', label: '⚔️ 배틀/전투', tag: 'battle music, intense, percussion, war drums, victory charge', desc: '전투 장면 같은 격렬한 음악' },
+        { id: 'heroic', label: '🦸 영웅/감동', tag: 'heroic epic, swelling strings, emotional climax, triumphant', desc: '영웅의 귀환 같은 감동적인 클라이맥스' },
+    ],
+    indiepop: [
+        { id: 'dreampop', label: '🌙 드림 팝', tag: 'dream pop, reverb-washed guitars, hazy, ethereal vocals, shoegaze adjacent', desc: 'Beach House / Cocteau Twins 스타일의 몽환적인 드림팝' },
+        { id: 'janglepop', label: '🎸 잰글 팝', tag: 'jangle pop, bright clean guitars, 80s indie, upbeat, breezy', desc: 'The Smiths / R.E.M. 스타일의 잰글 팝' },
+        { id: 'bedroomindee', label: '🛏️ 베드룸 인디', tag: 'bedroom indie, DIY, lo-fi warmth, candid lyrics, home recording feel', desc: 'Clairo / Beabadoobee 스타일의 베드룸 인디팝' },
+        { id: 'indiefolk', label: '🌿 인디 포크', tag: 'indie folk pop, acoustic guitar, warm, storytelling, Bon Iver adjacent', desc: '인디 감성의 포크 팝' },
+        { id: 'synthindee', label: '🎹 신스 인디팝', tag: 'synth indie pop, catchy hooks, 80s synth influence, danceable yet indie', desc: '신시사이저가 가미된 댄서블한 인디팝' },
+    ],
+    ballad: [
+        { id: 'piano_ballad', label: '🎹 피아노 발라드', tag: 'piano ballad, emotional piano, slow tempo, raw vocals, intimate', desc: '피아노가 메인인 서정적 발라드' },
+        { id: 'power_ballad', label: '🔥 파워 발라드', tag: 'power ballad, big chorus, soaring vocals, dramatic crescendo, rock influenced', desc: 'Celine Dion / Whitney Houston 스타일의 파워 발라드' },
+        { id: 'kballad', label: '🇰🇷 한국 발라드', tag: 'Korean ballad, heartfelt, emotional, melismatic vocals, bittersweet', desc: '김광석 / IU 스타일의 한국 감성 발라드' },
+        { id: 'acoustic_ballad', label: '🎸 어쿠스틱 발라드', tag: 'acoustic ballad, guitar, stripped back, confessional, warm', desc: '어쿠스틱 기타 중심의 소박한 발라드' },
+        { id: 'rnb_ballad', label: '💜 R&B 발라드', tag: 'R&B ballad, smooth, soulful, melismatic vocals, groovy slow jam', desc: '소울풀한 R&B 발라드' },
+    ],
+};
+
+// ═══════════════════════════════════════════════════════════════
+// 🎤 추천 아티스트 맵 (장르별)
+// ═══════════════════════════════════════════════════════════════
+const RECOMMENDED_ARTISTS_MAP = {
+    kpop: [
+        { name: 'aespa', emoji: '🤖' },
+        { name: '(G)I-DLE', emoji: '👊' },
+        { name: 'BLACKPINK', emoji: '🖤' },
+        { name: 'NewJeans', emoji: '💙' },
+        { name: 'IVE', emoji: '✨' },
+        { name: 'LE SSERAFIM', emoji: '🔥' },
+        { name: 'BTS', emoji: '💜' },
+        { name: 'Stray Kids', emoji: '⚡' },
+        { name: 'TWICE', emoji: '💕' },
+        { name: 'SEVENTEEN', emoji: '💎' },
+        { name: 'Red Velvet', emoji: '🌹' },
+        { name: 'EXO', emoji: '🌙' },
+    ],
+    khiphop: [
+        { name: 'ZICO', emoji: '🎤' },
+        { name: 'pH-1', emoji: '🎯' },
+        { name: 'Loco', emoji: '🏃' },
+        { name: 'Epik High', emoji: '📖' },
+        { name: 'BewhY', emoji: '🌊' },
+        { name: 'Dok2', emoji: '💎' },
+        { name: 'Crush', emoji: '🎸' },
+        { name: 'Dean', emoji: '🌙' },
+        { name: 'Simon Dominic', emoji: '😎' },
+    ],
+    hiphop: [
+        { name: 'Drake', emoji: '🦉' },
+        { name: 'Kendrick Lamar', emoji: '✊' },
+        { name: 'Travis Scott', emoji: '🌵' },
+        { name: 'J. Cole', emoji: '📝' },
+        { name: 'Future', emoji: '🔮' },
+        { name: 'Lil Baby', emoji: '🚀' },
+        { name: 'Tyler, the Creator', emoji: '🌈' },
+        { name: 'Frank Ocean', emoji: '🌊' },
+        { name: 'Playboi Carti', emoji: '👻' },
+    ],
+    edm: [
+        { name: 'Martin Garrix', emoji: '🦊' },
+        { name: 'Marshmello', emoji: '☁️' },
+        { name: 'Flume', emoji: '🌊' },
+        { name: 'Skrillex', emoji: '💥' },
+        { name: 'Deadmau5', emoji: '🐭' },
+        { name: 'Kygo', emoji: '🌅' },
+        { name: 'Illenium', emoji: '💎' },
+        { name: 'Said the Sky', emoji: '☁️' },
+        { name: 'Porter Robinson', emoji: '🌸' },
+    ],
+    rnb: [
+        { name: 'The Weeknd', emoji: '🌙' },
+        { name: 'SZA', emoji: '🌿' },
+        { name: 'H.E.R.', emoji: '💜' },
+        { name: 'Jhené Aiko', emoji: '🌸' },
+        { name: 'Daniel Caesar', emoji: '🍂' },
+        { name: 'Brent Faiyaz', emoji: '🖤' },
+        { name: 'Summer Walker', emoji: '☀️' },
+        { name: 'PinkPantheress', emoji: '🩷' },
+    ],
+    pop: [
+        { name: 'Taylor Swift', emoji: '✨' },
+        { name: 'Billie Eilish', emoji: '🖤' },
+        { name: 'Dua Lipa', emoji: '💃' },
+        { name: 'Olivia Rodrigo', emoji: '💜' },
+        { name: 'Sabrina Carpenter', emoji: '🍒' },
+        { name: 'Charli XCX', emoji: '💥' },
+        { name: 'Ariana Grande', emoji: '🌙' },
+        { name: 'Harry Styles', emoji: '🌈' },
+    ],
+    jpop: [
+        { name: 'Fujii Kaze', emoji: '🌸' },
+        { name: 'Ado', emoji: '🎭' },
+        { name: 'King Gnu', emoji: '👑' },
+        { name: 'YOASOBI', emoji: '🌙' },
+        { name: 'Kenshi Yonezu', emoji: '✨' },
+        { name: 'Official HiGE DANdism', emoji: '🎩' },
+        { name: 'Yorushika', emoji: '🌿' },
+        { name: 'Eve', emoji: '🍎' },
+    ],
+    cpop: [
+        { name: 'Jay Chou', emoji: '🎹' },
+        { name: 'G.E.M.', emoji: '💎' },
+        { name: 'Eason Chan', emoji: '🌟' },
+        { name: 'Jolin Tsai', emoji: '💃' },
+        { name: 'Joker Xue', emoji: '🃏' },
+    ],
+    afrobeats: [
+        { name: 'Wizkid', emoji: '⭐' },
+        { name: 'Burna Boy', emoji: '🔥' },
+        { name: 'Davido', emoji: '🦁' },
+        { name: 'Rema', emoji: '🌊' },
+        { name: 'Tems', emoji: '🌿' },
+        { name: 'Fireboy DML', emoji: '🎸' },
+    ],
+    latin: [
+        { name: 'Bad Bunny', emoji: '🐰' },
+        { name: 'J Balvin', emoji: '🌈' },
+        { name: 'Rauw Alejandro', emoji: '🕺' },
+        { name: 'Karol G', emoji: '💚' },
+        { name: 'Rosalía', emoji: '🌹' },
+        { name: 'Shakira', emoji: '💃' },
+    ],
+    rock: [
+        { name: 'Arctic Monkeys', emoji: '🐒' },
+        { name: 'Tame Impala', emoji: '🔮' },
+        { name: 'The Strokes', emoji: '🎸' },
+        { name: 'Radiohead', emoji: '🌀' },
+        { name: 'Mitski', emoji: '🌸' },
+        { name: 'Wet Leg', emoji: '🦅' },
+    ],
+    lofi: [
+        { name: 'Joji', emoji: '🍂' },
+        { name: 'mxmtoon', emoji: '🌙' },
+        { name: 'beabadoobee', emoji: '✨' },
+        { name: 'Rex Orange County', emoji: '🍊' },
+        { name: 'Clairo', emoji: '🌿' },
+    ],
+    chillpop: [
+        { name: 'Lana Del Rey', emoji: '🌙' },
+        { name: 'Phoebe Bridgers', emoji: '🔭' },
+        { name: 'Gracie Abrams', emoji: '🤍' },
+        { name: 'boygenius', emoji: '⭐' },
+        { name: 'girl in red', emoji: '🔴' },
+    ],
+    punjabi: [
+        { name: 'AP Dhillon', emoji: '🔥' },
+        { name: 'Sidhu Moosewala', emoji: '🦁' },
+        { name: 'DIVINE', emoji: '🎤' },
+        { name: 'Diljit Dosanjh', emoji: '💛' },
+        { name: 'Karan Aujla', emoji: '⚡' },
+    ],
+    // 공통 — 범용
+    ballad: [
+        { name: 'IU', emoji: '🌙' },
+        { name: 'Adele', emoji: '💔' },
+        { name: 'Sam Smith', emoji: '🌹' },
+        { name: 'Paul Kim', emoji: '🎹' },
+        { name: 'Lim Chang-jung', emoji: '🌊' },
+    ],
+    phonk: [
+        { name: 'Ghostemane', emoji: '👻' },
+        { name: 'Night Lovell', emoji: '🌙' },
+        { name: 'Sickboyrari', emoji: '🔪' },
+        { name: 'Kordhell', emoji: '🚗' },
+        { name: 'Floyymenor', emoji: '🔥' },
+        { name: 'Dj Smokey', emoji: '💨' },
+        { name: 'Mortis', emoji: '⚡' },
+        { name: 'BURAK YETER', emoji: '🎵' },
+    ],
+    jazz: [
+        { name: 'Miles Davis', emoji: '🎺' },
+        { name: 'John Coltrane', emoji: '🎷' },
+        { name: 'Herbie Hancock', emoji: '🎹' },
+        { name: 'Norah Jones', emoji: '🌙' },
+        { name: 'Diana Krall', emoji: '🎼' },
+        { name: 'Chet Baker', emoji: '🌹' },
+        { name: 'Bill Evans', emoji: '🍂' },
+        { name: 'Esperanza Spalding', emoji: '✨' },
+    ],
+    classical: [
+        { name: 'Hans Zimmer', emoji: '🎬' },
+        { name: 'Ludovico Einaudi', emoji: '🎹' },
+        { name: 'Yiruma', emoji: '🌸' },
+        { name: 'Max Richter', emoji: '🌌' },
+        { name: 'Ólafur Arnalds', emoji: '❄️' },
+        { name: 'Johann Sebastian Bach', emoji: '🎻' },
+        { name: 'Frédéric Chopin', emoji: '🌹' },
+        { name: 'Philip Glass', emoji: '🔬' },
+    ],
+    acoustic: [
+        { name: 'Ed Sheeran', emoji: '🎸' },
+        { name: 'John Mayer', emoji: '🌊' },
+        { name: 'Damien Rice', emoji: '🌧️' },
+        { name: 'Iron & Wine', emoji: '🌿' },
+        { name: 'Bon Iver', emoji: '❄️' },
+        { name: 'Nick Drake', emoji: '🍂' },
+        { name: 'James Taylor', emoji: '☀️' },
+        { name: 'Sufjan Stevens', emoji: '🎄' },
+    ],
+    ambient: [
+        { name: 'Brian Eno', emoji: '🎛️' },
+        { name: 'Aphex Twin', emoji: '🌀' },
+        { name: 'Ólafur Arnalds', emoji: '❄️' },
+        { name: 'Bonobo', emoji: '🌴' },
+        { name: 'Four Tet', emoji: '🌊' },
+        { name: 'Tycho', emoji: '🌅' },
+        { name: 'Nils Frahm', emoji: '🎹' },
+    ],
+    trot: [
+        { name: '임영웅', emoji: '⭐' },
+        { name: '나훈아', emoji: '🎤' },
+        { name: '조용필', emoji: '🌸' },
+        { name: '송가인', emoji: '🌺' },
+        { name: '장윤정', emoji: '💕' },
+        { name: '이찬원', emoji: '🎵' },
+        { name: '영탁', emoji: '🎶' },
+        { name: '진해성', emoji: '🌊' },
+    ],
+    kindie: [
+        { name: '혁오', emoji: '🎸' },
+        { name: '잔나비', emoji: '🌿' },
+        { name: '새소년', emoji: '🌸' },
+        { name: '검정치마', emoji: '🖤' },
+        { name: '실리카겔', emoji: '💎' },
+        { name: '한로로', emoji: '🌙' },
+        { name: '볼빨간사춘기', emoji: '🍑' },
+        { name: '10cm', emoji: '🎵' },
+    ],
+    citypop: [
+        { name: '야마시타 타츠로', emoji: '🌃' },
+        { name: 'Mariya Takeuchi', emoji: '🌸' },
+        { name: 'Anri', emoji: '☀️' },
+        { name: 'Tatsuro Yamashita', emoji: '🎸' },
+        { name: '허성현', emoji: '🌆' },
+        { name: 'Junko Ohashi', emoji: '🌺' },
+        { name: 'Miki Matsubara', emoji: '💿' },
+    ],
+    anisong: [
+        { name: 'LiSA', emoji: '🔥' },
+        { name: 'Aimer', emoji: '🌙' },
+        { name: 'YOASOBI', emoji: '✨' },
+        { name: 'Hiroyuki Sawano', emoji: '⚔️' },
+        { name: 'FictionJunction', emoji: '🌸' },
+        { name: 'Myth & Roid', emoji: '🌌' },
+        { name: 'OP/ED Masters', emoji: '🎌' },
+        { name: 'man with a mission', emoji: '🐺' },
+    ],
+    jrock: [
+        { name: 'X Japan', emoji: '💄' },
+        { name: 'ONE OK ROCK', emoji: '🎸' },
+        { name: 'RADWIMPS', emoji: '🌸' },
+        { name: 'Buck-Tick', emoji: '🖤' },
+        { name: 'Dir en grey', emoji: '🔴' },
+        { name: 'Maximum the Hormone', emoji: '⚡' },
+        { name: 'BUCK-TICK', emoji: '🌙' },
+        { name: 'Glay', emoji: '❄️' },
+    ],
+    bollywood: [
+        { name: 'A.R. Rahman', emoji: '🎵' },
+        { name: 'Pritam', emoji: '🎼' },
+        { name: 'Arijit Singh', emoji: '🌹' },
+        { name: 'Shreya Ghoshal', emoji: '💫' },
+        { name: 'Vishal-Shekhar', emoji: '🎸' },
+        { name: 'Shankar Mahadevan', emoji: '🎤' },
+        { name: 'Sonu Nigam', emoji: '🌊' },
+    ],
+    bhangra: [
+        { name: 'Diljit Dosanjh', emoji: '🌟' },
+        { name: 'Guru Randhawa', emoji: '🎵' },
+        { name: 'Badshah', emoji: '👑' },
+        { name: 'Hardy Sandhu', emoji: '💫' },
+        { name: 'Gippy Grewal', emoji: '🌾' },
+        { name: 'Jazzy B', emoji: '🎤' },
+        { name: 'Panjabi MC', emoji: '🥁' },
+    ],
+    punjabihiphop: [
+        { name: 'Sidhu Moosewala', emoji: '🌾' },
+        { name: 'AP Dhillon', emoji: '🎵' },
+        { name: 'Shubh', emoji: '💫' },
+        { name: 'Karan Aujla', emoji: '⚡' },
+        { name: 'Sunny Malton', emoji: '🎤' },
+        { name: 'Bohemia', emoji: '🔥' },
+        { name: 'Amrit Maan', emoji: '🌟' },
+    ],
+    indianclassical: [
+        { name: 'Ravi Shankar', emoji: '🪘' },
+        { name: 'Zakir Hussain', emoji: '🥁' },
+        { name: 'Hariprasad Chaurasia', emoji: '🪈' },
+        { name: 'Bismillah Khan', emoji: '🎵' },
+        { name: 'M.S. Subbulakshmi', emoji: '🌺' },
+    ],
+    samba: [
+        { name: 'Jorge Ben Jor', emoji: '🌴' },
+        { name: 'Seu Jorge', emoji: '🎸' },
+        { name: 'Beth Carvalho', emoji: '🌺' },
+        { name: 'Martinho da Vila', emoji: '🥁' },
+        { name: 'Zeca Pagodinho', emoji: '🍺' },
+    ],
+    bossanova: [
+        { name: 'João Gilberto', emoji: '🌺' },
+        { name: 'Antônio Carlos Jobim', emoji: '🎹' },
+        { name: 'Astrud Gilberto', emoji: '☀️' },
+        { name: 'Stan Getz', emoji: '🎷' },
+        { name: 'Caetano Veloso', emoji: '🌿' },
+    ],
+    bailefunk: [
+        { name: 'Anitta', emoji: '💃' },
+        { name: 'MC Fioti', emoji: '🔊' },
+        { name: 'Kevinho', emoji: '🔥' },
+        { name: 'Ludmilla', emoji: '🌟' },
+        { name: 'MC Lan', emoji: '💦' },
+    ],
+    reggaeton: [
+        { name: 'Bad Bunny', emoji: '🐰' },
+        { name: 'J Balvin', emoji: '🌈' },
+        { name: 'Daddy Yankee', emoji: '👑' },
+        { name: 'Ozuna', emoji: '🌙' },
+        { name: 'Maluma', emoji: '🌺' },
+        { name: 'Rauw Alejandro', emoji: '🔥' },
+        { name: 'Farruko', emoji: '⭐' },
+    ],
+    salsa: [
+        { name: 'Marc Anthony', emoji: '🎺' },
+        { name: 'Celia Cruz', emoji: '👑' },
+        { name: 'Rubén Blades', emoji: '🌿' },
+        { name: 'Willie Colón', emoji: '🎵' },
+        { name: 'Víctor Manuelle', emoji: '🌹' },
+    ],
+    latin_pop: [
+        { name: 'Shakira', emoji: '💃' },
+        { name: 'Ricky Martin', emoji: '🌴' },
+        { name: 'Rosalía', emoji: '💃' },
+        { name: 'Enrique Iglesias', emoji: '❤️' },
+        { name: 'Camilo', emoji: '🌸' },
+        { name: 'Sebastián Yatra', emoji: '🌊' },
+        { name: 'Becky G', emoji: '⚡' },
+    ],
+    amapiano: [
+        { name: 'Kabza De Small', emoji: '🥁' },
+        { name: 'DJ Maphorisa', emoji: '🎵' },
+        { name: 'Focalistic', emoji: '🔥' },
+        { name: 'Langa Mavuthela', emoji: '✨' },
+        { name: 'Young Stunna', emoji: '⭐' },
+        { name: 'Boohle', emoji: '🎤' },
+    ],
+    arabpop: [
+        { name: 'Amr Diab', emoji: '🌙' },
+        { name: 'Nancy Ajram', emoji: '🌺' },
+        { name: 'Mohamed Hamaki', emoji: '🎵' },
+        { name: 'Elissa', emoji: '💫' },
+        { name: 'Haifa Wehbe', emoji: '⭐' },
+        { name: 'Tamer Hosny', emoji: '🌊' },
+    ],
+    frenchpop: [
+        { name: 'Édith Piaf', emoji: '🥐' },
+        { name: 'Serge Gainsbourg', emoji: '🎵' },
+        { name: 'Charlotte Gainsbourg', emoji: '🌸' },
+        { name: 'Daft Punk', emoji: '🏠' },
+        { name: 'Angèle', emoji: '💫' },
+        { name: 'Stromae', emoji: '🎤' },
+        { name: 'Aya Nakamura', emoji: '✨' },
+    ],
+    europop: [
+        { name: 'ABBA', emoji: '❄️' },
+        { name: 'Ace of Base', emoji: '💃' },
+        { name: 'Aqua', emoji: '🌊' },
+        { name: 'Robyn', emoji: '🌟' },
+        { name: 'Zara Larsson', emoji: '✨' },
+        { name: 'Sigrid', emoji: '❄️' },
+        { name: 'Loreen', emoji: '💫' },
+    ],
+    pop: [
+        { name: 'Taylor Swift', emoji: '✨' },
+        { name: 'Harry Styles', emoji: '🌈' },
+        { name: 'Dua Lipa', emoji: '💃' },
+        { name: 'Olivia Rodrigo', emoji: '💜' },
+        { name: 'Ed Sheeran', emoji: '🎸' },
+        { name: 'Ariana Grande', emoji: '🌙' },
+        { name: 'Sabrina Carpenter', emoji: '🍒' },
+        { name: 'Billie Eilish', emoji: '🖤' },
+    ],
+    indiepop: [
+        { name: 'Clairo', emoji: '🌿' },
+        { name: 'Beabadoobee', emoji: '✨' },
+        { name: 'Rex Orange County', emoji: '🍊' },
+        { name: 'Phoebe Bridgers', emoji: '🔭' },
+        { name: 'Snail Mail', emoji: '🐌' },
+        { name: 'Japanese Breakfast', emoji: '🌸' },
+        { name: 'girl in red', emoji: '🔴' },
+        { name: 'Beach House', emoji: '🌊' },
+    ],
+    dawn: [
+        { name: 'Bon Iver', emoji: '❄️' },
+        { name: 'Sufjan Stevens', emoji: '🌤️' },
+        { name: 'Nils Frahm', emoji: '🎹' },
+        { name: 'Ólafur Arnalds', emoji: '🌅' },
+        { name: 'The xx', emoji: '🌙' },
+    ],
+    running: [
+        { name: 'Eminem', emoji: '🏃' },
+        { name: 'Kanye West', emoji: '🔥' },
+        { name: 'The Prodigy', emoji: '⚡' },
+        { name: 'Skrillex', emoji: '💥' },
+        { name: 'Rage Against the Machine', emoji: '✊' },
+    ],
+    cafe: [
+        { name: 'Norah Jones', emoji: '☕' },
+        { name: 'Jack Johnson', emoji: '🌊' },
+        { name: 'Ben Harper', emoji: '🌿' },
+        { name: 'Melody Gardot', emoji: '🎷' },
+        { name: 'Corinne Bailey Rae', emoji: '🌸' },
+    ],
+    night_drive: [
+        { name: 'The Weeknd', emoji: '🌙' },
+        { name: 'Kavinsky', emoji: '🚗' },
+        { name: 'Gesaffelstein', emoji: '🖤' },
+        { name: 'FM-84', emoji: '💫' },
+        { name: 'Perturbator', emoji: '🌆' },
+        { name: 'Gunship', emoji: '🎮' },
+    ],
+    study: [
+        { name: 'Ludovico Einaudi', emoji: '📚' },
+        { name: 'Lofi Girl', emoji: '🎵' },
+        { name: 'ChilledCow', emoji: '☕' },
+        { name: 'Yiruma', emoji: '🎹' },
+        { name: 'Nujabes', emoji: '🌸' },
+    ],
+    party: [
+        { name: 'David Guetta', emoji: '🎉' },
+        { name: 'The Chainsmokers', emoji: '🍻' },
+        { name: 'Calvin Harris', emoji: '🌞' },
+        { name: 'Tiësto', emoji: '💃' },
+        { name: 'Martin Garrix', emoji: '🔊' },
+        { name: 'Drake', emoji: '👑' },
+    ],
+    romantic: [
+        { name: 'John Legend', emoji: '🌹' },
+        { name: 'Michael Bublé', emoji: '💫' },
+        { name: 'Frank Sinatra', emoji: '🎩' },
+        { name: 'Ed Sheeran', emoji: '💕' },
+        { name: 'Adele', emoji: '❤️' },
+        { name: 'Nat King Cole', emoji: '🎹' },
+    ],
+    melancholy: [
+        { name: 'Radiohead', emoji: '🌧️' },
+        { name: 'Elliott Smith', emoji: '🍂' },
+        { name: 'Joy Division', emoji: '💔' },
+        { name: 'Phoebe Bridgers', emoji: '🌙' },
+        { name: 'Sufjan Stevens', emoji: '❄️' },
+        { name: 'Bon Iver', emoji: '🌿' },
+    ],
+    epic: [
+        { name: 'Hans Zimmer', emoji: '🎬' },
+        { name: 'John Williams', emoji: '🎻' },
+        { name: 'Two Steps From Hell', emoji: '⚔️' },
+        { name: 'Audiomachine', emoji: '🔥' },
+        { name: 'Ramin Djawadi', emoji: '🐉' },
+        { name: 'Man with a Mission', emoji: '🦸' },
+    ],
+};
+
+
+
 // ═══════════════════════════════════════════════════════════════
 
 /**
@@ -620,7 +1365,7 @@ const CREATIVITY_MAP = {
  * @param {string} themeText - 커스텀 가사 주제 텍스트
  * @returns {object} 생성된 프롬프트 및 메타데이터
  */
-function generateSunoPrompt(country, genre, mood, tempo, vocal = 'auto', structure = 'standard', creativity = 'normal', themeText = '') {
+function generateSunoPrompt(country, genre, mood, tempo, vocal = 'auto', structure = 'standard', creativity = 'normal', themeText = '', vocalLang = 'auto', subStyles = [], refArtist = '') {
     const countryData = COUNTRY_STYLES[country];
     const genreData = GENRE_MAP[genre];
     const moodData = MOOD_MAP[mood];
@@ -628,6 +1373,7 @@ function generateSunoPrompt(country, genre, mood, tempo, vocal = 'auto', structu
     // 신규 옵션 맵핑
     const vocalData = VOCAL_MAP[vocal] || VOCAL_MAP.auto;
     const structureData = STRUCTURE_MAP[structure] || STRUCTURE_MAP.standard;
+    const vocalLangData = VOCAL_LANG_MAP[vocalLang] || VOCAL_LANG_MAP.auto;
 
     if (!countryData || !genreData || !moodData) {
         throw new Error('Invalid parameters provided');
@@ -677,6 +1423,27 @@ function generateSunoPrompt(country, genre, mood, tempo, vocal = 'auto', structu
         styleParts.unshift(vocalData.tag); // 보컬은 가장 중요하므로 맨 앞으로
     }
 
+    // 보컬 언어 태그 추가
+    if (vocalLangData.tag) {
+        styleParts.unshift(vocalLangData.tag);
+    }
+
+    // 서브스타일 태그 추가 (선택된 것들만)
+    if (subStyles && subStyles.length > 0) {
+        const subStylesList = SUBSTYLE_MAP[genre] || [];
+        const selectedSubTags = subStyles
+            .map(id => subStylesList.find(s => s.id === id))
+            .filter(Boolean)
+            .map(s => s.tag);
+        // 맨 앞에 삽입 (가장 중요한 스타일이므로)
+        styleParts.unshift(...selectedSubTags.slice(0, 2));
+    }
+
+    // 레퍼런스 아티스트 태그 추가
+    if (refArtist && refArtist.trim()) {
+        styleParts.push(`in the style of ${refArtist.trim()}`);
+    }
+
     // 200자 제한에 맞게 트리밍
     let styleOfMusic = styleParts.join(', ');
     if (styleOfMusic.length > 198) {
@@ -696,7 +1463,11 @@ function generateSunoPrompt(country, genre, mood, tempo, vocal = 'auto', structu
         const rdAct = actions[Math.floor(Math.random() * actions.length)];
 
         // 키워드 조합으로 그럴듯한 스토리라인/프롬프트 생성
-        lyricsThemeTxt = `A story about ${rdChar} in ${countryData.name} ${rdTime}, ${rdAct}. Vibe: ${selectedVibe}. Mood: ${moodData.description}.`;
+        lyricsThemeTxt = `A story about ${rdChar} in ${countryData.name} ${rdTime}, ${rdAct}. Vibe: ${selectedVibe}. Mood: ${moodData.description}.${refArtist ? ` Inspired by the artistry of ${refArtist}.` : ''
+            }`;
+    } else if (refArtist && refArtist.trim()) {
+        // 테마가 있어도 레퍼런스 아티스트는 언급
+        lyricsThemeTxt = `${themeText.trim()} (Inspired by ${refArtist.trim()}'s style.)`;
     }
 
     // ═══ 메타태그 형식 포맷팅 ═══
@@ -748,6 +1519,63 @@ function shuffleArray(array) {
         [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
     }
     return shuffled;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 🎵 Mureka AI API (MCP 연동)
+// ═══════════════════════════════════════════════════════════════
+async function callMurekaAPI(prompt, titleSuggestion, murekaKey) {
+    if (!murekaKey) throw new Error('Mureka API 키가 제공되지 않았습니다.');
+
+    // CommonJS 환경이므로 동적 import 사용
+    const { Client } = await import('@modelcontextprotocol/sdk/client/index.js');
+    const { StdioClientTransport } = await import('@modelcontextprotocol/sdk/client/stdio.js');
+
+    const transport = new StdioClientTransport({
+        command: "uvx", // Python 환경 (uv 모듈) 필요
+        args: ["mureka-mcp"],
+        env: {
+            ...process.env,
+            MUREKA_API_KEY: murekaKey
+        }
+    });
+
+    const mcpClient = new Client(
+        { name: "Global-Plly-Master", version: "1.0.0" },
+        { capabilities: { tools: {} } }
+    );
+
+    try {
+        await mcpClient.connect(transport);
+
+        const result = await mcpClient.callTool({
+            name: "generate_song",
+            arguments: {
+                prompt: prompt,
+                title: titleSuggestion || "Mureka Track"
+            }
+        });
+
+        await mcpClient.close();
+
+        return {
+            success: true,
+            data: {
+                id: `mureka_${Date.now()}`,
+                title: titleSuggestion || 'Mureka Track',
+                audioUrl: null, // 추후 API 결과가 내려오면 추출하게끔 처리
+                coverUrl: null,
+                duration: '3:00',
+                prompt: prompt,
+                status: 'mureka_mode',
+                message: '🎵 Mureka AI 생성 결과: ' + (result.content && result.content[0] ? result.content[0].text : JSON.stringify(result)),
+                raw: result
+            }
+        };
+    } catch (e) {
+        console.error("Mureka 호출 에러:", e);
+        throw new Error("Mureka AI 호출 중 오류가 발생했습니다: " + e.message);
+    }
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -1016,7 +1844,7 @@ app.post('/api/generate-prompt', (req, res) => {
 // 음악 생성 API (Suno AI 연동)
 app.post('/api/generate-music', async (req, res) => {
     try {
-        const { country, genre, mood, tempo, vocal, structure, creativity, themeText } = req.body;
+        const { country, genre, mood, tempo, vocal, structure, creativity, themeText, vocalLang, subStyles, refArtist } = req.body;
 
         if (!country || !genre || !mood || !tempo) {
             return res.status(400).json({
@@ -1026,15 +1854,20 @@ app.post('/api/generate-music', async (req, res) => {
         }
 
         // 1단계: 프롬프트 기본 생성
-        let promptResult = generateSunoPrompt(country, genre, mood, tempo, vocal, structure, creativity, themeText);
+        let promptResult = generateSunoPrompt(country, genre, mood, tempo, vocal, structure, creativity, themeText, vocalLang, subStyles || [], refArtist || '');
 
         //  Gemini API Key가 있다면, Gemini를 사용해 '작사' 및 '곡 스타일' 리라이팅
-        const { apiKey, aiModel } = req.body;
+        const { apiKey, aiModel, murekaKey, aiEngine } = req.body;
         if (apiKey) {
             try {
                 const ai = new GoogleGenAI({ apiKey: apiKey });
+                const subStylesList = SUBSTYLE_MAP[genre] || [];
+                const selectedSubStyleLabels = (subStyles || [])
+                    .map(id => subStylesList.find(s => s.id === id)?.label)
+                    .filter(Boolean).join(', ');
+
                 const promptText = `
-                당신은 Suno AI로 히트곡을 만드는 천재 프롬프트 엔지니어이자 작사가입니다.
+                당신은 Suno AI로 전 세계 차트를 석권하는 히트곡을 만드는 천재 프롬프트 엔지니어이자 작사가입니다.
                 다음 사용자 설정에 맞춰 JSON 데이터를 생성하세요.
 
                 [입력 정보]
@@ -1044,21 +1877,25 @@ app.post('/api/generate-music', async (req, res) => {
                 속도: ${tempo}
                 보컬: ${vocal}
                 구조: ${structure}
+                가사 언어: ${VOCAL_LANG_MAP[vocalLang]?.label || '자동 (국가 맞춤)'} — 반드시 이 언어로 가사 스타일을 맞출 것
+                ${selectedSubStyleLabels ? `선택된 서브스타일/분위기 태그: ${selectedSubStyleLabels} — 이 스타일을 핵심으로 반영할 것` : ''}
+                ${refArtist ? `레퍼런스 아티스트: ${refArtist} — 이 아티스트의 음악 제작 방식, 보컬 스타일, 프로덕션 방식을 참고할 것` : ''}
                 사용자 추가 테마: ${themeText || '없음, 창의적으로 생성할 것'}
                 
                 [Suno AI의 특성]
                 - 'Style of Music' 필드는 음악의 장르, 악기, 분위기를 콤마(,)로 나열하며, 200자를 초과하면 안 됩니다! 
                 - 가사 테마(Lyrics Theme)는 곡의 전체 스토리나 상황극 설정 등을 매혹적으로 서술형으로 표현합니다.
+                - 서브스타일과 레퍼런스 아티스트 정보를 최대한 활용하여 구체적이고 세밀한 프롬프트를 만드세요.
 
                 아래 JSON 포맷을 정확히 유지하여 응답하세요 (마크다운 백틱 없이):
                 {
-                    "styleOfMusic": "콤마로 구분된 200자 이내의 영어 프롬프트 (예: energetic k-pop, 120bpm, bright synths, female vocal...)",
+                    "styleOfMusic": "콤마로 구분된 200자 이내의 영어 Suno AI 프롬프트. 반드시 맨 앞에 가사 언어 태그(예: Korean lyrics, English lyrics 등)를 포함시킬 것. 예시: 'Korean lyrics, girl crush, fierce female energy, dark K-pop, 128bpm...'",
                     "titleSuggestion": "이 곡에 어울리는 추천 제목 1개",
-                    "lyricsTheme": "영어 문장으로 된 멋진 곡 주제 / 배경 설명 (2~3문장)"
+                    "lyricsTheme": "영어 문장으로 된 멋진 곡 주제 / 배경 설명 (2~3문장, 서브스타일과 레퍼런스 아티스트 느낌 반영)"
                 }
                 `;
                 const response = await ai.models.generateContent({
-                    model: aiModel || 'gemini-2.5-flash',
+                    model: aiModel || 'gemini-3.1-pro-preview',
                     contents: promptText,
                     config: { responseMimeType: 'application/json' }
                 });
@@ -1070,6 +1907,14 @@ app.post('/api/generate-music', async (req, res) => {
                 if (parsed.styleOfMusic) promptResult.prompt = parsed.styleOfMusic.substring(0, 198);
                 if (parsed.titleSuggestion) promptResult.titleSuggestions = [parsed.titleSuggestion];
                 if (parsed.lyricsTheme) promptResult.fullPrompt.lyricsTheme = parsed.lyricsTheme;
+
+                // ✅ 언어 태그 강제 보정 — Gemini가 누락한 경우에도 반드시 반영
+                const vocalLangDataFixed = VOCAL_LANG_MAP[vocalLang] || VOCAL_LANG_MAP.auto;
+                if (vocalLangDataFixed.tag && !promptResult.prompt.toLowerCase().includes(vocalLangDataFixed.tag.toLowerCase())) {
+                    const tagPrefix = vocalLangDataFixed.tag + ', ';
+                    promptResult.prompt = (tagPrefix + promptResult.prompt).substring(0, 198);
+                }
+
                 promptResult.fullPrompt.styleOfMusic = promptResult.prompt;
 
             } catch (geminiError) {
@@ -1077,11 +1922,19 @@ app.post('/api/generate-music', async (req, res) => {
             }
         }
 
-        // 2단계: Suno AI API 호출 (시뮬레이션)
-        const musicResult = await callSunoAPI(
-            promptResult.prompt,
-            promptResult.titleSuggestions[0]
-        );
+        // 2단계: 음악 생성 API 호출 (선택된 AI 엔진에 따라 분기)
+        let musicResult;
+        if (aiEngine === 'mureka' && murekaKey) {
+            // Mureka는 테마/스토리 위주의 프롬프트를 더 잘 이해합니다.
+            const murekaPrompt = promptResult.fullPrompt.lyricsTheme || promptResult.prompt;
+            musicResult = await callMurekaAPI(murekaPrompt, promptResult.titleSuggestions[0], murekaKey);
+        } else {
+            // Suno AI (또는 데모 시뮬레이션)
+            musicResult = await callSunoAPI(
+                promptResult.prompt,
+                promptResult.titleSuggestions[0]
+            );
+        }
 
         // 3단계: Supabase DB에 이력 저장 (비동기로 실행하여 응답 지연 방지)
         if (supabase) {
@@ -1115,6 +1968,130 @@ app.post('/api/generate-music', async (req, res) => {
             success: false,
             error: error.message
         });
+    }
+});
+
+// ═══════════════════════════════════════════════════════════════
+// 🔐 POST /api/generate-prompts
+// 서버사이드 Gemini AI 호출 — API 키는 절대 클라이언트에 노출되지 않음
+// 사용 모델: gemini-3.1-flash-lite-preview
+// ═══════════════════════════════════════════════════════════════
+app.post('/api/generate-prompts', verifyToken, async (req, res) => {
+    try {
+        // ── API 키 확인 ──
+        if (!GEMINI_API_KEY || GEMINI_API_KEY === '여기에_Gemini_API_키를_붙여넣으세요') {
+            return res.status(503).json({
+                success: false,
+                error: '서버에 GEMINI_API_KEY가 설정되지 않았습니다. 관리자에게 문의하세요.'
+            });
+        }
+
+        const { country, genre, mood, tempo, vocal, structure, vocalLang, subStyles, refArtist, themeText } = req.body;
+
+        if (!country || !genre || !mood || !tempo) {
+            return res.status(400).json({
+                success: false,
+                error: '국가, 장르, 무드, 템포는 필수 항목입니다.'
+            });
+        }
+
+        // ── 데이터 사전에서 레이블 조회 ──
+        const countryInfo   = COUNTRY_STYLES[country]   || { name: country };
+        const genreInfo     = GENRE_MAP[genre]           || { name: genre, tags: [genre], bpm: tempo, style: '' };
+        const moodInfo      = MOOD_MAP[mood]             || { name: mood, tags: [mood], description: '' };
+        const vocalLangInfo = VOCAL_LANG_MAP[vocalLang]  || { label: '자동', tag: '' };
+
+        // 서브스타일 레이블 수집
+        const subStyleList   = SUBSTYLE_MAP[genre] || [];
+        const subStyleLabels = (subStyles || [])
+            .map(id => subStyleList.find(s => s.id === id)?.label)
+            .filter(Boolean).join(', ');
+
+        // ── 시스템 프롬프트 ──
+        const systemPrompt = `You are a world-class Suno AI prompt engineer who creates viral hit music prompts.
+Your ONLY output is a valid JSON array with EXACTLY 10 objects. No markdown, no explanation, no extra text.
+
+Output format (strict):
+[
+  {"prompt": "<Suno style tags, comma-separated, max 180 chars, English only>", "title": "<creative song title>"},
+  ...
+]
+
+Rules for each prompt:
+- All 10 prompts MUST be unique in style/nuance/energy (from soft to intense variations)
+- Use concrete Suno AI-compatible tags: instruments, BPM range, mood adjectives, production style
+- Include the vocal language tag if specified (e.g. "Korean lyrics", "English lyrics")
+- Include the reference artist style if provided
+- Each prompt max 180 characters
+- Title should be creative and match the vibe`;
+
+        // ── 사용자 컨텍스트 ──
+        const userContext = `Music settings to generate 10 different Suno AI prompts:
+
+- Target Country: ${countryInfo.name} (instruments: ${(countryInfo.instruments || []).join(', ')})
+- Genre: ${genreInfo.name} (BPM: ${genreInfo.bpm}, style: ${genreInfo.style})
+- Mood: ${moodInfo.name} — ${moodInfo.description || ''}
+- Tempo: ${tempo}
+- Vocal: ${vocal || 'auto'}
+- Song Structure: ${structure || 'standard'}
+- Lyrics Language: ${vocalLangInfo.label}${vocalLangInfo.tag ? ` (use tag: "${vocalLangInfo.tag}")` : ''}
+${subStyleLabels ? `- Sub-styles: ${subStyleLabels}` : ''}
+${refArtist ? `- Reference Artist: ${refArtist} (reference their production & vocal style)` : ''}
+${themeText ? `- Theme/Story: ${themeText}` : ''}
+
+Generate 10 diverse Suno AI style prompts as a JSON array.`;
+
+        // ── Gemini API 호출 ──
+        const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
+        const response = await ai.models.generateContent({
+            model: GEMINI_MODEL,
+            contents: [
+                { role: 'user', parts: [{ text: systemPrompt + '\n\n' + userContext }] }
+            ],
+            config: { responseMimeType: 'application/json' }
+        });
+
+        // ── 응답 파싱 ──
+        let rawText = response.text.replace(/```json/g, '').replace(/```/g, '').trim();
+        let prompts;
+        try {
+            prompts = JSON.parse(rawText);
+            if (!Array.isArray(prompts)) throw new Error('Response is not an array');
+        } catch (parseErr) {
+            console.error('Gemini JSON parse error:', parseErr.message, '\nRaw:', rawText.substring(0, 300));
+            return res.status(502).json({
+                success: false,
+                error: 'AI 응답 파싱 실패. 다시 시도해주세요.',
+                detail: parseErr.message
+            });
+        }
+
+        // 10개 보장 및 정규화
+        prompts = prompts.slice(0, 10).map((item, i) => ({
+            index: i + 1,
+            prompt: (item.prompt || '').substring(0, 200),
+            title: item.title || `Track ${i + 1}`
+        }));
+
+        // ── Supabase 히스토리 저장 (비동기, 실패해도 응답 지연 없음) ──
+        if (supabase) {
+            supabase.from('prompt_history').insert([{
+                country, genre, mood, tempo,
+                prompt: prompts[0]?.prompt || '',
+                title: prompts[0]?.title || '',
+                meta_tags: { batch: true, count: prompts.length },
+                user_ip: req.headers['x-forwarded-for'] || req.socket.remoteAddress
+            }]).then(({ error }) => {
+                if (error) console.error('Supabase save error:', error.message);
+            });
+        }
+
+        console.log(`✅ /api/generate-prompts: ${prompts.length}개 생성 완료 (user: ${req.user.username})`);
+        res.json({ success: true, data: prompts });
+
+    } catch (err) {
+        console.error('generate-prompts error:', err);
+        res.status(500).json({ success: false, error: err.message || '서버 오류가 발생했습니다.' });
     }
 });
 
@@ -1466,7 +2443,7 @@ app.post('/api/generate-image-prompt', async (req, res) => {
                 }
                 `;
                 const response = await ai.models.generateContent({
-                    model: aiModel || 'gemini-2.5-flash',
+                    model: aiModel || 'gemini-3.1-pro-preview',
                     contents: promptText,
                     config: { responseMimeType: 'application/json' }
                 });
@@ -1552,7 +2529,7 @@ app.post('/api/gemini-trends', async (req, res) => {
         `;
 
         const response = await ai.models.generateContent({
-            model: aiModel || 'gemini-2.5-flash',
+            model: aiModel || 'gemini-3.1-pro-preview',
             contents: promptText,
             config: { responseMimeType: 'application/json' }
         });
@@ -1575,7 +2552,7 @@ app.post('/api/gemini-trends', async (req, res) => {
 // 🎯 배치 프롬프트 생성 API (N개 한번에 생성)
 app.post('/api/generate-batch', async (req, res) => {
     try {
-        const { country, genre, mood, tempo, vocal, structure, creativity, themeText, count = 10 } = req.body;
+        const { country, genre, mood, tempo, vocal, structure, creativity, themeText, count = 10, vocalLang, subStyles, refArtist } = req.body;
         if (!country || !genre || !mood || !tempo) {
             return res.status(400).json({ success: false, error: '모든 파라미터를 입력해 주세요' });
         }
@@ -1591,12 +2568,21 @@ app.post('/api/generate-batch', async (req, res) => {
         if (apiKey) {
             try {
                 const ai = new GoogleGenAI({ apiKey: apiKey });
+                const subStylesList = SUBSTYLE_MAP[genre] || [];
+                const selectedSubStyleLabels = (subStyles || [])
+                    .map(id => subStylesList.find(s => s.id === id)?.label)
+                    .filter(Boolean).join(', ');
+
                 const promptText = `
                 당신은 Suno AI 전문가입니다.
                 다음 조건으로 서로 다른 매력을 가진 프롬프트 ${batchCount}개를 생성하세요.
                 국가: ${COUNTRY_STYLES[country]?.name}, 장르: ${GENRE_MAP[genre]?.name}, 무드: ${MOOD_MAP[mood]?.name}, 속도: ${tempo}
+                가사 언어: ${VOCAL_LANG_MAP[vocalLang]?.label || '자동 (국가 맞춤)'} — 반드시 이 언어로 가사 스타일을 맞출 것
+                ${selectedSubStyleLabels ? `서브스타일/분위기: ${selectedSubStyleLabels} — 이것을 기반으로 다양한 변형을 만들어라` : ''}
+                ${refArtist ? `레퍼런스 아티스트: ${refArtist} — 이 아티스트 스타일을 참고하되, 각 프롬프트마다 다른 측면을 강조` : ''}
+                사용자 테마: ${themeText || '없음 (창의적으로)'}
                 
-                - "styleOfMusic": Suno AI 입력용 영문 장르/악기 키워드 조합 (최대 180자, 각 프롬프트마다 편곡 스타일 변형 필수)
+                - "styleOfMusic": Suno AI 입력용 영문 Suno AI 프롬프트 (최대 180자, 반드시 맨 앞에 언어 태그 포함. 예: ${VOCAL_LANG_MAP[vocalLang]?.tag || 'Korean lyrics'}, 이후 장르/분위기/악기 키워드. 각 프롬프트마다 편공 스타일 변형 필수)
                 - "title": 곡 제목
                 - "lyricsTheme": 곡 스토리 소개 (영문 1문장)
                 
@@ -1607,7 +2593,7 @@ app.post('/api/generate-batch', async (req, res) => {
                 ]
                 `;
                 const response = await ai.models.generateContent({
-                    model: aiModel || 'gemini-2.5-flash',
+                    model: aiModel || 'gemini-3.1-pro-preview',
                     contents: promptText,
                     config: { responseMimeType: 'application/json' }
                 });
@@ -1617,11 +2603,19 @@ app.post('/api/generate-batch', async (req, res) => {
                 if (Array.isArray(parsedArr)) {
                     for (let i = 0; i < Math.min(parsedArr.length, batchCount); i++) {
                         const item = parsedArr[i];
-                        const baseResult = generateSunoPrompt(country, genre, mood, tempo, vocal, structure, creativity, themeText);
+                        const baseResult = generateSunoPrompt(country, genre, mood, tempo, vocal, structure, creativity, themeText, vocalLang, subStyles || [], refArtist || '');
 
                         baseResult.prompt = item.styleOfMusic ? item.styleOfMusic.substring(0, 198) : baseResult.prompt;
+
+                        // ✅ 언어 태그 강제 보정 (배치)
+                        const batchLangData = VOCAL_LANG_MAP[vocalLang] || VOCAL_LANG_MAP.auto;
+                        if (batchLangData.tag && !baseResult.prompt.toLowerCase().includes(batchLangData.tag.toLowerCase())) {
+                            baseResult.prompt = (batchLangData.tag + ', ' + baseResult.prompt).substring(0, 198);
+                        }
+
                         baseResult.titleSuggestions = item.title ? [item.title] : baseResult.titleSuggestions;
                         baseResult.fullPrompt.lyricsTheme = item.lyricsTheme || baseResult.fullPrompt.lyricsTheme;
+                        baseResult.fullPrompt.styleOfMusic = baseResult.prompt;
 
                         results.push({
                             index: i + 1,
@@ -1641,7 +2635,7 @@ app.post('/api/generate-batch', async (req, res) => {
         // Gemini 실패 혹은 미입력 시 기존 루프 처리
         if (batchResults.length === 0) {
             for (let i = 0; i < batchCount; i++) {
-                const result = generateSunoPrompt(country, genre, mood, tempo, vocal, structure, creativity, themeText);
+                const result = generateSunoPrompt(country, genre, mood, tempo, vocal, structure, creativity, themeText, vocalLang, subStyles || [], refArtist || '');
                 results.push({
                     index: i + 1,
                     prompt: result.prompt,
@@ -1688,8 +2682,9 @@ app.get('/api/options', (req, res) => {
     const vocals = Object.entries(VOCAL_MAP).map(([key, val]) => ({ value: key, label: val.label }));
     const structures = Object.entries(STRUCTURE_MAP).map(([key, val]) => ({ value: key, label: val.label }));
     const creativities = Object.entries(CREATIVITY_MAP).map(([key, val]) => ({ value: key, label: val.label }));
+    const vocalLangs = Object.entries(VOCAL_LANG_MAP).map(([key, val]) => ({ value: key, label: val.label }));
 
-    res.json({ countries, genres, moods, tempos, vocals, structures, creativities });
+    res.json({ countries, genres, moods, tempos, vocals, structures, creativities, vocalLangs, substyles: SUBSTYLE_MAP, recommendedArtists: RECOMMENDED_ARTISTS_MAP });
 });
 
 // ═══════════════════════════════════════════════════════════════
