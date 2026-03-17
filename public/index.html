@@ -1022,26 +1022,149 @@
       }).join('');
     }
 
-    // ─── 글로벌 트렌드 렌더 ───
+    // ─── 글로벌 트렌드 렌더 (클릭 시 폼 자동 적용) ───
+    const GLOBAL_TRENDS = [
+      {
+        rank: 1, flag: '🇰🇷', label: 'K-Pop', hot: '걸크러쉬 · 뉴진스 바이브 · 청량',
+        form: { country: 'korea', genre: 'kpop', mood: 'confidence', tempo: 'medium-fast (100-120 BPM)' },
+        artists: 'aespa, (G)I-DLE, IVE, LE SSERAFIM, NewJeans',
+        color: 'from-purple-500/20 to-pink-500/10',
+        border: 'border-purple-500/30',
+      },
+      {
+        rank: 2, flag: '🌍', label: 'Afrobeats', hot: 'Amapiano 퓨전 · 리드미컬 · 글로벌',
+        form: { country: 'nigeria', genre: 'afrobeats', mood: 'party', tempo: 'medium-fast (100-120 BPM)' },
+        artists: 'Burna Boy, Wizkid, Rema, Tems, Davido',
+        color: 'from-amber-500/20 to-orange-500/10',
+        border: 'border-amber-500/30',
+      },
+      {
+        rank: 3, flag: '🌎', label: 'Phonk', hot: 'Drift Phonk · 다크 트랩 · 고속 에너지',
+        form: { country: 'usa', genre: 'phonk', mood: 'gym', tempo: 'fast (120-140 BPM)' },
+        artists: 'KORDHELL, Night Lovell, Ghostemane, Soudiere',
+        color: 'from-slate-500/20 to-gray-600/10',
+        border: 'border-slate-500/30',
+      },
+      {
+        rank: 4, flag: '🇲🇽', label: 'Latin Pop', hot: '레게톤 · 팝 퓨전 · 댄서블',
+        form: { country: 'mexico', genre: 'reggaeton', mood: 'party', tempo: 'fast (120-140 BPM)' },
+        artists: 'Bad Bunny, J Balvin, Karol G, Ozuna, Daddy Yankee',
+        color: 'from-rose-500/20 to-red-500/10',
+        border: 'border-rose-500/30',
+      },
+      {
+        rank: 5, flag: '🇯🇵', label: 'City Pop', hot: '시티팝 리바이벌 · 그루비 · 레트로',
+        form: { country: 'japan', genre: 'citypop', mood: 'night_drive', tempo: 'moderate (80-100 BPM)' },
+        artists: 'Tatsuro Yamashita, Mariya Takeuchi, Anri, Miki Matsubara',
+        color: 'from-cyan-500/20 to-teal-500/10',
+        border: 'border-cyan-500/30',
+      },
+      {
+        rank: 6, flag: '🌐', label: 'Indie Pop', hot: '베드룸 팝 · 드림팝 · 얼터너티브',
+        form: { country: 'uk', genre: 'indiepop', mood: 'melancholy', tempo: 'slow (60-80 BPM)' },
+        artists: 'Clairo, Beabadoobee, Rex Orange County, Phoebe Bridgers',
+        color: 'from-emerald-500/20 to-green-500/10',
+        border: 'border-emerald-500/30',
+      },
+      {
+        rank: 7, flag: '🇮🇳', label: 'Bollywood', hot: '영화 OST · 감성 · 오케스트라',
+        form: { country: 'india', genre: 'bollywood', mood: 'romantic', tempo: 'moderate (80-100 BPM)' },
+        artists: 'A.R. Rahman, Arijit Singh, Pritam, Shreya Ghoshal',
+        color: 'from-orange-500/20 to-yellow-500/10',
+        border: 'border-orange-500/30',
+      },
+      {
+        rank: 8, flag: '🇧🇷', label: 'Baile Funk', hot: '브라질 클럽 · 강한 비트 · 직관적',
+        form: { country: 'brazil', genre: 'bailefunk', mood: 'club', tempo: 'fast (120-140 BPM)' },
+        artists: 'MC Hariel, Anitta, MC Cabelinho, Ludmilla',
+        color: 'from-green-500/20 to-lime-500/10',
+        border: 'border-green-500/30',
+      },
+      {
+        rank: 9, flag: '🇰🇷', label: 'K-Hip Hop', hot: '서정적 랩 · 그루브 · 감성',
+        form: { country: 'korea', genre: 'khiphop', mood: 'melancholy', tempo: 'moderate (80-100 BPM)' },
+        artists: 'ZICO, Epik High, Dean, Crush, pH-1, BewhY',
+        color: 'from-violet-500/20 to-purple-600/10',
+        border: 'border-violet-500/30',
+      },
+      {
+        rank: 10, flag: '🇫🇷', label: 'French Pop', hot: '유럽 감성 · 세련된 멜로디 · 시크',
+        form: { country: 'france', genre: 'frenchpop', mood: 'romantic', tempo: 'moderate (80-100 BPM)' },
+        artists: 'Aya Nakamura, Angèle, Stromae, Zaz',
+        color: 'from-blue-500/20 to-indigo-500/10',
+        border: 'border-blue-500/30',
+      },
+      {
+        rank: 11, flag: '🇹🇷', label: 'Turkish Pop', hot: '감성 보컬 · 중동 리듬 · 대중적',
+        form: { country: 'turkey', genre: 'arabpop', mood: 'melancholy', tempo: 'moderate (80-100 BPM)' },
+        artists: 'Tarkan, Sezen Aksu, Hadise, MFÖ',
+        color: 'from-red-500/20 to-rose-500/10',
+        border: 'border-red-500/30',
+      },
+      {
+        rank: 12, flag: '🇯🇲', label: 'Reggae / Dancehall', hot: '그루비 · 긍정 에너지 · 클래식',
+        form: { country: 'jamaica', genre: 'reggaeton', mood: 'chill', tempo: 'slow (60-80 BPM)' },
+        artists: 'Bob Marley, Shaggy, Sean Paul, Busy Signal, Chronixx',
+        color: 'from-yellow-500/20 to-green-500/10',
+        border: 'border-yellow-500/30',
+      },
+    ];
+
+    function applyTrend(idx) {
+      const t = GLOBAL_TRENDS[idx];
+      if (!t) return;
+
+      // 폼 값 적용
+      const { country, genre, mood, tempo } = t.form;
+      document.getElementById('select-country').value = country;
+      document.getElementById('select-genre').value   = genre;
+      document.getElementById('select-mood').value    = mood;
+      document.getElementById('select-tempo').value   = tempo;
+
+      // 플래그 / 이모지 업데이트
+      const info = COUNTRY_STYLES[country];
+      document.getElementById('country-flag').textContent = info?.flag || '';
+      const moodLabel = MOOD_MAP[mood];
+      document.getElementById('mood-emoji').textContent = moodLabel ? moodLabel.split(' ')[0] : '';
+
+      // 레퍼런스 아티스트 자동 입력
+      document.getElementById('ref-artist-input').value = t.artists;
+
+      // 서브스타일 + 아티스트 칩 갱신
+      renderSubstyles(genre);
+      renderArtistChips(genre);
+
+      // 생성 버튼 활성화
+      checkFormReady();
+
+      // 대시보드로 전환 + 스크롤
+      switchView('dashboard');
+      setTimeout(() => {
+        const btn = document.getElementById('btn-generate');
+        if (btn) btn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 200);
+
+      showToast(`🌍 ${t.flag} ${t.label} 트렌드 적용 완료!`, 'success');
+    }
+
     function renderTrends() {
-      const trends = [
-        {genre:'K-Pop',country:'🇰🇷',hot:'걸크러쉬, 뉴진스 바이브'},
-        {genre:'Afrobeats',country:'🌍',hot:'Amapiano 퓨전, 리드미컬'},
-        {genre:'Phonk',country:'🌎',hot:'Drift Phonk, 다크 트랩'},
-        {genre:'Latin Pop',country:'🇲🇽',hot:'레게톤, 팝 퓨전'},
-        {genre:'City Pop',country:'🇯🇵',hot:'시티팝 리바이벌'},
-        {genre:'Indie Pop',country:'🌐',hot:'베드룸 팝, 드림팝'},
-      ];
       const container = document.getElementById('trend-cards');
       if (!container) return;
-      container.innerHTML = trends.map((t,i) => `
-        <div class="glass-card p-4 text-left cursor-default hover:border-purple-500/30 transition-all">
-          <div class="text-2xl mb-1">${t.country}</div>
-          <div class="font-black text-white text-sm">${t.genre}</div>
-          <div class="text-[11px] text-slate-400 mt-1">${t.hot}</div>
-          <div class="mt-2 inline-block px-2 py-0.5 rounded-full bg-purple-500/10 text-[9px] text-purple-400 font-black">#${i+1} HOT</div>
+      container.innerHTML = GLOBAL_TRENDS.map((t, i) => `
+        <div onclick="applyTrend(${i})"
+          class="glass-card p-4 text-left cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-all bg-gradient-to-br ${t.color} border ${t.border} hover:shadow-lg relative overflow-hidden group"
+          style="border-radius:16px;">
+          <div class="absolute top-3 right-3 text-[9px] font-black px-2 py-0.5 rounded-full bg-black/30 text-white/60 tracking-widest">#${t.rank} HOT</div>
+          <div class="text-3xl mb-2">${t.flag}</div>
+          <div class="font-black text-white text-sm mb-1">${t.label}</div>
+          <div class="text-[11px] text-slate-300 mb-2">${t.hot}</div>
+          <div class="text-[10px] text-slate-400 truncate mb-3">🎤 ${t.artists}</div>
+          <div class="flex items-center gap-1.5 text-[10px] font-black text-purple-300 group-hover:text-white transition-colors">
+            <span>⚡</span><span>클릭하여 자동 적용</span>
+          </div>
         </div>`).join('');
     }
+
 
     // ══════════════════════════════════════════════════════
     // ─── Gemini AI 연결 상태 실시간 확인 ───
