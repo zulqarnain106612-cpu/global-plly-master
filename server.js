@@ -2491,12 +2491,10 @@ app.post('/api/generate-image-prompt', async (req, res) => {
 // 오늘 날짜 기반으로 국가별 연령별 음악 트렌드를 AI로 생성
 // ═══════════════════════════════════════════════════════════════
 
-app.post('/api/gemini-trends', async (req, res) => {
+app.post('/api/gemini-trends', verifyToken, async (req, res) => {
     try {
-        const { apiKey, aiModel } = req.body;
-
-        if (!apiKey) {
-            return res.status(400).json({ success: false, error: 'Gemini API 키가 필요합니다.' });
+        if (!GEMINI_API_KEY) {
+            return res.status(503).json({ success: false, error: 'Gemini API 키가 서버에 설정되지 않았습니다.' });
         }
 
         const today = new Date();
@@ -2504,7 +2502,7 @@ app.post('/api/gemini-trends', async (req, res) => {
         const seasonMap = ['겨울', '겨울', '봄', '봄', '봄', '여름', '여름', '여름', '가을', '가을', '가을', '겨울'];
         const season = seasonMap[today.getMonth()];
 
-        const ai = new GoogleGenAI({ apiKey });
+        const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
 
         const promptText = `
 당신은 전 세계 음악 트렌드 전문가입니다.

@@ -73,16 +73,78 @@
     }
 
     .main-viewport {
-      flex: 1; height: 100vh; overflow-y: auto;
+      flex: 1; height: 100vh; overflow: hidden;
       display: flex;
       background: radial-gradient(ellipse at 60% 0%, rgba(124,58,237,0.05) 0%, transparent 60%);
     }
 
+    /* ═══ Trends Panel ═══ */
+    .trends-panel {
+      width: 400px; min-width: 360px; height: 100vh;
+      border-right: 1px solid rgba(255,255,255,0.07);
+      display: flex; flex-direction: column;
+      background: rgba(10,10,18,0.6);
+      backdrop-filter: blur(12px);
+      overflow: hidden;
+    }
+    .trends-panel-header {
+      padding: 20px 20px 14px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      flex-shrink: 0;
+    }
+    .trends-panel-body {
+      flex: 1; overflow-y: auto;
+      padding: 14px 16px;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(124,58,237,0.3) transparent;
+    }
+    .country-tab {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 12px; border-radius: 20px;
+      font-size: 12px; font-weight: 700;
+      border: 1px solid transparent;
+      cursor: pointer; transition: all 0.15s;
+      color: #94a3b8;
+    }
+    .country-tab:hover { background: rgba(255,255,255,0.07); color: #fff; }
+    .country-tab.active {
+      background: rgba(124,58,237,0.2);
+      border-color: rgba(124,58,237,0.4);
+      color: #c4b5fd;
+    }
+    .age-row {
+      padding: 10px 12px; border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.05);
+      background: rgba(255,255,255,0.02);
+      margin-bottom: 8px;
+    }
+    .genre-chip {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 4px 10px; border-radius: 20px;
+      font-size: 11px; font-weight: 700;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+      color: #cbd5e1; cursor: pointer;
+      transition: all 0.15s; margin: 3px 2px;
+    }
+    .genre-chip:hover {
+      background: rgba(124,58,237,0.2);
+      border-color: rgba(124,58,237,0.4);
+      color: #fff;
+    }
+    .genre-chip.hot {
+      border-color: rgba(239,68,68,0.3);
+      color: #fca5a5;
+    }
+    .genre-chip.rising {
+      border-color: rgba(34,197,94,0.3);
+      color: #86efac;
+    }
+
     .content-area {
-      padding: 40px 48px;
+      padding: 36px 44px;
       flex: 1;
-      max-width: 900px;
-      margin: 0 auto;
+      overflow-y: auto;
     }
 
     /* ═══ Nav ═══ */
@@ -337,6 +399,33 @@
 
   <!-- ═══ MAIN VIEWPORT ═══ -->
   <main class="main-viewport bg-grid" style="position:relative;z-index:10;">
+
+    <!-- ═══ TRENDS PANEL (Left) ═══ -->
+    <div class="trends-panel">
+      <div class="trends-panel-header">
+        <div class="flex items-center justify-between mb-3">
+          <div class="flex items-center gap-2">
+            <span class="text-lg">🌍</span>
+            <span class="font-black text-white text-sm tracking-tight">Global Trends</span>
+            <span class="text-[9px] font-black px-2 py-0.5 rounded-full bg-cyan-500/15 border border-cyan-500/20 text-cyan-400 uppercase tracking-widest">Live</span>
+          </div>
+          <button id="btn-refresh-trends" onclick="loadTrends()" title="AI로 새로고침"
+            class="text-slate-500 hover:text-purple-400 transition-colors p-1.5 rounded-lg hover:bg-purple-500/10 text-xs font-bold">
+            🔄
+          </button>
+        </div>
+        <!-- Country Tabs -->
+        <div id="country-tabs" class="flex flex-wrap gap-1.5"></div>
+      </div>
+      <div class="trends-panel-body" id="age-trends-body">
+        <!-- Age breakdown rendered here -->
+        <div class="text-center py-16 text-slate-600 text-xs">
+          <div class="text-3xl mb-2">🌐</div>로딩 중...
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ FORM PANEL (Right) ═══ -->
     <div class="content-area">
 
       <!-- Hero Header -->
@@ -518,21 +607,6 @@
           <div id="prompts-grid" class="grid grid-cols-1 lg:grid-cols-2 gap-4"></div>
         </div>
 
-        <!-- ═══ 직접 포함: 글로벌 트렌드 섹션 ═══ -->
-        <section id="trends-section" style="animation: fadeUp 0.5s 0.3s ease-out forwards; opacity:0;">
-          <div class="flex items-center gap-4 mb-6">
-            <div class="flex-1 h-px bg-white/5"></div>
-            <div class="flex items-center gap-3">
-              <span class="text-2xl">🌍</span>
-              <h3 class="text-xl font-black text-white tracking-tight">Global Trends</h3>
-              <span class="text-[10px] font-black px-2.5 py-1 rounded-full bg-cyan-500/15 text-cyan-400 border border-cyan-500/20 uppercase tracking-widest">Live</span>
-            </div>
-            <div class="flex-1 h-px bg-white/5"></div>
-          </div>
-          <p class="text-center text-xs text-slate-500 mb-6">트렌드 카드를 클릭하면 모든 설정이 자동 적용됩니다 ⚡</p>
-          <div id="trend-cards" class="grid grid-cols-3 gap-3"></div>
-        </section>
-
       </div><!-- /prompt-form -->
 
       <!-- ═══ History View ═══ -->
@@ -545,14 +619,14 @@
         <p id="history-empty" class="text-center text-slate-500 py-20 text-sm hidden">아직 생성된 기록이 없습니다.</p>
       </div>
 
-
-      <footer class="mt-24 pt-10 border-t border-white/5 flex items-center justify-between text-[10px] text-plly-muted font-black uppercase tracking-[0.3em] opacity-40">
+      <footer class="mt-16 pt-8 border-t border-white/5 flex items-center justify-between text-[10px] text-plly-muted font-black uppercase tracking-[0.3em] opacity-40">
         <div>Powered by Gemini AI</div>
         <div class="flex gap-6"><span>Global Plly Master</span><span>Suno AI Optimized</span></div>
       </footer>
 
     </div><!-- /content-area -->
   </main>
+
 
   <!-- ═══════════════════════════════ SCRIPT ═══════════════════════════════ -->
   <script>
@@ -1206,9 +1280,301 @@
       if (view === 'history') renderHistory();
     }
 
-    // 페이지 로드 시 트렌드 + Gemini 상태 자동
-    renderTrends();
+    // ══════════════════════════════════════════════════════
+    // ─── 국가별 연령별 트렌드 패널 ───
+    // ══════════════════════════════════════════════════════
+
+    // 장르명 → 폼 값 매핑
+    const GENRE_LABEL_MAP = {
+      'K-Pop': { genre: 'kpop', country: 'korea' },
+      'K-Hip Hop': { genre: 'khiphop', country: 'korea' },
+      'K-Indie': { genre: 'kindie', country: 'korea' },
+      'Trot': { genre: 'trot', country: 'korea' },
+      'Ballad': { genre: 'ballad', country: 'korea' },
+      'J-Pop': { genre: 'jpop', country: 'japan' },
+      'Anime OST': { genre: 'anisong', country: 'japan' },
+      'City Pop': { genre: 'citypop', country: 'japan' },
+      'Hip-Hop': { genre: 'hiphop', country: 'usa' },
+      'Hip-Hop / Trap': { genre: 'hiphop', country: 'usa' },
+      'R&B': { genre: 'rnb', country: 'usa' },
+      'R&B / Soul': { genre: 'rnb', country: 'usa' },
+      'Pop': { genre: 'pop', country: 'usa' },
+      'EDM': { genre: 'edm', country: 'usa' },
+      'Phonk': { genre: 'phonk', country: 'usa' },
+      'Lo-Fi': { genre: 'lofi', country: 'usa' },
+      'Indie Pop': { genre: 'indiepop', country: 'uk' },
+      'Alt Rock': { genre: 'rock', country: 'uk' },
+      'Jazz': { genre: 'jazz', country: 'usa' },
+      'Reggaeton': { genre: 'reggaeton', country: 'mexico' },
+      'Latin Pop': { genre: 'pop', country: 'mexico' },
+      'Afrobeats': { genre: 'afrobeats', country: 'nigeria' },
+      'Bollywood': { genre: 'bollywood', country: 'india' },
+      'Classical': { genre: 'ballad', country: 'korea' }, // fallback
+      'Acoustic': { genre: 'ballad', country: 'korea' },
+      'Baile Funk': { genre: 'bailefunk', country: 'brazil' },
+    };
+
+    // 정적 트렌드 데이터 (로딩 전 초기값 / fallback)
+    const STATIC_TRENDS = {
+      kr: {
+        name: '한국', flag: '🇰🇷', key: 'korea',
+        ages: {
+          '10대': { color: 'pink', icon: '🧒', label: 'Gen Z',
+            genres: [['K-Pop','🔥'],['Phonk','📈'],['Hip-Hop / Trap',''],['Anime OST',''],['EDM','']] },
+          '20대': { color: 'purple', icon: '🧑', label: '밀레니얼Z',
+            genres: [['K-Hip Hop','🔥'],['Indie Pop',''],['Lo-Fi','📈'],['R&B / Soul',''],['EDM','']] },
+          '30대': { color: 'blue', icon: '👨', label: '밀레니얼',
+            genres: [['Ballad','🔥'],['R&B / Soul',''],['Jazz',''],['K-Pop',''],['Acoustic','']] },
+          '40대': { color: 'teal', icon: '🧓', label: 'X세대',
+            genres: [['Trot',''],['Ballad','🔥'],['J-Pop',''],['K-Pop',''],['Jazz','']] },
+          '50대+': { color: 'gray', icon: '👴', label: 'BB세대',
+            genres: [['Trot','🔥'],['Ballad',''],['Classical',''],['Jazz',''],['K-Pop','']] },
+        }
+      },
+      jp: {
+        name: '일본', flag: '🇯🇵', key: 'japan',
+        ages: {
+          '10대': { color: 'pink', icon: '🧒', label: 'Gen Z',
+            genres: [['J-Pop','🔥'],['Anime OST','📈'],['K-Pop',''],['Phonk',''],['EDM','']] },
+          '20대': { color: 'purple', icon: '🧑', label: '밀레니얼Z',
+            genres: [['City Pop','📈'],['J-Pop','🔥'],['K-Pop',''],['R&B',''],['Lo-Fi','']] },
+          '30대': { color: 'blue', icon: '👨', label: '밀레니얼',
+            genres: [['City Pop','🔥'],['Ballad',''],['Jazz','📈'],['J-Pop',''],['Acoustic','']] },
+          '40대': { color: 'teal', icon: '🧓', label: 'X세대',
+            genres: [['City Pop','🔥'],['Jazz',''],['Ballad',''],['Classical',''],['J-Pop','']] },
+          '50대+': { color: 'gray', icon: '👴', label: 'BB세대',
+            genres: [['Classical','🔥'],['Jazz',''],['City Pop',''],['Ballad',''],['Enka','']] },
+        }
+      },
+      us: {
+        name: '미국', flag: '🇺🇸', key: 'usa',
+        ages: {
+          '10대': { color: 'pink', icon: '🧒', label: 'Gen Z',
+            genres: [['Hip-Hop / Trap','🔥'],['Phonk','📈'],['Pop',''],['EDM',''],['R&B','']] },
+          '20대': { color: 'purple', icon: '🧑', label: '밀레니얼Z',
+            genres: [['R&B / Soul','🔥'],['Hip-Hop',''],['Pop','📈'],['Indie Pop',''],['Lo-Fi','']] },
+          '30대': { color: 'blue', icon: '👨', label: '밀레니얼',
+            genres: [['Pop','🔥'],['R&B / Soul',''],['Hip-Hop',''],['Indie Pop',''],['Jazz','']] },
+          '40대': { color: 'teal', icon: '🧓', label: 'X세대',
+            genres: [['Pop','🔥'],['R&B',''],['Alt Rock',''],['Jazz',''],['Hip-Hop','']] },
+          '50대+': { color: 'gray', icon: '👴', label: 'BB세대',
+            genres: [['Jazz','🔥'],['Classical',''],['Pop',''],['Blues',''],['Alt Rock','']] },
+        }
+      },
+      in: {
+        name: '인도', flag: '🇮🇳', key: 'india',
+        ages: {
+          '10대': { color: 'pink', icon: '🧒', label: 'Gen Z',
+            genres: [['Bollywood','🔥'],['K-Pop','📈'],['Hip-Hop / Trap',''],['EDM',''],['Pop','']] },
+          '20대': { color: 'purple', icon: '🧑', label: '밀레니얼Z',
+            genres: [['Bollywood','🔥'],['indie Pop','📈'],['R&B',''],['EDM',''],['Lo-Fi','']] },
+          '30대': { color: 'blue', icon: '👨', label: '밀레니얼',
+            genres: [['Bollywood','🔥'],['Classical',''],['Jazz',''],['Pop',''],['Acoustic','']] },
+          '40대': { color: 'teal', icon: '🧓', label: 'X세대',
+            genres: [['Bollywood','🔥'],['Classical',''],['Ghazal',''],['Pop',''],['Jazz','']] },
+          '50대+': { color: 'gray', icon: '👴', label: 'BB세대',
+            genres: [['Classical','🔥'],['Bollywood',''],['Jazz',''],['Ghazal',''],['Folk','']] },
+        }
+      },
+      br: {
+        name: '브라질', flag: '🇧🇷', key: 'brazil',
+        ages: {
+          '10대': { color: 'pink', icon: '🧒', label: 'Gen Z',
+            genres: [['Baile Funk','🔥'],['Reggaeton','📈'],['Pop',''],['Hip-Hop / Trap',''],['EDM','']] },
+          '20대': { color: 'purple', icon: '🧑', label: '밀레니얼Z',
+            genres: [['Baile Funk','🔥'],['Pop',''],['R&B','📈'],['Samba',''],['Reggaeton','']] },
+          '30대': { color: 'blue', icon: '👨', label: '밀레니얼',
+            genres: [['Samba','🔥'],['Pop',''],['Jazz',''],['Baile Funk',''],['Acoustic','']] },
+          '40대': { color: 'teal', icon: '🧓', label: 'X세대',
+            genres: [['Samba','🔥'],['Bossa Nova',''],['Pop',''],['Jazz',''],['Classical','']] },
+          '50대+': { color: 'gray', icon: '👴', label: 'BB세대',
+            genres: [['Bossa Nova','🔥'],['Jazz',''],['Samba',''],['Classical',''],['Pop','']] },
+        }
+      },
+      ng: {
+        name: '나이지리아', flag: '🌍', key: 'nigeria',
+        ages: {
+          '10대': { color: 'pink', icon: '🧒', label: 'Gen Z',
+            genres: [['Afrobeats','🔥'],['Amapiano','📈'],['Hip-Hop / Trap',''],['EDM',''],['Pop','']] },
+          '20대': { color: 'purple', icon: '🧑', label: '밀레니얼Z',
+            genres: [['Afrobeats','🔥'],['Amapiano','📈'],['R&B',''],['Pop',''],['Jazz','']] },
+          '30대': { color: 'blue', icon: '👨', label: '밀레니얼',
+            genres: [['Afrobeats','🔥'],['Highlife',''],['Pop',''],['Jazz',''],['R&B','']] },
+          '40대': { color: 'teal', icon: '🧓', label: 'X세대',
+            genres: [['Highlife','🔥'],['Jazz',''],['Afrobeats',''],['Classical',''],['Pop','']] },
+          '50대+': { color: 'gray', icon: '👴', label: 'BB세대',
+            genres: [['Highlife','🔥'],['Jazz',''],['Classical',''],['Folk',''],['Gospel','']] },
+        }
+      },
+      mx: {
+        name: '멕시코', flag: '🇲🇽', key: 'mexico',
+        ages: {
+          '10대': { color: 'pink', icon: '🧒', label: 'Gen Z',
+            genres: [['Reggaeton','🔥'],['Latin Pop','📈'],['Hip-Hop / Trap',''],['EDM',''],['Pop','']] },
+          '20대': { color: 'purple', icon: '🧑', label: '밀레니얼Z',
+            genres: [['Reggaeton','🔥'],['Latin Pop','📈'],['R&B',''],['Pop',''],['Indie Pop','']] },
+          '30대': { color: 'blue', icon: '👨', label: '밀레니얼',
+            genres: [['Mariachi','🔥'],['Latin Pop',''],['Pop',''],['Jazz',''],['Bolero','']] },
+          '40대': { color: 'teal', icon: '🧓', label: 'X세대',
+            genres: [['Mariachi','🔥'],['Bolero',''],['Pop',''],['Jazz',''],['Classical','']] },
+          '50대+': { color: 'gray', icon: '👴', label: 'BB세대',
+            genres: [['Mariachi','🔥'],['Bolero',''],['Classical',''],['Jazz',''],['Folk','']] },
+        }
+      },
+      gb: {
+        name: '영국', flag: '🇬🇧', key: 'uk',
+        ages: {
+          '10대': { color: 'pink', icon: '🧒', label: 'Gen Z',
+            genres: [['Pop','🔥'],['Indie Pop','📈'],['Hip-Hop / Trap',''],['EDM',''],['Alt Rock','']] },
+          '20대': { color: 'purple', icon: '🧑', label: '밀레니얼Z',
+            genres: [['Indie Pop','🔥'],['Pop',''],['Alt Rock','📈'],['Jazz',''],['Lo-Fi','']] },
+          '30대': { color: 'blue', icon: '👨', label: '밀레니얼',
+            genres: [['Alt Rock','🔥'],['Pop',''],['Jazz',''],['Indie Pop',''],['Classical','']] },
+          '40대': { color: 'teal', icon: '🧓', label: 'X세대',
+            genres: [['Jazz','🔥'],['Pop',''],['Classical',''],['Alt Rock',''],['Blues','']] },
+          '50대+': { color: 'gray', icon: '👴', label: 'BB세대',
+            genres: [['Classical','🔥'],['Jazz',''],['Blues',''],['Pop',''],['Folk','']] },
+        }
+      },
+      fr: {
+        name: '프랑스', flag: '🇫🇷', key: 'france',
+        ages: {
+          '10대': { color: 'pink', icon: '🧒', label: 'Gen Z',
+            genres: [['Pop','🔥'],['Hip-Hop / Trap','📈'],['EDM',''],['K-Pop',''],['Indie Pop','']] },
+          '20대': { color: 'purple', icon: '🧑', label: '밀레니얼Z',
+            genres: [['EDM','🔥'],['Indie Pop','📈'],['Pop',''],['Jazz',''],['R&B','']] },
+          '30대': { color: 'blue', icon: '👨', label: '밀레니얼',
+            genres: [['Jazz','🔥'],['Pop',''],['Classical',''],['Chanson',''],['Indie Pop','']] },
+          '40대': { color: 'teal', icon: '🧓', label: 'X세대',
+            genres: [['Jazz','🔥'],['Chanson',''],['Classical',''],['Pop',''],['Acoustic','']] },
+          '50대+': { color: 'gray', icon: '👴', label: 'BB세대',
+            genres: [['Classical','🔥'],['Jazz',''],['Chanson',''],['Opera',''],['Folk','']] },
+        }
+      },
+      de: {
+        name: '독일', flag: '🇩🇪', key: 'germany',
+        ages: {
+          '10대': { color: 'pink', icon: '🧒', label: 'Gen Z',
+            genres: [['Pop','🔥'],['EDM','📈'],['Hip-Hop / Trap',''],['K-Pop',''],['Indie Pop','']] },
+          '20대': { color: 'purple', icon: '🧑', label: '밀레니얼Z',
+            genres: [['EDM','🔥'],['Techno','📈'],['Pop',''],['Indie Pop',''],['Jazz','']] },
+          '30대': { color: 'blue', icon: '👨', label: '밀레니얼',
+            genres: [['Techno','🔥'],['Classical',''],['Jazz',''],['Pop',''],['Rock','']] },
+          '40대': { color: 'teal', icon: '🧓', label: 'X세대',
+            genres: [['Classical','🔥'],['Jazz',''],['Rock',''],['Pop',''],['Folk','']] },
+          '50대+': { color: 'gray', icon: '👴', label: 'BB세대',
+            genres: [['Classical','🔥'],['Jazz',''],['Opera',''],['Folk',''],['Pop','']] },
+        }
+      },
+    };
+
+    let _currentCountry = 'kr';
+    let _trendsData = STATIC_TRENDS;
+
+    function renderCountryTabs() {
+      const container = document.getElementById('country-tabs');
+      if (!container) return;
+      container.innerHTML = Object.keys(_trendsData).map(key => {
+        const d = _trendsData[key];
+        return `<button class="country-tab ${key === _currentCountry ? 'active' : ''}"
+          onclick="selectCountry('${key}')">${d.flag} ${d.name}</button>`;
+      }).join('');
+    }
+
+    function renderAgeTrends(countryKey) {
+      const body = document.getElementById('age-trends-body');
+      if (!body) return;
+      const country = _trendsData[countryKey];
+      if (!country) return;
+      const ageEntries = Object.entries(country.ages);
+      body.innerHTML = ageEntries.map(([age, data]) => {
+        const chips = data.genres.map(([gname, badge]) => {
+          const cls = badge === '🔥' ? 'hot' : badge === '📈' ? 'rising' : '';
+          return `<button class="genre-chip ${cls}" onclick="applyGenreChip('${gname}','${countryKey}')">${gname}${badge ? ' '+badge : ''}</button>`;
+        }).join('');
+        return `<div class="age-row">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="text-base">${data.icon}</span>
+            <span class="text-xs font-black text-white/80">${age}</span>
+            <span class="text-[10px] text-slate-500 font-semibold">${data.label}</span>
+          </div>
+          <div>${chips}</div>
+        </div>`;
+      }).join('');
+    }
+
+    function selectCountry(key) {
+      _currentCountry = key;
+      renderCountryTabs();
+      renderAgeTrends(key);
+    }
+
+    function applyGenreChip(genreLabel, countryKey) {
+      const map = GENRE_LABEL_MAP[genreLabel];
+      const countryData = _trendsData[countryKey];
+      // country 폼 값
+      const countryFormVal = map?.country || countryData?.key || 'usa';
+      const genreFormVal = map?.genre || 'pop';
+
+      document.getElementById('select-country').value = countryFormVal;
+      document.getElementById('select-genre').value   = genreFormVal;
+
+      // 국가 플래그 + 장르 칩 업데이트
+      const info = COUNTRY_STYLES[countryFormVal];
+      document.getElementById('country-flag').textContent = info?.flag || '';
+      renderSubstyles(genreFormVal);
+      renderArtistChips(genreFormVal);
+
+      // 추천 아티스트는 유지 (덮어쓰지 않음)
+      checkFormReady();
+
+      // 폼으로 스크롤
+      setTimeout(() => {
+        const el = document.getElementById('select-country');
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 100);
+
+      showToast(`🎵 ${genreLabel} (${countryData?.flag || ''} ${countryData?.name || ''}) 적용!`, 'success');
+    }
+
+    // Gemini AI 실시간 트렌드 로드
+    async function loadTrends() {
+      const btn = document.getElementById('btn-refresh-trends');
+      if (btn) { btn.textContent = '⏳'; btn.disabled = true; }
+      try {
+        const token = localStorage.getItem('gpm_token');
+        const resp = await fetch('/api/gemini-trends', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({})
+        });
+        const result = await resp.json();
+        if (result.success && result.data) {
+          // 서버 데이터 구조를 정적 데이터 구조에 맞게 병합
+          const serverData = result.data;
+          Object.keys(serverData).forEach(k => {
+            if (STATIC_TRENDS[k]) {
+              _trendsData[k] = { ...STATIC_TRENDS[k], ages: serverData[k].ages || STATIC_TRENDS[k].ages };
+            }
+          });
+          renderCountryTabs();
+          renderAgeTrends(_currentCountry);
+          showToast('🌍 AI 트렌드 업데이트 완료!', 'success');
+        }
+      } catch(e) {
+        // fallback: 정적 데이터 유지
+        showToast('트렌드 로드 실패. 기본 데이터 사용 중', 'info');
+      } finally {
+        if (btn) { btn.textContent = '🔄'; btn.disabled = false; }
+      }
+    }
+
+    // 초기 렌더
+    renderCountryTabs();
+    renderAgeTrends(_currentCountry);
+
     setTimeout(checkGeminiStatus, 1500);
+
   </script>
 
 
