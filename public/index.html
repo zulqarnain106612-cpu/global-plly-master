@@ -278,8 +278,7 @@
       border: 1px solid rgba(255,255,255,0.07);
       border-radius: 16px; padding: 20px 22px;
       transition: all 0.25s ease;
-      animation: fadeUp 0.4s ease-out forwards;
-      opacity: 0;
+      opacity: 1;
     }
     .prompt-card:hover {
       border-color: rgba(124,58,237,0.3);
@@ -1162,7 +1161,6 @@
         const card = document.createElement('div');
         card.className = 'prompt-card';
         card.id = `card-${i}`;
-        card.style.animationDelay = (i * 0.04) + 's';
         card.innerHTML = `
           <div class="flex items-center justify-between mb-3">
             <div class="flex items-center gap-3">
