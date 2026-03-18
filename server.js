@@ -2008,7 +2008,8 @@ app.post('/api/generate-prompts', verifyToken, async (req, res) => {
             });
         }
 
-        const { country, genre, mood, tempo, vocal, structure, vocalLang, subStyles, refArtist, themeText } = req.body;
+        const { country, genre, mood, tempo, vocal, structure, vocalLang, subStyles, refArtist, themeText, count } = req.body;
+        const promptCount = (count === 1) ? 1 : 10;
 
         if (!country || !genre || !mood || !tempo) {
             return res.status(400).json({
@@ -2105,12 +2106,18 @@ REMINDER: Apply the full V5 7-step formula. Vary energy from soft→intense acro
             });
         }
 
-        // 10개 보장 및 정규화
-        prompts = prompts.slice(0, 10).map((item, i) => ({
-            index: i + 1,
-            prompt: (item.prompt || '').substring(0, 220),
-            title: item.title || `Track ${i + 1}`
-        }));
+        // 개수 정규화 (count=1이면 단일/배열 모두 허용)
+        const parsed = prompts;
+        if (promptCount === 1) {
+            const item = Array.isArray(parsed) ? parsed[0] : parsed;
+            prompts = [{ index: 1, prompt: (item.prompt || '').substring(0, 220), title: item.title || 'Track 1' }];
+        } else {
+            prompts = parsed.slice(0, 10).map((item, i) => ({
+                index: i + 1,
+                prompt: (item.prompt || '').substring(0, 220),
+                title: item.title || ('Track ' + (i + 1))
+            }));
+        }
 
         // ── Supabase 히스토리 저장 (비동기, 실패해도 응답 지연 없음) ──
         if (supabase) {
