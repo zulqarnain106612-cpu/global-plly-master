@@ -24,10 +24,80 @@
     }
   </script>
   <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
     body {
-      background: #080810;
+      background: #0a0a0f;
       color: #e2e8f0;
       font-family: 'Inter', sans-serif;
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* ═══ SIDEBAR — index.html과 동일 ═══ */
+    .app-sidebar {
+      width: 260px;
+      min-width: 260px;
+      height: 100vh;
+      background: rgba(255, 255, 255, 0.02);
+      border-right: 1px solid rgba(255, 255, 255, 0.05);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+      z-index: 10;
+    }
+
+    .sidebar-section-label {
+      font-size: 10px;
+      font-weight: 900;
+      color: #64748b;
+      padding: 0 16px;
+      margin-top: 24px;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      opacity: 0.5;
+    }
+
+    .nav-link {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 16px;
+      border-radius: 14px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #94a3b8;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-decoration: none;
+      border: 1px solid transparent;
+      margin: 0 4px;
+    }
+
+    .nav-link:hover {
+      background: rgba(255, 255, 255, 0.05);
+      color: #e2e8f0;
+    }
+
+    .nav-link.active {
+      background: rgba(124, 58, 237, 0.15);
+      color: #c4b5fd;
+      border-color: rgba(124, 58, 237, 0.25);
+    }
+
+    /* ═══ MAIN VIEWPORT ═══ */
+    .main-viewport {
+      flex: 1;
+      height: 100vh;
+      overflow-y: auto;
+      position: relative;
     }
 
     ::-webkit-scrollbar {
@@ -43,25 +113,32 @@
       border-radius: 10px;
     }
 
-    .gradient-text {
-      background: linear-gradient(135deg, #7c3aed, #06b6d4, #f43f5e);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
+    /* ═══ STICKY TOP BAR ═══ */
+    .top-bar {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: rgba(10, 10, 15, 0.85);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      padding: 14px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
     }
 
+    /* ═══ CARDS ═══ */
     .glass-card {
       background: rgba(255, 255, 255, 0.03);
       border: 1px solid rgba(255, 255, 255, 0.06);
       border-radius: 20px;
       padding: 24px;
-      transition: all 0.4s ease;
+      transition: all 0.3s ease;
     }
 
     .glass-card:hover {
-      border-color: rgba(124, 58, 237, 0.3);
-      background: rgba(255, 255, 255, 0.05);
-      transform: translateY(-2px);
+      border-color: rgba(124, 58, 237, 0.2);
+      background: rgba(255, 255, 255, 0.04);
     }
 
     .glass-card.copied-card {
@@ -123,6 +200,19 @@
       background: rgba(16, 185, 129, 0.2);
       border-color: rgba(16, 185, 129, 0.4);
       color: #6ee7b7;
+    }
+
+    .btn-action {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 9px 18px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: 1px solid transparent;
     }
 
     .tag-pill {
@@ -217,26 +307,134 @@
       max-height: 300px;
       overflow-y: auto;
     }
+
+    @keyframes pulse-glow {
+
+      0%,
+      100% {
+        box-shadow: 0 0 15px rgba(124, 58, 237, 0.4);
+      }
+
+      50% {
+        box-shadow: 0 0 30px rgba(124, 58, 237, 0.7);
+      }
+    }
+
+    .animate-pulse-glow {
+      animation: pulse-glow 3s ease-in-out infinite;
+    }
+
+    .connection-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
   </style>
 </head>
 
-<body class="min-h-screen">
-  <!-- Header -->
-  <header class="sticky top-0 z-50 backdrop-blur-xl bg-[#080810]/80 border-b border-white/5">
-    <div class="max-w-7xl mx-auto px-8 py-5 flex items-center justify-between">
+<body>
+  <!-- ════ SIDEBAR ════ -->
+  <aside class="app-sidebar">
+    <div class="p-8">
       <div class="flex items-center gap-4">
-        <a href="/" class="flex items-center gap-3 hover:opacity-80 transition-opacity">
-          <div
-            class="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600 to-cyan-500 flex items-center justify-center text-xl shadow-lg">
-            🎵</div>
-          <span class="font-black text-lg uppercase tracking-tight">PLLY <span
-              class="text-purple-500">MASTER</span></span>
-        </a>
-        <span class="text-plly-muted mx-2">›</span>
-        <span id="page-title" class="text-sm font-bold text-white/80">Generated Results</span>
+        <div
+          class="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-600 to-cyan-500 flex items-center justify-center text-2xl shadow-xl shadow-purple-500/20 animate-pulse-glow">
+          🎵</div>
+        <div>
+          <h1 class="font-black text-xl leading-none tracking-tighter uppercase">PLLY <span
+              class="text-purple-500">MASTER</span></h1>
+          <p class="text-[9px] text-plly-muted mt-1.5 uppercase tracking-[0.2em] font-black opacity-60">AI Music
+            Dashboard</p>
+        </div>
+      </div>
+    </div>
+
+    <nav class="flex-1 px-4 py-2 space-y-1 overflow-y-auto">
+      <div class="sidebar-section-label">Main Control</div>
+      <a class="nav-link" href="/">
+        <span class="w-8 flex justify-center">🏠</span> <span>대시보드</span>
+      </a>
+
+      <div class="sidebar-section-label">Insights</div>
+      <a class="nav-link" href="/#trends">
+        <span class="w-8 flex justify-center">📈</span> <span>글로벌 트렌드</span>
+      </a>
+      <a class="nav-link" href="/#history">
+        <span class="w-8 flex justify-center">📜</span> <span>작업 기록</span>
+      </a>
+      <!-- 현재 페이지: 결과 -->
+      <a class="nav-link active" href="/results.html"
+        style="background:rgba(139,92,246,0.12);border-color:rgba(139,92,246,0.25);">
+        <span class="w-8 flex justify-center">🎵</span>
+        <span class="flex-1">최근 결과</span>
+        <span id="sidebar-results-badge"
+          class="text-[9px] font-black px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/20"></span>
+      </a>
+      <a class="nav-link" href="/timeline.html">
+        <span class="w-8 flex justify-center">🎬</span>
+        <span class="flex-1">타임라인 추출기</span>
+        <span
+          class="text-[9px] font-black px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/20">NEW</span>
+      </a>
+
+      <div class="sidebar-section-label">Preference</div>
+      <a class="nav-link" href="/" onclick="localStorage.setItem('_open_settings','1')">
+        <span class="w-8 flex justify-center">⚙️</span> <span>AI 엔진 설정</span>
+      </a>
+      <a class="nav-link" href="/" onclick="localStorage.setItem('_open_security','1')">
+        <span class="w-8 flex justify-center">🔒</span> <span>보안 설정</span>
+      </a>
+
+      <!-- Connection Status -->
+      <div class="px-1 mt-6">
+        <div class="sidebar-section-label" style="margin-top:0;">Connection</div>
+        <div class="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white/[0.03] mb-2 border border-white/5">
+          <div id="gemini-dot" class="connection-dot bg-gray-500"></div>
+          <span class="text-[13px] font-semibold text-slate-200 flex-1">Gemini AI</span>
+          <span id="gemini-txt" class="text-[10px] font-bold text-gray-400 uppercase">-</span>
+        </div>
+        <div class="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white/[0.03] border border-white/5">
+          <div id="mureka-dot" class="connection-dot bg-gray-500"></div>
+          <span class="text-[13px] font-semibold text-slate-200 flex-1">Mureka AI</span>
+          <span id="mureka-txt" class="text-[10px] font-bold text-gray-400 uppercase">-</span>
+        </div>
+      </div>
+    </nav>
+
+    <!-- User Info -->
+    <div class="p-4 mt-auto border-t border-white/5 bg-white/[0.01]">
+      <div class="flex items-center gap-4 p-4 rounded-2xl hover:bg-white/5 transition-all cursor-default group">
+        <div
+          class="w-10 h-10 rounded-xl bg-gradient-to-tr from-purple-500 to-rose-400 flex items-center justify-center font-black text-white shadow-lg">
+          👤</div>
+        <div class="flex-1 min-w-0">
+          <p id="user-display" class="text-sm font-bold truncate">User</p>
+          <p class="text-[10px] text-emerald-400 font-bold uppercase tracking-wider">Pro Active</p>
+        </div>
+        <button onclick="doLogout()" title="로그아웃"
+          class="text-plly-muted hover:text-rose-400 p-2 rounded-xl hover:bg-rose-500/10 transition-all">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ════ MAIN VIEWPORT ════ -->
+  <main class="main-viewport">
+    <!-- Top Bar -->
+    <div class="top-bar">
+      <div class="flex items-center gap-3">
+        <span class="text-plly-muted text-sm">Results</span>
+        <span class="text-plly-muted mx-1">›</span>
+        <span id="page-title" class="text-sm font-bold text-white/90">생성 결과</span>
       </div>
       <div class="flex items-center gap-3">
-        <button onclick="copyAll()" class="btn-copy flex items-center gap-2">
+        <button onclick="copyAll()"
+          class="btn-action bg-purple-500/10 border-purple-500/20 text-purple-300 hover:bg-purple-500/20">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -244,37 +442,80 @@
           <span id="copy-all-text">전체 복사</span>
         </button>
         <button onclick="resetResults()"
-          class="px-4 py-2 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-sm font-bold hover:bg-rose-500/20 hover:text-rose-300 transition-all flex items-center gap-2"
-          title="결과 초기화">
+          class="btn-action bg-rose-500/10 border-rose-500/20 text-rose-400 hover:bg-rose-500/20">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
           </svg>
           초기화
         </button>
-        <a href="/"
-          class="px-5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm font-bold hover:bg-white/10 transition-all flex items-center gap-2">
+        <a href="/" class="btn-action bg-white/5 border-white/10 text-white hover:bg-white/10"
+          style="border:1px solid rgba(255,255,255,0.1);">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
           </svg>
-          대시보드로 돌아가기
+          대시보드
         </a>
       </div>
     </div>
-  </header>
 
-  <!-- Content Area -->
-  <main id="results-container" class="max-w-7xl mx-auto px-8 py-12">
-    <div id="loading" class="text-center py-40">
-      <div class="text-5xl mb-6 animate-pulse">🎵</div>
-      <p class="text-plly-muted text-lg">결과를 불러오는 중...</p>
+    <!-- Results Content -->
+    <div class="p-10">
+      <div id="results-container">
+        <div id="loading" class="text-center py-40">
+          <div class="text-5xl mb-6 animate-pulse">🎵</div>
+          <p class="text-plly-muted text-lg">결과를 불러오는 중...</p>
+        </div>
+      </div>
     </div>
   </main>
 
   <!-- Toast -->
-  <div id="toast-container" class="fixed top-6 right-6 z-[300] flex flex-col gap-3"></div>
+  <div id="toast-container" class="fixed top-8 right-8 z-[300] flex flex-col gap-4" style="position:fixed;"></div>
 
   <script>
+      // ═══ Auth Guard ═══
+      (function () {
+        var token = localStorage.getItem('gpm_token');
+        if (!token) { window.location.href = '/login.html'; return; }
+        var name = localStorage.getItem('gpm_realname') || localStorage.getItem('gpm_username') || 'User';
+        var el = document.getElementById('user-display');
+        if (el) el.textContent = name;
+      })();
+
+    function doLogout() {
+      if (confirm('로그아웃 하시겠습니까?')) {
+        localStorage.removeItem('gpm_token');
+        window.location.href = '/login.html';
+      }
+    }
+
+    // ═══ Sidebar badge ═══
+    (function () {
+      var prev = localStorage.getItem('plly_results');
+      if (prev) {
+        try {
+          var d = JSON.parse(prev);
+          var badge = document.getElementById('sidebar-results-badge');
+          if (badge) badge.textContent = d.type === 'batch' ? (d.data.length + '개') : '1개';
+        } catch (e) { }
+      }
+    })();
+
+    // ═══ Connection status (간단 표시) ═══
+    (function () {
+      var gKey = localStorage.getItem('gpm_gemini_key');
+      var mKey = localStorage.getItem('gpm_mureka_key');
+      var gDot = document.getElementById('gemini-dot');
+      var gTxt = document.getElementById('gemini-txt');
+      var mDot = document.getElementById('mureka-dot');
+      var mTxt = document.getElementById('mureka-txt');
+      if (gKey) { gDot.style.background = '#10b981'; gTxt.textContent = '연결됨'; gTxt.style.color = '#6ee7b7'; }
+      else { gDot.style.background = '#374151'; gTxt.textContent = '미설정'; }
+      if (mKey) { mDot.style.background = '#10b981'; mTxt.textContent = '연결됨'; mTxt.style.color = '#6ee7b7'; }
+      else { mDot.style.background = '#374151'; mTxt.textContent = '미설정'; }
+    })();
+
     // ═══ Toast ═══
     function showToast(msg, type) {
       type = type || 'info';
@@ -282,7 +523,8 @@
       var colors = { success: 'from-emerald-600/90 to-teal-600/90 border-emerald-500/30', error: 'from-rose-600/90 to-red-600/90 border-rose-500/30', info: 'from-purple-600/90 to-violet-600/90 border-purple-500/30' };
       var icons = { success: '✅', error: '❌', info: 'ℹ️' };
       var t = document.createElement('div');
-      t.className = 'rounded-xl px-5 py-3 bg-gradient-to-r ' + (colors[type] || colors.info) + ' border flex items-center gap-3 shadow-2xl max-w-sm transform translate-x-[110%] transition-all duration-400';
+      t.className = 'rounded-xl px-5 py-3 bg-gradient-to-r ' + (colors[type] || colors.info) + ' border flex items-center gap-3 shadow-2xl max-w-sm';
+      t.style.cssText = 'transform:translateX(110%);transition:all 0.4s;';
       t.innerHTML = '<span class="text-lg">' + (icons[type] || 'ℹ️') + '</span><span class="text-sm text-white font-medium">' + msg + '</span>';
       container.appendChild(t);
       requestAnimationFrame(function () { t.style.transform = 'translateX(0)'; });
@@ -291,18 +533,16 @@
 
     // ═══ Clipboard ═══
     async function copyText(text) {
-      try { await navigator.clipboard.writeText(text); } catch (e) { var ta = document.createElement('textarea'); ta.value = text; ta.style.cssText = 'position:fixed;opacity:0;'; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); }
+      try { await navigator.clipboard.writeText(text); }
+      catch (e) { var ta = document.createElement('textarea'); ta.value = text; ta.style.cssText = 'position:fixed;opacity:0;'; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); }
     }
 
     // ═══ Copy All ═══
     function copyAll() {
       var data = JSON.parse(localStorage.getItem('plly_results') || '{}');
       var text = '';
-      if (data.type === 'single' && data.data) {
-        text = data.data.prompt.prompt;
-      } else if (data.type === 'batch' && data.data) {
-        text = data.data.map(function (r) { return '[#' + r.index + '] ' + r.title + '\n' + r.prompt; }).join('\n\n---\n\n');
-      }
+      if (data.type === 'single' && data.data) { text = data.data.prompt.prompt; }
+      else if (data.type === 'batch' && data.data) { text = data.data.map(function (r) { return '[#' + r.index + '] ' + r.title + '\n' + r.prompt; }).join('\n\n---\n\n'); }
       if (text) {
         copyText(text);
         var btn = document.getElementById('copy-all-text');
@@ -312,16 +552,7 @@
       }
     }
 
-    // ═══ Render ═══
-    // ═══ Copied state tracking ═══
-    var _copiedBatchCards = JSON.parse(localStorage.getItem('plly_copied_batch') || '{}');
-    var _copiedImgCards = JSON.parse(localStorage.getItem('plly_copied_img') || '{}');
-
-    function saveCopiedState() {
-      localStorage.setItem('plly_copied_batch', JSON.stringify(_copiedBatchCards));
-      localStorage.setItem('plly_copied_img', JSON.stringify(_copiedImgCards));
-    }
-
+    // ═══ Reset ═══
     function resetResults() {
       if (!confirm('생성된 결과를 모두 초기화할까요?\n대시보드에서 새로 생성할 수 있습니다.')) return;
       localStorage.removeItem('plly_results');
@@ -332,92 +563,139 @@
       setTimeout(function () { window.location.href = '/'; }, 800);
     }
 
+    // ═══ Copied state ═══
+    var _copiedBatchCards = JSON.parse(localStorage.getItem('plly_copied_batch') || '{}');
+    var _copiedImgCards = JSON.parse(localStorage.getItem('plly_copied_img') || '{}');
+    function saveCopiedState() {
+      localStorage.setItem('plly_copied_batch', JSON.stringify(_copiedBatchCards));
+      localStorage.setItem('plly_copied_img', JSON.stringify(_copiedImgCards));
+    }
+
+    // ═══ Render ═══
     function renderResults() {
       var raw = localStorage.getItem('plly_results');
-      if (!raw) { document.getElementById('results-container').innerHTML = '<div class="text-center py-40"><div class="text-5xl mb-6">😶</div><p class="text-plly-muted text-lg mb-8">표시할 결과가 없습니다.</p><a href="/" class="px-6 py-3 rounded-xl bg-purple-600 text-white font-bold hover:bg-purple-700 transition-all">대시보드로 이동</a></div>'; return; }
+      if (!raw) {
+        document.getElementById('results-container').innerHTML =
+          '<div class="text-center py-40">' +
+          '<div class="w-24 h-24 rounded-3xl bg-white/5 flex items-center justify-center text-5xl mx-auto mb-6 opacity-30">😶</div>' +
+          '<p class="text-plly-muted text-lg mb-8">표시할 결과가 없습니다.</p>' +
+          '<a href="/" class="inline-flex items-center gap-2 px-8 py-4 rounded-2xl bg-gradient-to-r from-purple-600 to-violet-600 text-white font-bold text-lg hover:scale-105 transition-transform shadow-2xl shadow-purple-500/20">🏠 대시보드로 이동</a>' +
+          '</div>';
+        return;
+      }
       var data = JSON.parse(raw);
       var container = document.getElementById('results-container');
       if (data.type === 'single') { renderSingle(container, data.data); }
       else if (data.type === 'batch') { renderBatch(container, data.data); }
     }
 
-    // ── Single Result ──
+    // ── Single ──
     function renderSingle(container, result) {
       document.getElementById('page-title').textContent = '1개 프롬프트 결과';
       var p = result.prompt;
       var m = result.music;
       var meta = p.metaTags || {};
 
-      var titlePills = (p.titleSuggestions || []).map(function (t) { return '<span class="tag-pill" onclick="copyText(\'' + t.replace(/'/g, "\\'") + '\');showToast(\'\\"' + t + '\\" 복사됨!\',\'info\')">' + t + '</span>'; }).join(' ');
-
       var metaLabels = { genre: '🎸 Genre', mood: '🎭 Mood', instruments: '🎹 Instruments', tempo: '⏱️ Tempo', vocal: '🎤 Vocal', structure: '📜 Structure', region: '🌍 Region', scale: '🎼 Scale', energy: '⚡ Energy', valence: '💫 Valence' };
-      var metaHTML = Object.entries(meta).map(function (entry) {
-        var k = entry[0], v = entry[1];
-        return '<div class="meta-tag"><p class="text-[10px] text-plly-muted font-bold uppercase tracking-wider mb-1">' + (metaLabels[k] || k) + '</p><p class="text-sm text-purple-300 font-medium">' + v + '</p></div>';
+      var metaHTML = Object.entries(meta).map(function (e) {
+        return '<div class="meta-tag"><p class="text-[10px] text-plly-muted font-bold uppercase tracking-wider mb-1">' + (metaLabels[e[0]] || e[0]) + '</p><p class="text-sm text-purple-300 font-medium">' + e[1] + '</p></div>';
       }).join('');
+
+      var titlePills = (p.titleSuggestions || []).map(function (t) {
+        return '<span class="tag-pill" onclick="copyText(\'' + t.replace(/'/g, "\\'") + '\')">' + t + '</span>';
+      }).join(' ');
 
       var promptEscaped = (p.prompt || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
-      container.innerHTML = '<div class="grid grid-cols-1 lg:grid-cols-3 gap-10">' +
-        '<div class="lg:col-span-2 space-y-8">' +
-        '<div class="fade-up" style="animation-delay:0.1s">' +
-        '<div class="flex items-center gap-3 mb-6"><div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-500 to-cyan-500 flex items-center justify-center text-2xl shadow-xl">✨</div><div><h2 class="text-3xl font-black text-white">Master Prompt</h2><p class="text-sm text-plly-muted">Suno AI에 바로 붙여넣기 하세요</p></div></div>' +
-        '<div class="prompt-box text-base leading-[2]">' + promptEscaped + '</div>' +
-        '<div class="flex gap-3 mt-4"><button onclick="copyText(document.querySelector(\'.prompt-box\').textContent);showToast(\'프롬프트 복사 완료!\',\'success\')" class="btn-copy flex items-center gap-2">📋 프롬프트 복사</button></div>' +
+      container.innerHTML =
+        '<div class="grid grid-cols-1 xl:grid-cols-3 gap-8">' +
+        '<!-- 왼쪽: 메인 프롬프트 -->' +
+        '<div class="xl:col-span-2 space-y-8">' +
+        '<div class="fade-up" style="animation-delay:0.05s">' +
+        '<div class="flex items-center gap-4 mb-6">' +
+        '<div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-500 to-cyan-500 flex items-center justify-center text-2xl shadow-xl">✨</div>' +
+        '<div><h2 class="text-3xl font-black text-white">Master Prompt</h2><p class="text-sm text-plly-muted">Suno AI에 바로 붙여넣기 하세요</p></div>' +
         '</div>' +
-        (titlePills ? '<div class="fade-up" style="animation-delay:0.2s"><h4 class="text-xs font-black text-plly-muted uppercase tracking-widest mb-3">Title Suggestions</h4><div class="flex flex-wrap gap-2">' + titlePills + '</div></div>' : '') +
-        (metaHTML ? '<div class="fade-up" style="animation-delay:0.3s"><h4 class="text-xs font-black text-plly-muted uppercase tracking-widest mb-4">Metadata</h4><div class="grid grid-cols-2 md:grid-cols-3 gap-3">' + metaHTML + '</div></div>' : '') +
-        '<!-- 🎨 Image & Video Prompts -->' +
-        '<div id="image-prompt-section" class="fade-up" style="animation-delay:0.4s">' +
-        '<div class="flex items-center gap-3 mb-6 mt-6"><div class="w-10 h-10 rounded-xl bg-gradient-to-br from-fuchsia-500 to-purple-600 flex items-center justify-center text-xl shadow-lg">🎨</div><div><h3 class="text-xl font-black text-white">Image & Video Prompts</h3><p class="text-xs text-plly-muted">앨범 커버 및 뮤직비디오용 AI 프롬프트 (16:9)</p></div><div id="img-loading" class="ml-auto animate-pulse text-fuchsia-400 text-sm font-bold hidden">🔄 생성 중...</div></div>' +
+        '<div class="prompt-box text-base leading-[2]">' + promptEscaped + '</div>' +
+        '<div class="flex gap-3 mt-4"><button onclick="copyText(\'' + promptEscaped.replace(/'/g, "\\'") + '\');showToast(\'프롬프트 복사 완료!\',\'success\')" class="btn-copy flex items-center gap-2">📋 프롬프트 복사</button></div>' +
+        '</div>' +
+        (titlePills ? '<div class="fade-up" style="animation-delay:0.15s"><h4 class="text-xs font-black text-plly-muted uppercase tracking-widest mb-3">Title Suggestions</h4><div class="flex flex-wrap gap-2">' + titlePills + '</div></div>' : '') +
+        (metaHTML ? '<div class="fade-up" style="animation-delay:0.2s"><h4 class="text-xs font-black text-plly-muted uppercase tracking-widest mb-4">Metadata</h4><div class="grid grid-cols-2 md:grid-cols-3 gap-3">' + metaHTML + '</div></div>' : '') +
+        '<!-- 이미지 프롬프트 -->' +
+        '<div id="image-prompt-section" class="fade-up" style="animation-delay:0.3s">' +
+        '<div class="flex items-center gap-3 mb-5 mt-4">' +
+        '<div class="w-10 h-10 rounded-xl bg-gradient-to-br from-fuchsia-500 to-purple-600 flex items-center justify-center text-xl shadow-lg">🎨</div>' +
+        '<div><h3 class="text-xl font-black text-white">Image &amp; Video Prompts</h3><p class="text-xs text-plly-muted">앨범 커버 및 뮤직비디오용 AI 프롬프트 (16:9)</p></div>' +
+        '<div id="img-loading" class="ml-auto animate-pulse text-fuchsia-400 text-sm font-bold hidden">🔄 생성 중...</div>' +
+        '</div>' +
         '<div class="flex gap-2 mb-4"><button class="img-tab active" data-tab="whisk" onclick="switchImgTab(\'whisk\')">🌀 Whisk</button><button class="img-tab" data-tab="flow" onclick="switchImgTab(\'flow\')">🎬 FLOW</button><button class="img-tab" data-tab="grok" onclick="switchImgTab(\'grok\')">🤖 Grok</button></div>' +
         '<div id="img-prompt-list"><p class="text-plly-muted text-sm animate-pulse">⏳ 이미지 프롬프트 생성 중...</p></div>' +
         '</div>' +
         '</div>' +
+        '<!-- 오른쪽: 뮤직 카드 + Suno 버튼 -->' +
         '<div class="space-y-6">' +
-        (m ? '<div class="glass-card fade-up" style="animation-delay:0.2s"><div class="flex items-center gap-4 mb-4"><div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-purple-500 to-rose-400 flex items-center justify-center text-3xl shadow-lg">💿</div><div><div class="font-black text-white text-lg">' + (m.title || 'Untitled') + '</div><div class="text-[10px] text-plly-muted uppercase tracking-widest mt-0.5">' + (m.duration || '') + '</div></div></div></div>' : '') +
-        '<div class="glass-card fade-up text-center" style="animation-delay:0.3s"><div class="text-4xl mb-3">🚀</div><p class="text-sm text-plly-muted font-medium">이 프롬프트를 Suno AI에 붙여넣고<br>당신만의 히트곡을 제작하세요!</p><button onclick="startSunoGeneration()" class="mt-4 inline-block px-6 py-3 rounded-xl bg-gradient-to-r from-rose-500 to-orange-500 text-white font-bold text-sm hover:scale-105 transition-transform shadow-lg cursor-pointer">🚀 Suno에서 음악 생성</button><a href="https://suno.com" target="_blank" class="mt-2 inline-block px-4 py-2 rounded-lg text-purple-400 text-xs hover:text-white transition-colors">또는 직접 Suno 열기 →</a></div>' +
+        (m ? '<div class="glass-card fade-up" style="animation-delay:0.1s"><div class="flex items-center gap-4 mb-4"><div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-purple-500 to-rose-400 flex items-center justify-center text-3xl shadow-lg">💿</div><div><div class="font-black text-white text-lg">' + (m.title || 'Untitled') + '</div><div class="text-[10px] text-plly-muted uppercase tracking-widest mt-0.5">' + (m.duration || '') + '</div></div></div></div>' : '') +
+        '<div class="glass-card fade-up text-center" style="animation-delay:0.2s"><div class="text-4xl mb-3">🚀</div><p class="text-sm text-plly-muted font-medium">이 프롬프트를 Suno AI에 붙여넣고<br>당신만의 히트곡을 제작하세요!</p><button onclick="startSunoGeneration()" class="mt-4 inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-rose-500 to-orange-500 text-white font-bold text-sm hover:scale-105 transition-transform shadow-lg cursor-pointer">🚀 Suno에서 음악 생성</button><a href="https://suno.com" target="_blank" class="mt-2 inline-block px-4 py-2 rounded-lg text-purple-400 text-xs hover:text-white transition-colors">또는 직접 Suno 열기 →</a></div>' +
         '</div>' +
         '</div>';
     }
 
-    // ── Batch Results ──
+    // ── Batch ──
     function renderBatch(container, results) {
       document.getElementById('page-title').textContent = results.length + '개 프롬프트 배치 결과';
-
       var copiedCount = Object.keys(_copiedBatchCards).length;
 
       var cards = results.map(function (r, i) {
         var escaped = (r.prompt || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
         var isCopied = _copiedBatchCards['batch_' + i];
         var cardClass = 'glass-card fade-up group' + (isCopied ? ' copied-card' : '');
-        return '<div id="batch-card-' + i + '" class="' + cardClass + '" style="animation-delay:' + (0.05 * i) + 's"><div class="flex items-start gap-4"><div class="batch-num">' + r.index + '</div><div class="flex-1 min-w-0"><div class="flex items-center justify-between mb-3"><span class="text-sm font-bold text-white truncate">' + (r.title || 'Untitled') + '</span>' + (isCopied ? '' : '<button onclick="copyBatchCard(this,' + i + ',' + r.index + ')" class="btn-copy text-[11px] opacity-0 group-hover:opacity-100 transition-opacity">복사</button>') + '</div><div class="prompt-box !p-4 !text-xs !leading-relaxed">' + escaped + '</div></div></div></div>';
+        return '<div id="batch-card-' + i + '" class="' + cardClass + '" style="animation-delay:' + (0.04 * i) + 's">' +
+          '<div class="flex items-start gap-4"><div class="batch-num">' + r.index + '</div>' +
+          '<div class="flex-1 min-w-0">' +
+          '<div class="flex items-center justify-between mb-3">' +
+          '<span class="text-sm font-bold text-white truncate">' + (r.title || 'Untitled') + '</span>' +
+          (isCopied ? '' : '<button onclick="copyBatchCard(this,' + i + ',' + r.index + ')" class="btn-copy text-[11px] opacity-0 group-hover:opacity-100 transition-opacity">복사</button>') +
+          '</div>' +
+          '<div class="prompt-box !p-4 !text-xs !leading-relaxed">' + escaped + '</div>' +
+          '</div></div></div>';
       }).join('');
 
-      var progressHTML = '<div class="flex items-center gap-3 mt-2"><div class="flex-1 h-2 rounded-full bg-white/5 overflow-hidden"><div id="copy-progress-bar" class="h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-400 transition-all duration-500" style="width:' + (results.length > 0 ? (copiedCount / results.length * 100) : 0) + '%"></div></div><span id="copy-progress-text" class="text-xs font-bold text-plly-muted">' + copiedCount + '/' + results.length + ' 복사됨</span></div>';
+      var progressW = results.length > 0 ? (copiedCount / results.length * 100) : 0;
 
-      container.innerHTML = '<div class="mb-10 fade-up"><div class="flex items-center gap-4 mb-2"><div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-500 to-red-500 flex items-center justify-center text-2xl shadow-xl">🎯</div><div><h2 class="text-3xl font-black text-white">' + results.length + '개 프롬프트 생성 완료</h2><p class="text-sm text-plly-muted">복사한 프롬프트는 어둡게 표시됩니다. 상단 [초기화] 버튼으로 리셋하세요.</p>' + progressHTML + '</div></div></div>' +
-        '<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">' + cards + '</div>' +
-        '<!-- 🎨 Batch Image Prompts -->' +
-        '<div id="batch-image-section" class="mt-12 fade-up" style="animation-delay:0.5s"><div class="flex items-center gap-3 mb-6"><div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-fuchsia-500 to-purple-600 flex items-center justify-center text-2xl shadow-xl">🎨</div><div><h2 class="text-2xl font-black text-white">Image & Video Prompts</h2><p class="text-sm text-plly-muted">각 트랙별 앨범 커버 및 뮤직비디오용 AI 프롬프트 (16:9)</p></div><div id="batch-img-loading" class="ml-auto animate-pulse text-fuchsia-400 text-sm font-bold hidden">🔄 생성 중...</div></div><div class="flex gap-2 mb-4"><button class="img-tab active" data-tab="whisk" onclick="switchBatchImgTab(\'whisk\')">🌀 Whisk</button><button class="img-tab" data-tab="flow" onclick="switchBatchImgTab(\'flow\')">🎬 FLOW</button><button class="img-tab" data-tab="grok" onclick="switchBatchImgTab(\'grok\')">🤖 Grok</button></div><div id="batch-img-list"><p class="text-plly-muted text-sm animate-pulse">⏳ 이미지 프롬프트 생성 중...</p></div></div>' +
-        '<div class="text-center mt-12 fade-up" style="animation-delay:0.6s"><a href="/" class="inline-block px-8 py-4 rounded-2xl bg-gradient-to-r from-purple-600 to-violet-600 text-white font-black text-lg hover:scale-105 transition-transform shadow-2xl shadow-purple-500/20">🏠 대시보드로 돌아가기</a></div>';
+      container.innerHTML =
+        '<div class="mb-8 fade-up">' +
+        '<div class="flex items-center gap-4 mb-2">' +
+        '<div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-500 to-red-500 flex items-center justify-center text-2xl shadow-xl">🎯</div>' +
+        '<div><h2 class="text-3xl font-black text-white">' + results.length + '개 프롬프트 생성 완료</h2>' +
+        '<p class="text-sm text-plly-muted">복사한 프롬프트는 어둡게 표시됩니다.</p>' +
+        '<div class="flex items-center gap-3 mt-2"><div class="flex-1 h-2 rounded-full bg-white/5 overflow-hidden"><div id="copy-progress-bar" class="h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-400 transition-all duration-500" style="width:' + progressW + '%"></div></div>' +
+        '<span id="copy-progress-text" class="text-xs font-bold text-plly-muted">' + copiedCount + '/' + results.length + ' 복사됨</span></div>' +
+        '</div></div></div>' +
+        '<div class="grid grid-cols-1 lg:grid-cols-2 gap-5">' + cards + '</div>' +
+        '<!-- Batch Image Prompts -->' +
+        '<div id="batch-image-section" class="mt-12 fade-up" style="animation-delay:0.4s">' +
+        '<div class="flex items-center gap-3 mb-5">' +
+        '<div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-fuchsia-500 to-purple-600 flex items-center justify-center text-2xl shadow-xl">🎨</div>' +
+        '<div><h2 class="text-2xl font-black text-white">Image &amp; Video Prompts</h2><p class="text-sm text-plly-muted">각 트랙별 앨범 커버 및 뮤직비디오용 AI 프롬프트</p></div>' +
+        '<div id="batch-img-loading" class="ml-auto animate-pulse text-fuchsia-400 text-sm font-bold hidden">🔄 생성 중...</div>' +
+        '</div>' +
+        '<div class="flex gap-2 mb-4"><button class="img-tab active" data-tab="whisk" onclick="switchBatchImgTab(\'whisk\')">🌀 Whisk</button><button class="img-tab" data-tab="flow" onclick="switchBatchImgTab(\'flow\')">🎬 FLOW</button><button class="img-tab" data-tab="grok" onclick="switchBatchImgTab(\'grok\')">🤖 Grok</button></div>' +
+        '<div id="batch-img-list"><p class="text-plly-muted text-sm animate-pulse">⏳ 이미지 프롬프트 생성 중...</p></div></div>' +
+        '<div class="text-center mt-12 fade-up" style="animation-delay:0.5s">' +
+        '<a href="/" class="inline-flex items-center gap-2 px-8 py-4 rounded-2xl bg-gradient-to-r from-purple-600 to-violet-600 text-white font-bold text-lg hover:scale-105 transition-transform shadow-2xl shadow-purple-500/20">🏠 대시보드로 돌아가기</a></div>';
 
       window._batchData = results;
     }
 
-    // ═══ Batch card copy with dimming ═══
     function copyBatchCard(btn, idx, cardIndex) {
       if (!window._batchData || !window._batchData[idx]) return;
       copyText(window._batchData[idx].prompt);
       _copiedBatchCards['batch_' + idx] = true;
       saveCopiedState();
       var card = document.getElementById('batch-card-' + idx);
-      if (card) {
-        card.classList.add('copied-card');
-        btn.style.display = 'none';
-      }
+      if (card) { card.classList.add('copied-card'); btn.style.display = 'none'; }
       updateCopyProgress();
-      showToast('#' + cardIndex + ' 프롬프트 복사! (어둡게 표시됨)', 'success');
+      showToast('#' + cardIndex + ' 프롬프트 복사!', 'success');
     }
 
     function updateCopyProgress() {
@@ -427,86 +705,51 @@
       var text = document.getElementById('copy-progress-text');
       if (bar) bar.style.width = (total > 0 ? (copied / total * 100) : 0) + '%';
       if (text) text.textContent = copied + '/' + total + ' 복사됨';
-      if (copied === total && total > 0) {
-        showToast('🎉 모든 프롬프트가 복사되었습니다!', 'success');
-      }
+      if (copied === total && total > 0) showToast('🎉 모든 프롬프트가 복사되었습니다!', 'success');
     }
 
-    // ═══ Suno AI 음악 생성 ═══
     async function startSunoGeneration() {
-      var raw = localStorage.getItem('plly_results');
-      if (!raw) { showToast('생성할 프롬프트가 없습니다.', 'error'); return; }
-      var data = JSON.parse(raw);
-      var prompts = [];
-      if (data.type === 'single' && data.data) {
-        prompts = [{ prompt: data.data.prompt.prompt, title: (data.data.music && data.data.music.title) || 'Track 1' }];
-      } else if (data.type === 'batch' && data.data) {
-        prompts = data.data.map(function (r) { return { prompt: r.prompt, title: r.title || 'Track ' + r.index }; });
-      }
-      if (prompts.length === 0) { showToast('프롬프트가 비어있습니다.', 'error'); return; }
       showToast('Suno AI 생성 기능은 쿠키 설정 후 사용 가능합니다.', 'info');
     }
 
-    // ═══ Image Prompt Variables ═══
-    var _imgData = {};
-    var _batchImgData = [];
-    var _currentImgTab = 'whisk';
-    var _currentBatchImgTab = 'whisk';
+    // ═══ Image Prompts ═══
+    var _imgData = {}, _batchImgData = [], _currentImgTab = 'whisk', _currentBatchImgTab = 'whisk';
 
-    // ═══ Fetch Image Prompt (Single) ═══
     async function fetchImagePrompt(country, genre, mood) {
       var loading = document.getElementById('img-loading');
       if (loading) loading.classList.remove('hidden');
       try {
         var apiKey = localStorage.getItem('gpm_gemini_key');
-        var aiModel = localStorage.getItem('gpm_gemini_model') || 'gemini-2.5-flash';
-        var res = await fetch('/api/generate-image-prompt', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ country: country, genre: genre, mood: mood, apiKey: apiKey, aiModel: aiModel })
-        });
+        var aiModel = localStorage.getItem('gpm_gemini_model') || 'gemini-2.0-flash';
+        var res = await fetch('/api/generate-image-prompt', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ country, genre, mood, apiKey, aiModel }) });
         var data = await res.json();
         if (data.success) { _imgData = data.data; renderImgPrompts(); }
         else { document.getElementById('img-prompt-list').innerHTML = '<p class="text-rose-400 text-sm">⚠️ ' + (data.error || '생성 실패') + '</p>'; }
-      } catch (e) {
-        console.error('Image prompt error:', e);
-        document.getElementById('img-prompt-list').innerHTML = '<p class="text-rose-400 text-sm">⚠️ 이미지 프롬프트 생성 실패</p>';
-      } finally { if (loading) loading.classList.add('hidden'); }
+      } catch (e) { document.getElementById('img-prompt-list').innerHTML = '<p class="text-rose-400 text-sm">⚠️ 이미지 프롬프트 생성 실패</p>'; }
+      finally { if (loading) loading.classList.add('hidden'); }
     }
 
-    // ═══ Fetch Image Prompts (Batch) ═══
     async function fetchBatchImagePrompts(batchResults) {
       var loading = document.getElementById('batch-img-loading');
       if (loading) loading.classList.remove('hidden');
       _batchImgData = [];
-      var inputData = JSON.parse(localStorage.getItem('plly_input') || '{}');
-      var country = inputData.country || 'KR';
-      var genre = inputData.genre || 'kpop';
-      var mood = inputData.mood || 'party';
+      var inp = JSON.parse(localStorage.getItem('plly_input') || '{}');
       var apiKey = localStorage.getItem('gpm_gemini_key');
-      var aiModel = localStorage.getItem('gpm_gemini_model') || 'gemini-2.5-flash';
+      var aiModel = localStorage.getItem('gpm_gemini_model') || 'gemini-2.0-flash';
       for (var i = 0; i < batchResults.length; i++) {
         try {
-          var res = await fetch('/api/generate-image-prompt', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ country: country, genre: genre, mood: mood, apiKey: apiKey, aiModel: aiModel })
-          });
+          var res = await fetch('/api/generate-image-prompt', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ country: inp.country || 'KR', genre: inp.genre || 'kpop', mood: inp.mood || 'party', apiKey, aiModel }) });
           var data = await res.json();
           _batchImgData.push({ index: batchResults[i].index, title: batchResults[i].title, data: data.success ? data.data : null });
-        } catch (e) {
-          _batchImgData.push({ index: batchResults[i].index, title: batchResults[i].title, data: null });
-        }
+        } catch (e) { _batchImgData.push({ index: batchResults[i].index, title: batchResults[i].title, data: null }); }
       }
       if (loading) loading.classList.add('hidden');
       renderBatchImgPrompts();
     }
 
-    // ═══ Switch Image Tab (Single) ═══
     function switchImgTab(tab) {
       _currentImgTab = tab;
-      document.querySelectorAll('#image-prompt-section .img-tab').forEach(function (b) { b.classList.remove('active'); });
-      document.querySelectorAll('#image-prompt-section .img-tab').forEach(function (b) { if (b.dataset.tab === tab) b.classList.add('active'); });
+      document.querySelectorAll('#image-prompt-section .img-tab').forEach(function (b) { b.classList.toggle('active', b.dataset.tab === tab); });
       renderImgPrompts();
     }
 
@@ -518,27 +761,19 @@
       var html = '';
       for (var idx = 0; idx < prompts.length; idx++) {
         var ep = prompts[idx].replace(/</g, '&lt;').replace(/>/g, '&gt;');
-        html += '<div class="mb-3 relative group"><div class="img-prompt-box">' + ep + '</div>';
-        html += '<button onclick="copyImgPrompt(this,' + idx + ')" class="absolute top-3 right-3 btn-copy text-[10px] px-3 py-1 opacity-0 group-hover:opacity-100 transition-opacity">📋 복사</button></div>';
+        html += '<div class="mb-3 relative group"><div class="img-prompt-box">' + ep + '</div><button onclick="copyImgSingle(this,' + idx + ')" class="absolute top-3 right-3 btn-copy text-[10px] px-3 py-1 opacity-0 group-hover:opacity-100 transition-opacity">📋 복사</button></div>';
       }
       list.innerHTML = html;
     }
 
-    function copyImgPrompt(btn, idx) {
+    function copyImgSingle(btn, idx) {
       var prompts = _imgData.prompts[_currentImgTab] || [];
-      if (prompts[idx]) {
-        copyText(prompts[idx]);
-        btn.textContent = '복사됨 ✅';
-        setTimeout(function () { btn.textContent = '📋 복사'; }, 1500);
-        showToast(_currentImgTab.toUpperCase() + ' V' + (idx + 1) + ' 이미지 프롬프트 복사!', 'success');
-      }
+      if (prompts[idx]) { copyText(prompts[idx]); btn.textContent = '복사됨 ✅'; setTimeout(function () { btn.textContent = '📋 복사'; }, 1500); showToast(_currentImgTab.toUpperCase() + ' V' + (idx + 1) + ' 이미지 프롬프트 복사!', 'success'); }
     }
 
-    // ═══ Switch Image Tab (Batch) ═══
     function switchBatchImgTab(tab) {
       _currentBatchImgTab = tab;
-      document.querySelectorAll('#batch-image-section .img-tab').forEach(function (b) { b.classList.remove('active'); });
-      document.querySelectorAll('#batch-image-section .img-tab').forEach(function (b) { if (b.dataset.tab === tab) b.classList.add('active'); });
+      document.querySelectorAll('#batch-image-section .img-tab').forEach(function (b) { b.classList.toggle('active', b.dataset.tab === tab); });
       renderBatchImgPrompts();
     }
 
@@ -549,19 +784,11 @@
       var html = '';
       for (var i = 0; i < _batchImgData.length; i++) {
         var item = _batchImgData[i];
-        if (!item.data || !item.data.prompts) {
-          html += '<div class="glass-card mb-3 opacity-50"><span class="text-sm text-rose-400">#' + item.index + ' ' + item.title + ' - 실패</span></div>';
-          window._batchImgFullPrompts.push('');
-          continue;
-        }
+        if (!item.data || !item.data.prompts) { html += '<div class="glass-card mb-3 opacity-50"><span class="text-sm text-rose-400">#' + item.index + ' ' + item.title + ' - 실패</span></div>'; window._batchImgFullPrompts.push(''); continue; }
         var prompts = item.data.prompts[_currentBatchImgTab] || [];
         var fp = prompts[0] || '';
         var esc = fp.replace(/</g, '&lt;').replace(/>/g, '&gt;');
-        html += '<div class="glass-card mb-3 group"><div class="flex items-center gap-3 mb-2">';
-        html += '<div class="batch-num" style="width:28px;height:28px;font-size:11px;background:linear-gradient(135deg,#d946ef,#7c3aed)">' + item.index + '</div>';
-        html += '<span class="text-sm font-bold text-fuchsia-300">' + item.title + '</span>';
-        html += '<button onclick="copyBatchImg(this,' + i + ')" class="ml-auto btn-copy text-[10px] px-3 py-1 opacity-0 group-hover:opacity-100 transition-opacity">📋 복사</button>';
-        html += '</div><div class="img-prompt-box" style="max-height:150px">' + esc + '</div></div>';
+        html += '<div class="glass-card mb-3 group"><div class="flex items-center gap-3 mb-2"><div class="batch-num" style="width:28px;height:28px;font-size:11px;background:linear-gradient(135deg,#d946ef,#7c3aed)">' + item.index + '</div><span class="text-sm font-bold text-fuchsia-300">' + item.title + '</span><button onclick="copyBatchImg(this,' + i + ')" class="ml-auto btn-copy text-[10px] px-3 py-1 opacity-0 group-hover:opacity-100 transition-opacity">📋 복사</button></div><div class="img-prompt-box" style="max-height:150px">' + esc + '</div></div>';
         window._batchImgFullPrompts.push(fp);
       }
       list.innerHTML = html;
@@ -573,7 +800,7 @@
         _copiedImgCards['img_' + _currentBatchImgTab + '_' + idx] = true;
         saveCopiedState();
         var card = btn.closest('.glass-card');
-        if (card) { card.classList.add('copied-card'); }
+        if (card) card.classList.add('copied-card');
         showToast('#' + (idx + 1) + ' 이미지 프롬프트 복사!', 'success');
       }
     }
@@ -581,17 +808,13 @@
     // ═══ Init ═══
     renderResults();
 
-    // Auto-generate image prompts
     setTimeout(function () {
       var raw = localStorage.getItem('plly_results');
-      var inputData = JSON.parse(localStorage.getItem('plly_input') || '{}');
-      if (raw && inputData.country && inputData.genre && inputData.mood) {
+      var inp = JSON.parse(localStorage.getItem('plly_input') || '{}');
+      if (raw && inp.country && inp.genre && inp.mood) {
         var data = JSON.parse(raw);
-        if (data.type === 'single') {
-          fetchImagePrompt(inputData.country, inputData.genre, inputData.mood);
-        } else if (data.type === 'batch' && data.data) {
-          fetchBatchImagePrompts(data.data);
-        }
+        if (data.type === 'single') fetchImagePrompt(inp.country, inp.genre, inp.mood);
+        else if (data.type === 'batch' && data.data) fetchBatchImagePrompts(data.data);
       }
     }, 500);
   </script>

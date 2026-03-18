@@ -2669,6 +2669,77 @@ app.post('/api/generate-batch', async (req, res) => {
     }
 });
 
+// ═══════════════════════════════════════════════════════════════
+// 🟢 GET /api/gemini-status
+// Gemini AI 연결 상태 확인 (사이드바 상태 표시용)
+// ═══════════════════════════════════════════════════════════════
+app.get('/api/gemini-status', verifyToken, async (req, res) => {
+    try {
+        if (!GEMINI_API_KEY || GEMINI_API_KEY === '여기에_Gemini_API_키를_붙여넣으세요') {
+            return res.json({ connected: false, reason: 'GEMINI_API_KEY not configured' });
+        }
+        // 간단한 연결 테스트 (실제 호출 없이 키 존재 여부만 확인)
+        const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
+        return res.json({ connected: true, model: GEMINI_MODEL });
+    } catch (err) {
+        return res.json({ connected: false, reason: err.message });
+    }
+});
+
+// ═══════════════════════════════════════════════════════════════
+// 🌍 POST /api/gemini-trends
+// Gemini AI로 국가별 연령대별 실시간 음악 트렌드 생성
+// index.html의 Trends 패널에서 "새로고침" 버튼 클릭 시 호출
+// ═══════════════════════════════════════════════════════════════
+app.post('/api/gemini-trends', verifyToken, async (req, res) => {
+    try {
+        if (!GEMINI_API_KEY || GEMINI_API_KEY === '여기에_Gemini_API_키를_붙여넣으세요') {
+            return res.status(503).json({ success: false, error: 'GEMINI_API_KEY not configured' });
+        }
+
+        const prompt = `You are a global music trend analyst. Return ONLY a valid JSON object (no markdown, no explanation).
+
+Generate current music trends for these countries: kr (Korea), jp (Japan), us (USA), in (India), br (Brazil).
+
+For each country, provide age groups: 10대, 20대, 30대, 40대, 50대+
+For each age group, list top 5 genres as arrays of [genreName, badge] where badge is "🔥" (hottest), "📈" (rising), or "" (stable).
+
+Strict output format:
+{
+  "kr": { "ages": { "10대": { "genres": [["K-Pop","🔥"],["Phonk","📈"],["EDM",""],["Hip-Hop",""],["Anime OST",""]] }, "20대": {...}, "30대": {...}, "40대": {...}, "50대+": {...} } },
+  "jp": { "ages": { ... } },
+  "us": { "ages": { ... } },
+  "in": { "ages": { ... } },
+  "br": { "ages": { ... } }
+}
+
+Use only genre names from this list: K-Pop, K-Hip Hop, K-Indie, Trot, Ballad, J-Pop, Anime OST, City Pop, J-Rock, Hip-Hop, Hip-Hop / Trap, R&B, R&B / Soul, Pop, EDM, Phonk, Lo-Fi, Indie Pop, Alt Rock, Jazz, Reggaeton, Latin Pop, Afrobeats, Amapiano, Bollywood, Bhangra, Classical, Acoustic, Baile Funk, Samba, Bossa Nova, Rock, Techno, Mariachi, Chanson, Highlife`;
+
+        const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
+        const response = await ai.models.generateContent({
+            model: GEMINI_MODEL,
+            contents: [{ role: 'user', parts: [{ text: prompt }] }],
+            config: { responseMimeType: 'application/json' }
+        });
+
+        let rawText = response.text.replace(/```json/g, '').replace(/```/g, '').trim();
+        let trendsData;
+        try {
+            trendsData = JSON.parse(rawText);
+        } catch (parseErr) {
+            console.error('Gemini trends parse error:', parseErr.message);
+            return res.status(502).json({ success: false, error: 'AI 트렌드 응답 파싱 실패' });
+        }
+
+        console.log(`✅ /api/gemini-trends: 트렌드 생성 완료 (user: ${req.user.username})`);
+        return res.json({ success: true, data: trendsData });
+
+    } catch (err) {
+        console.error('gemini-trends error:', err);
+        return res.status(500).json({ success: false, error: err.message });
+    }
+});
+
 // 데이터 조회 API (프론트엔드 드롭다운용)
 app.get('/api/options', (req, res) => {
     const countries = Object.entries(COUNTRY_STYLES).map(([key, val]) => ({
