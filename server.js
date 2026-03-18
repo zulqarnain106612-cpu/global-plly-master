@@ -2073,6 +2073,8 @@ Return JSON format: {"prompt": "...", "title": "..."}. Apply V5 7-step formula. 
 
         } else {
             // ── 10개 모드 (기존) ──
+            systemPrompt = `You are an elite Suno AI V5 prompt engineer. Your prompts consistently go viral.
+
 Your ONLY output is a valid JSON array with EXACTLY 10 objects. No markdown, no explanation, no extra text.
 
 Output format (strict):
@@ -2118,8 +2120,6 @@ Structure each prompt using this 7-step director format:
 ${subStyleLabels ? `- Sub-styles/flavor: ${subStyleLabels}` : ''}
 ${refArtist ? `- Reference artist(s): ${refArtist} — mirror their production aesthetics and vocal delivery style` : ''}
 ${themeText ? `- Theme/Story concept: "${themeText}" — weave this into the narrative element of each prompt` : ''}
-            userContext += `
-REMINDER: Apply the full V5 7-step formula. Vary energy from soft→intense across 10 prompts. Always include BPM+Key.`;
         } // end 10개 모드
 
         // ── Gemini API 호출 ──
