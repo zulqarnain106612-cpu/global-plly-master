@@ -34,7 +34,7 @@ if (!supabase) {
 // 🔐 Gemini AI 서버사이드 초기화 (키는 .env에서만 — 클라이언트 노출 금지)
 // ═══════════════════════════════════════════════════════════════
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-const GEMINI_MODEL = 'gemini-3.1-flash-lite-preview';
+const GEMINI_MODEL = 'gemini-2.0-flash';
 
 if (!GEMINI_API_KEY || GEMINI_API_KEY === '여기에_Gemini_API_키를_붙여넣으세요') {
     console.warn('⚠️ GEMINI_API_KEY not found in .env. /api/generate-prompts will not work.');
