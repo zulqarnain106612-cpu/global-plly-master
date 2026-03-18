@@ -1144,6 +1144,11 @@
           showToast('가사 생성 실패: HTTP ' + resp.status + ' — ' + rawText.substring(0, 60), 'error');
           return;
         }
+        if (resp.status === 403 || resp.status === 401) {
+          showToast('⏰ 세션이 만료되었습니다. 다시 로그인해주세요.', 'error');
+          setTimeout(() => { window.location.href = '/logout'; }, 2500);
+          return;
+        }
         if (data.success) {
           area.value = data.lyrics;
           showToast('🎤 가사가 생성되었습니다!', 'success');
@@ -1177,7 +1182,17 @@
             weirdness:      document.getElementById('weirdness-slider').value
           })
         });
-        const data = await resp.json();
+        const rawStyle = await resp.text();
+        let data;
+        try { data = JSON.parse(rawStyle); } catch(e) {
+          showToast('스타일 생성 실패: HTTP ' + resp.status, 'error');
+          return;
+        }
+        if (resp.status === 403 || resp.status === 401) {
+          showToast('⏰ 세션이 만료되었습니다. 다시 로그인해주세요.', 'error');
+          setTimeout(() => { window.location.href = '/logout'; }, 2500);
+          return;
+        }
         if (data.success) {
           area.value = data.style;
           // 태그 미리보기
