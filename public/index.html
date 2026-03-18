@@ -1512,17 +1512,32 @@
       ],
     };
 
-    function renderArtistChips(genre) {
+    function renderArtistChips(genre, fromTrend) {
       const artists = RECOMMENDED_ARTISTS_MAP[genre] || [];
       const wrap = document.getElementById('artist-chips-wrap');
       const container = document.getElementById('artist-chips');
       if (!artists.length) { wrap.classList.add('hidden'); return; }
       wrap.classList.remove('hidden');
+      const glowClass = fromTrend ? ' highlighted' : '';
       container.innerHTML = artists.map(a =>
-        `<button class="substyle-tag" onclick="selectArtist('${a.name.replace(/'/g,"\\'")}')">
+        `<button class="substyle-tag${glowClass}" onclick="selectArtist('${a.name.replace(/'/g,"\\'")}')">
           ${a.emoji} ${a.name}
         </button>`
       ).join('');
+
+      // 트렌드에서 왔을 때 라벨 표시
+      const trendHint = document.getElementById('artist-trend-hint');
+      if (fromTrend) {
+        if (!trendHint) {
+          const hint = document.createElement('span');
+          hint.id = 'artist-trend-hint';
+          hint.style.cssText = 'font-size:11px; color:#fbbf24; font-weight:600; margin-left:8px; animation:chipGlow 1.8s ease-in-out infinite alternate;';
+          hint.textContent = '✨ 트렌드 추천 아티스트';
+          wrap.querySelector('label')?.appendChild(hint);
+        }
+      } else {
+        if (trendHint) trendHint.remove();
+      }
     }
 
     function selectArtist(name) {
@@ -1689,9 +1704,8 @@
       // 레퍼런스 아티스트 자동 입력
       document.getElementById('ref-artist-input').value = t.artists;
 
-      // 서브스타일 + 아티스트 칩 갱신
       renderSubstyles(genre);
-      renderArtistChips(genre);
+      renderArtistChips(genre, true);  // fromTrend=true → 황금빛 글로우
 
       // 생성 버튼 활성화
       checkFormReady();
