@@ -34,7 +34,7 @@ if (!supabase) {
 // 🔐 Gemini AI 서버사이드 초기화 (키는 .env에서만 — 클라이언트 노출 금지)
 // ═══════════════════════════════════════════════════════════════
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-const GEMINI_MODEL = 'gemini-2.0-flash';
+const GEMINI_MODEL = 'gemini-3.1-flash-lite-preview';
 
 if (!GEMINI_API_KEY || GEMINI_API_KEY === '여기에_Gemini_API_키를_붙여넣으세요') {
     console.warn('⚠️ GEMINI_API_KEY not found in .env. /api/generate-prompts will not work.');
@@ -2162,16 +2162,18 @@ app.post('/api/generate-lyrics', verifyToken, async (req, res) => {
         const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
         const response = await ai.models.generateContent({
             model: GEMINI_MODEL,
-            contents: [{ role: 'user', parts: [{ text: lyricsPrompt }] }],
-            config: { temperature: 1.4 }
+            contents: lyricsPrompt,
+            config: { temperature: 1.0 }
         });
+        const rawText = response.candidates?.[0]?.content?.parts?.[0]?.text || '';
         let title = '', lyrics = '';
         try {
-            const parsed = JSON.parse((response.text || '').trim());
+            const raw = rawText.trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '');
+            const parsed = JSON.parse(raw);
             title  = parsed.title  || '';
-            lyrics = parsed.lyrics || (response.text || '').trim();
+            lyrics = parsed.lyrics || raw;
         } catch(e) {
-            lyrics = (response.text || '').trim();
+            lyrics = rawText.trim();
         }
         console.log('✅ /api/generate-lyrics (user: ' + req.user.username + ')');
         res.json({ success: true, title, lyrics });
