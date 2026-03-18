@@ -327,6 +327,22 @@
     .substyle-tag.active {
       background: rgba(139,92,246,0.2); border-color: #8b5cf6; color: #c4b5fd;
     }
+    /* 트렌드에서 자동 적용된 아티스트 칩 — 황금빛 하이라이트 */
+    .substyle-tag.highlighted {
+      background: rgba(251,191,36,0.12);
+      border-color: rgba(251,191,36,0.5);
+      color: #fbbf24;
+      animation: chipGlow 1.8s ease-in-out infinite alternate;
+    }
+    .substyle-tag.highlighted:hover {
+      background: rgba(251,191,36,0.22);
+      border-color: #fbbf24;
+      color: #fde68a;
+    }
+    @keyframes chipGlow {
+      from { box-shadow: 0 0 0 0 rgba(251,191,36,0); }
+      to   { box-shadow: 0 0 6px 2px rgba(251,191,36,0.18); }
+    }
 
     /* ═══ Spinner ═══ */
     .spinner {
@@ -1131,26 +1147,113 @@
     // ─── 추천 아티스트 칩 (장르 변경 시 자동 표시) ───
     // ══════════════════════════════════════════════════════
     const RECOMMENDED_ARTISTS_MAP = {
-      kpop:    [{ name:'aespa',emoji:'🤖'},{name:'(G)I-DLE',emoji:'👊'},{name:'BLACKPINK',emoji:'🖤'},{name:'NewJeans',emoji:'💙'},{name:'IVE',emoji:'✨'},{name:'LE SSERAFIM',emoji:'🔥'},{name:'BTS',emoji:'💜'},{name:'TWICE',emoji:'💕'},{name:'Stray Kids',emoji:'⚡'}],
-      khiphop: [{name:'ZICO',emoji:'🎤'},{name:'pH-1',emoji:'🎯'},{name:'Epik High',emoji:'📖'},{name:'BewhY',emoji:'🌊'},{name:'Crush',emoji:'🎸'},{name:'Dean',emoji:'🌙'}],
-      hiphop:  [{name:'Drake',emoji:'🦉'},{name:'Kendrick Lamar',emoji:'✊'},{name:'Travis Scott',emoji:'🌵'},{name:'J. Cole',emoji:'📝'},{name:'Tyler, the Creator',emoji:'🌈'},{name:'Frank Ocean',emoji:'🌊'}],
-      edm:     [{name:'Martin Garrix',emoji:'🦊'},{name:'Marshmello',emoji:'☁️'},{name:'Flume',emoji:'🌊'},{name:'Skrillex',emoji:'💥'},{name:'Kygo',emoji:'🌅'},{name:'Porter Robinson',emoji:'🌸'}],
-      rnb:     [{name:'The Weeknd',emoji:'🌙'},{name:'SZA',emoji:'🌿'},{name:'Daniel Caesar',emoji:'🍂'},{name:'Brent Faiyaz',emoji:'🖤'},{name:'PinkPantheress',emoji:'🩷'}],
-      pop:     [{name:'Taylor Swift',emoji:'✨'},{name:'Billie Eilish',emoji:'🖤'},{name:'Dua Lipa',emoji:'💃'},{name:'Olivia Rodrigo',emoji:'💜'},{name:'Sabrina Carpenter',emoji:'🍒'},{name:'Charli XCX',emoji:'💥'}],
-      jpop:    [{name:'Fujii Kaze',emoji:'🌸'},{name:'Ado',emoji:'🎭'},{name:'King Gnu',emoji:'👑'},{name:'YOASOBI',emoji:'🌙'},{name:'Kenshi Yonezu',emoji:'✨'}],
-      phonk:   [{name:'KORDHELL',emoji:'🖤'},{name:'Ghostemane',emoji:'💀'},{name:'Night Lovell',emoji:'🌑'},{name:'Soudiere',emoji:'⛓️'}],
-      jazz:    [{name:'Norah Jones',emoji:'☕'},{name:'Kamasi Washington',emoji:'🎷'},{name:'Esperanza Spalding',emoji:'🌿'},{name:'Robert Glasper',emoji:'🎹'}],
-      rock:    [{name:'Arctic Monkeys',emoji:'🎸'},{name:'Radiohead',emoji:'🌀'},{name:'Tame Impala',emoji:'🌈'},{name:'The Strokes',emoji:'🎵'}],
-      ballad:  [{name:'IU',emoji:'🌸'},{name:'Kim Kwangseok',emoji:'🎸'},{name:'Celine Dion',emoji:'💫'},{name:'Whitney Houston',emoji:'🎤'}],
-      trot:    [{name:'임영웅',emoji:'⭐'},{name:'나훈아',emoji:'🎤'},{name:'조용필',emoji:'🌸'},{name:'송가인',emoji:'🌺'},{name:'이찬원',emoji:'🎵'}],
-      kindie:  [{name:'혁오',emoji:'🎸'},{name:'잔나비',emoji:'🌿'},{name:'새소년',emoji:'🌸'},{name:'검정치마',emoji:'🖤'},{name:'실리카겔',emoji:'💎'}],
-      afrobeats:[{name:'Wizkid',emoji:'⭐'},{name:'Burna Boy',emoji:'🔥'},{name:'Davido',emoji:'🦁'},{name:'Rema',emoji:'🌊'},{name:'Tems',emoji:'🌿'}],
-      reggaeton:[{name:'Bad Bunny',emoji:'🐰'},{name:'J Balvin',emoji:'🌈'},{name:'Daddy Yankee',emoji:'👑'},{name:'Ozuna',emoji:'🌙'},{name:'Karol G',emoji:'💚'}],
-      bollywood:[{name:'A.R. Rahman',emoji:'🎵'},{name:'Pritam',emoji:'🎼'},{name:'Arijit Singh',emoji:'🌹'},{name:'Shreyaa Ghoshal',emoji:'💫'}],
-      citypop: [{name:'Tatsuro Yamashita',emoji:'🌃'},{name:'Mariya Takeuchi',emoji:'🌸'},{name:'Anri',emoji:'☀️'},{name:'Miki Matsubara',emoji:'💿'}],
-      anisong: [{name:'LiSA',emoji:'🔥'},{name:'Aimer',emoji:'🌙'},{name:'YOASOBI',emoji:'✨'},{name:'Hiroyuki Sawano',emoji:'⚔️'}],
-      lofi:    [{name:'Lofi Girl',emoji:'📚'},{name:'Nujabes',emoji:'🌿'},{name:'j³³',emoji:'☁️'},{name:'Idealism',emoji:'🌙'}],
-      indiepop:[{name:'Clairo',emoji:'🌿'},{name:'Beabadoobee',emoji:'✨'},{name:'Rex Orange County',emoji:'🍊'},{name:'Phoebe Bridgers',emoji:'🔭'},{name:'Beach House',emoji:'🌊'}],
+      // 정렬 기준: 글로벌 스트리밍 인기순 1위 → 다양성(서브장르) 순
+      kpop: [
+        {name:'BLACKPINK',emoji:'🖤'},{name:'BTS',emoji:'💜'},{name:'NewJeans',emoji:'💙'},
+        {name:'aespa',emoji:'🤖'},{name:'IVE',emoji:'✨'},{name:'LE SSERAFIM',emoji:'🔥'},
+        {name:'(G)I-DLE',emoji:'👊'},{name:'Stray Kids',emoji:'⚡'},{name:'TWICE',emoji:'💕'},
+        {name:'EXO',emoji:'🪐'},{name:'NCT 127',emoji:'🟣'},{name:'SEVENTEEN',emoji:'💎'},
+      ],
+      khiphop: [
+        {name:'ZICO',emoji:'🎤'},{name:'Epik High',emoji:'📖'},{name:'pH-1',emoji:'🎯'},
+        {name:'BewhY',emoji:'🌊'},{name:'Crush',emoji:'🎸'},{name:'DEAN',emoji:'🌙'},
+        {name:'Lil Cherry',emoji:'🌸'},{name:'nafla',emoji:'💥'},{name:'The Quiett',emoji:'🎒'},
+      ],
+      hiphop: [
+        {name:'Drake',emoji:'🦉'},{name:'Kendrick Lamar',emoji:'✊'},{name:'Travis Scott',emoji:'🌵'},
+        {name:'J. Cole',emoji:'📝'},{name:'Tyler, the Creator',emoji:'🌈'},{name:'Frank Ocean',emoji:'🌊'},
+        {name:'Don Toliver',emoji:'🧩'},{name:'Playboi Carti',emoji:'💀'},{name:'Rod Wave',emoji:'🌦️'},
+        {name:'Future',emoji:'🚨'},{name:'Gunna',emoji:'📈'},{name:'21 Savage',emoji:'😤'},
+      ],
+      edm: [
+        {name:'Martin Garrix',emoji:'🦊'},{name:'Marshmello',emoji:'☁️'},{name:'Flume',emoji:'🌊'},
+        {name:'Skrillex',emoji:'💥'},{name:'Kygo',emoji:'🌅'},{name:'Porter Robinson',emoji:'🌸'},
+        {name:'Deadmau5',emoji:'🐭'},{name:'Rezz',emoji:'🔵'},{name:'ILLENIUM',emoji:'🔥'},
+        {name:'Zedd',emoji:'⚡'},{name:'San Holo',emoji:'☀️'},{name:'CamelPhat',emoji:'🌫️'},
+      ],
+      rnb: [
+        {name:'The Weeknd',emoji:'🌙'},{name:'SZA',emoji:'🌿'},{name:'Frank Ocean',emoji:'🌊'},
+        {name:'Daniel Caesar',emoji:'🍂'},{name:'Brent Faiyaz',emoji:'🖤'},{name:'PinkPantheress',emoji:'🩷'},
+        {name:'Summer Walker',emoji:'☀️'},{name:'Jhené Aiko',emoji:'🌸'},{name:'H.E.R.',emoji:'🎸'},
+        {name:'Giveon',emoji:'🪐'},{name:'Ari Lennox',emoji:'💫'},
+      ],
+      pop: [
+        {name:'Taylor Swift',emoji:'✨'},{name:'Billie Eilish',emoji:'🖤'},{name:'Dua Lipa',emoji:'💃'},
+        {name:'Olivia Rodrigo',emoji:'💜'},{name:'Sabrina Carpenter',emoji:'🍒'},{name:'Charli XCX',emoji:'💥'},
+        {name:'Harry Styles',emoji:'🌈'},{name:'Ariana Grande',emoji:'🌙'},{name:'Doja Cat',emoji:'🐱'},
+        {name:'SZA',emoji:'🌿'},{name:'Gracie Abrams',emoji:'🤍'},{name:'Tate McRae',emoji:'🦋'},
+      ],
+      jpop: [
+        {name:'Fujii Kaze',emoji:'🌸'},{name:'Ado',emoji:'🎭'},{name:'YOASOBI',emoji:'🌙'},
+        {name:'King Gnu',emoji:'👑'},{name:'Kenshi Yonezu',emoji:'✨'},{name:'Yorushika',emoji:'🌟'},
+        {name:'Official HIGE DANdism',emoji:'🎹'},{name:'Eve',emoji:'👾'},{name:'Vaundy',emoji:'🌌'},
+        {name:'Aimyon',emoji:'🌼'},{name:'Yaffle',emoji:'🎛️'},
+      ],
+      phonk: [
+        {name:'KORDHELL',emoji:'🖤'},{name:'Ghostemane',emoji:'💀'},{name:'Night Lovell',emoji:'🌑'},
+        {name:'Drain Gang',emoji:'💧'},{name:'Floyymenor',emoji:'🔥'},{name:'Soudiere',emoji:'⛓️'},
+        {name:'Dj Smokey',emoji:'💨'},{name:'Mortis',emoji:'⚡'},{name:'Bladee',emoji:'💎'},
+      ],
+      jazz: [
+        {name:'Norah Jones',emoji:'☕'},{name:'Kamasi Washington',emoji:'🎷'},{name:'Robert Glasper',emoji:'🎹'},
+        {name:'Esperanza Spalding',emoji:'🌿'},{name:'Thundercat',emoji:'⚡'},{name:'Bill Evans',emoji:'🍂'},
+        {name:'Miles Davis',emoji:'🎺'},{name:'Diana Krall',emoji:'🍾'},{name:'Corinne Bailey Rae',emoji:'💛'},
+      ],
+      rock: [
+        {name:'Arctic Monkeys',emoji:'🎸'},{name:'Radiohead',emoji:'🌀'},{name:'Tame Impala',emoji:'🌈'},
+        {name:'The Strokes',emoji:'🎵'},{name:'Mitski',emoji:'🌸'},{name:'Wet Leg',emoji:'🦅'},
+        {name:'Fontaines D.C.',emoji:'🇮🇪'},{name:'Squid',emoji:'🐙'},{name:'Yard Act',emoji:'📢'},
+        {name:'King Gizzard',emoji:'🦎'},{name:'Slowdive',emoji:'🌫️'},
+      ],
+      ballad: [
+        {name:'IU',emoji:'🌸'},{name:'Adele',emoji:'💔'},{name:'Sam Smith',emoji:'🌹'},
+        {name:'Paul Kim',emoji:'🎹'},{name:'John Legend',emoji:'💫'},{name:'Ed Sheeran',emoji:'🎸'},
+        {name:'Kim Kwangseok',emoji:'🌟'},{name:'Lim Chang-jung',emoji:'🌊'},
+      ],
+      trot: [
+        {name:'임영웅',emoji:'⭐'},{name:'나훈아',emoji:'🎤'},{name:'조용필',emoji:'🌸'},
+        {name:'송가인',emoji:'🌺'},{name:'이찬원',emoji:'🎵'},{name:'영탁',emoji:'🔥'},
+        {name:'이선희',emoji:'🌙'},{name:'문주',emoji:'🐸'},
+      ],
+      kindie: [
+        {name:'혁오',emoji:'🎸'},{name:'잔나비',emoji:'🌿'},{name:'새소년',emoji:'🌸'},
+        {name:'검정치마',emoji:'🖤'},{name:'실리카겔',emoji:'💎'},{name:'이상가',emoji:'🎒'},
+        {name:'영화시후',emoji:'🍎'},{name:'관용',emoji:'⭐'},
+      ],
+      afrobeats: [
+        {name:'Wizkid',emoji:'⭐'},{name:'Burna Boy',emoji:'🔥'},{name:'Davido',emoji:'🦁'},
+        {name:'Rema',emoji:'🌊'},{name:'Tems',emoji:'🌿'},{name:'Fireboy DML',emoji:'🎸'},
+        {name:'Asake',emoji:'🌟'},{name:'Ayra Starr',emoji:'💃'},{name:'Omah Lay',emoji:'💫'},
+      ],
+      reggaeton: [
+        {name:'Bad Bunny',emoji:'🐰'},{name:'J Balvin',emoji:'🌈'},{name:'Daddy Yankee',emoji:'👑'},
+        {name:'Ozuna',emoji:'🌙'},{name:'Karol G',emoji:'💚'},{name:'Rauw Alejandro',emoji:'🕺'},
+        {name:'Anuel AA',emoji:'🐍'},{name:'Nicky Jam',emoji:'💥'},{name:'Sech',emoji:'🌶️'},
+      ],
+      bollywood: [
+        {name:'A.R. Rahman',emoji:'🎵'},{name:'Pritam',emoji:'🎼'},{name:'Arijit Singh',emoji:'🌹'},
+        {name:'Shreya Ghoshal',emoji:'💫'},{name:'Shankar-Ehsaan-Loy',emoji:'🎹'},{name:'Vishal-Shekhar',emoji:'🔥'},
+        {name:'Neha Kakkar',emoji:'🌸'},{name:'Badshah',emoji:'👑'},
+      ],
+      citypop: [
+        {name:'Tatsuro Yamashita',emoji:'🌃'},{name:'Mariya Takeuchi',emoji:'🌸'},{name:'Anri',emoji:'☀️'},
+        {name:'Miki Matsubara',emoji:'💿'},{name:'Hiroshi Sato',emoji:'🎙️'},{name:'Miki Imai',emoji:'🌟'},
+      ],
+      anisong: [
+        {name:'LiSA',emoji:'🔥'},{name:'Aimer',emoji:'🌙'},{name:'YOASOBI',emoji:'✨'},
+        {name:'Hiroyuki Sawano',emoji:'⚔️'},{name:'Linked Horizon',emoji:'📬'},{name:'Myth & Roid',emoji:'💀'},
+        {name:'TK from Ling tosite sigure',emoji:'🌌'},
+      ],
+      lofi: [
+        {name:'Lofi Girl',emoji:'📚'},{name:'Nujabes',emoji:'🌿'},{name:'Idealism',emoji:'🌙'},
+        {name:'Joji',emoji:'🍂'},{name:'Clairo',emoji:'🌿'},{name:'Men I Trust',emoji:'📷'},
+        {name:'Baths',emoji:'💧'},{name:'Birocratic',emoji:'🎹'},
+      ],
+      indiepop: [
+        {name:'Clairo',emoji:'🌿'},{name:'Beabadoobee',emoji:'✨'},{name:'Rex Orange County',emoji:'🍊'},
+        {name:'Phoebe Bridgers',emoji:'🔭'},{name:'Beach House',emoji:'🌊'},{name:'Snail Mail',emoji:'🐌'},
+        {name:'Japanese Breakfast',emoji:'🌱'},{name:'MUNA',emoji:'💜'},{name:'boygenius',emoji:'⭐'},
+      ],
     };
 
     function renderArtistChips(genre) {
@@ -1690,7 +1793,7 @@
       if (flagEl) flagEl.textContent = info?.flag || '';
 
       renderSubstyles(genreFormVal);
-      renderArtistChips(genreFormVal);
+      renderArtistChips(genreFormVal, true);  // fromTrend=true → highlighted 색상
 
       // ⑦ 세부스타일 자동 선택 — renderSubstyles 직후 실행
       const autoSubStyles = map.subStyles || [];
