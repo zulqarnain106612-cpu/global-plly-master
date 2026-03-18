@@ -665,6 +665,119 @@
           </div>
         </section>
 
+        <!-- ═══ 고급 모드 패널 ═══ -->
+        <div id="advanced-panel" style="display:none; animation: fadeUp 0.35s ease-out forwards;">
+          <!-- 가사 섹션 -->
+          <div class="card-section mb-4" style="border:1px solid rgba(139,92,246,0.25); border-radius:16px; padding:20px; background:rgba(139,92,246,0.05);">
+            <div class="flex items-center justify-between mb-3">
+              <span style="font-size:14px; font-weight:700; color:#c4b5fd; letter-spacing:0.02em;">🎤 가사</span>
+              <button onclick="generateLyricsAI()" id="btn-gen-lyrics"
+                style="display:flex; align-items:center; gap:5px; background:linear-gradient(135deg,#7c3aed,#5b21b6); border:none; border-radius:8px; padding:5px 12px; color:white; font-size:12px; font-weight:700; cursor:pointer; transition:all 0.2s;"
+                onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
+                <span id="lyrics-btn-icon">✨</span> AI 자동생성
+              </button>
+            </div>
+            <textarea id="advanced-lyrics" rows="5"
+              style="width:100%; background:rgba(0,0,0,0.3); border:1px solid rgba(139,92,246,0.2); border-radius:12px; padding:12px 14px; color:#f1f5f9; font-size:13px; outline:none; resize:vertical; transition:all 0.2s; font-family:'JetBrains Mono',monospace; line-height:1.8;"
+              placeholder="가사나 주제를 적어주세요. 또는 반주만 넣으시려면 비워두셔도 됩니다."
+              onfocus="this.style.borderColor='#8b5cf6'" onblur="this.style.borderColor='rgba(139,92,246,0.2)'"></textarea>
+          </div>
+
+          <!-- 스타일 섹션 -->
+          <div class="card-section mb-4" style="border:1px solid rgba(6,182,212,0.2); border-radius:16px; padding:20px; background:rgba(6,182,212,0.04);">
+            <div class="flex items-center justify-between mb-3">
+              <span style="font-size:14px; font-weight:700; color:#67e8f9; letter-spacing:0.02em;">🎨 스타일</span>
+              <button onclick="generateStyleAI()" id="btn-gen-style"
+                style="display:flex; align-items:center; gap:5px; background:linear-gradient(135deg,#0891b2,#0e7490); border:none; border-radius:8px; padding:5px 12px; color:white; font-size:12px; font-weight:700; cursor:pointer; transition:all 0.2s;"
+                onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
+                <span id="style-btn-icon">✨</span> AI 자동추천
+              </button>
+            </div>
+            <textarea id="advanced-style" rows="2"
+              style="width:100%; background:rgba(0,0,0,0.3); border:1px solid rgba(6,182,212,0.2); border-radius:12px; padding:12px 14px; color:#f1f5f9; font-size:13px; outline:none; resize:none; transition:all 0.2s; font-family:'JetBrains Mono',monospace; line-height:1.8;"
+              placeholder="예: Neo-Soul, R&B 형식, 랩 R&B, 건방진, 일본적입니다."
+              onfocus="this.style.borderColor='#06b6d4'" onblur="this.style.borderColor='rgba(6,182,212,0.2)'"></textarea>
+            <!-- 스타일 태그 표시 -->
+            <div id="style-tags-preview" class="flex flex-wrap gap-2 mt-3 hidden"></div>
+          </div>
+
+          <!-- 슬라이더 + 토글 섹션 -->
+          <div class="card-section mb-4" style="border:1px solid rgba(255,255,255,0.08); border-radius:16px; padding:20px; background:rgba(255,255,255,0.025);">
+            <span style="font-size:13px; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.06em;">⚙️ 더 많은 옵션</span>
+
+            <!-- 음성 성별 -->
+            <div class="flex items-center justify-between mt-4">
+              <div class="flex items-center gap-2">
+                <span style="font-size:13px; color:#cbd5e1; font-weight:600;">음성 성별</span>
+                <span title="생성 프롬프트에 성별 선호도가 반영됩니다" style="font-size:11px; color:#64748b; cursor:help;">ℹ️</span>
+              </div>
+              <div style="display:flex; gap:3px; background:rgba(255,255,255,0.06); border-radius:8px; padding:2px;">
+                <button id="gender-male" onclick="setGender('male')"
+                  style="padding:4px 14px; border-radius:6px; font-size:12px; font-weight:700; border:none; cursor:pointer; transition:all 0.18s; background:rgba(139,92,246,0.3); color:#c4b5fd;">남성</button>
+                <button id="gender-female" onclick="setGender('female')"
+                  style="padding:4px 14px; border-radius:6px; font-size:12px; font-weight:700; border:none; cursor:pointer; transition:all 0.18s; background:transparent; color:#64748b;">여성</button>
+                <button id="gender-auto" onclick="setGender('auto')"
+                  style="padding:4px 14px; border-radius:6px; font-size:12px; font-weight:700; border:none; cursor:pointer; transition:all 0.18s; background:transparent; color:#64748b;">자동</button>
+              </div>
+            </div>
+
+            <!-- 기이함 슬라이더 -->
+            <div class="mt-5">
+              <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center gap-2">
+                  <span style="font-size:13px; color:#cbd5e1; font-weight:600;">기이함</span>
+                  <span title="0%=정통적, 100%=실험적/초현실적" style="font-size:11px; color:#64748b; cursor:help;">ℹ️</span>
+                </div>
+                <span id="weirdness-label" style="font-size:13px; font-weight:800; color:#f43f5e; min-width:40px; text-align:right;">50%</span>
+              </div>
+              <div style="position:relative; height:20px; display:flex; align-items:center;">
+                <div style="position:absolute; width:100%; height:4px; background:rgba(255,255,255,0.1); border-radius:4px;"></div>
+                <div id="weirdness-fill" style="position:absolute; height:4px; background:linear-gradient(90deg,#7c3aed,#f43f5e); border-radius:4px; width:50%; transition:width 0.15s;"></div>
+                <input type="range" id="weirdness-slider" min="0" max="100" step="10" value="50"
+                  oninput="updateSlider('weirdness', this.value)"
+                  style="position:absolute; width:100%; opacity:0; cursor:pointer; height:20px; z-index:2;"/>
+                <div id="weirdness-thumb" style="position:absolute; left:calc(50% - 9px); width:18px; height:18px; background:white; border-radius:50%; border:2px solid #f43f5e; box-shadow:0 0 8px rgba(244,63,94,0.5); transition:left 0.15s; pointer-events:none;"></div>
+              </div>
+              <div class="flex justify-between mt-1" style="font-size:10px; color:#475569;">
+                <span>정통적</span><span>보통</span><span>실험적</span>
+              </div>
+            </div>
+
+            <!-- 스타일 영향 슬라이더 -->
+            <div class="mt-5">
+              <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center gap-2">
+                  <span style="font-size:13px; color:#cbd5e1; font-weight:600;">스타일 영향</span>
+                  <span title="스타일이 프롬프트에 미치는 강도입니다" style="font-size:11px; color:#64748b; cursor:help;">ℹ️</span>
+                </div>
+                <span id="styleinfluence-label" style="font-size:13px; font-weight:800; color:#06b6d4; min-width:40px; text-align:right;">50%</span>
+              </div>
+              <div style="position:relative; height:20px; display:flex; align-items:center;">
+                <div style="position:absolute; width:100%; height:4px; background:rgba(255,255,255,0.1); border-radius:4px;"></div>
+                <div id="styleinfluence-fill" style="position:absolute; height:4px; background:linear-gradient(90deg,#0891b2,#06b6d4); border-radius:4px; width:50%; transition:width 0.15s;"></div>
+                <input type="range" id="styleinfluence-slider" min="0" max="100" step="10" value="50"
+                  oninput="updateSlider('styleinfluence', this.value)"
+                  style="position:absolute; width:100%; opacity:0; cursor:pointer; height:20px; z-index:2;"/>
+                <div id="styleinfluence-thumb" style="position:absolute; left:calc(50% - 9px); width:18px; height:18px; background:white; border-radius:50%; border:2px solid #06b6d4; box-shadow:0 0 8px rgba(6,182,212,0.5); transition:left 0.15s; pointer-events:none;"></div>
+              </div>
+              <div class="flex justify-between mt-1" style="font-size:10px; color:#475569;">
+                <span>약함</span><span>보통</span><span>강함</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 고급 모드 토글 버튼 -->
+        <div class="flex justify-center mb-2" style="margin-top:-4px;">
+          <button id="btn-advanced-toggle" onclick="toggleAdvancedMode()"
+            style="display:flex; align-items:center; gap:6px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:10px; padding:7px 18px; color:#64748b; font-size:12px; font-weight:700; cursor:pointer; transition:all 0.2s;"
+            onmouseover="this.style.borderColor='rgba(139,92,246,0.4)'; this.style.color='#c4b5fd';"
+            onmouseout="this.style.borderColor='rgba(255,255,255,0.1)'; this.style.color='#64748b';">
+            <span id="advanced-toggle-icon">⚡</span>
+            <span id="advanced-toggle-text">고급 모드</span>
+          </button>
+        </div>
+
         <!-- ═══ Generate Button ═══ -->
         <div style="animation: fadeUp 0.5s 0.2s ease-out forwards; opacity:0;">
           <!-- 생성 개수 토글 -->
@@ -958,6 +1071,126 @@
     Object.entries(MOOD_MAP).forEach(([val, label]) => {
       moodSelect.innerHTML += `<option value="${val}">${label}</option>`;
     });
+
+
+    // ─── 고급 모드 상태 ───
+    let advancedModeOn = false;
+    let selectedGender = 'male';
+
+    function toggleAdvancedMode() {
+      advancedModeOn = !advancedModeOn;
+      const panel = document.getElementById('advanced-panel');
+      const icon  = document.getElementById('advanced-toggle-icon');
+      const text  = document.getElementById('advanced-toggle-text');
+      const btn   = document.getElementById('btn-advanced-toggle');
+      if (advancedModeOn) {
+        panel.style.display = 'block';
+        icon.textContent = '⚡';
+        text.textContent = '고급 모드 ON';
+        btn.style.background = 'rgba(139,92,246,0.15)';
+        btn.style.borderColor = 'rgba(139,92,246,0.5)';
+        btn.style.color = '#c4b5fd';
+        btn.onmouseout = null;
+      } else {
+        panel.style.display = 'none';
+        icon.textContent = '⚡';
+        text.textContent = '고급 모드';
+        btn.style.background = 'rgba(255,255,255,0.05)';
+        btn.style.borderColor = 'rgba(255,255,255,0.1)';
+        btn.style.color = '#64748b';
+        btn.onmouseout = function() { this.style.borderColor='rgba(255,255,255,0.1)'; this.style.color='#64748b'; };
+      }
+    }
+
+    function updateSlider(name, val) {
+      const pct = Number(val);
+      document.getElementById(name + '-label').textContent = pct + '%';
+      document.getElementById(name + '-fill').style.width = pct + '%';
+      document.getElementById(name + '-thumb').style.left = 'calc(' + pct + '% - 9px)';
+    }
+
+    function setGender(g) {
+      selectedGender = g;
+      const active  = 'background:rgba(139,92,246,0.3); color:#c4b5fd;';
+      const inactive = 'background:transparent; color:#64748b;';
+      document.getElementById('gender-male').style.cssText   += g === 'male'   ? active : inactive;
+      document.getElementById('gender-female').style.cssText += g === 'female' ? active : inactive;
+      document.getElementById('gender-auto').style.cssText   += g === 'auto'   ? active : inactive;
+    }
+
+    async function generateLyricsAI() {
+      const btn  = document.getElementById('btn-gen-lyrics');
+      const icon = document.getElementById('lyrics-btn-icon');
+      const area = document.getElementById('advanced-lyrics');
+      icon.textContent = '⏳'; btn.disabled = true;
+      try {
+        const token = localStorage.getItem('gpm_token');
+        const resp = await fetch('/api/generate-lyrics', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+          body: JSON.stringify({
+            country: countrySelect.value,
+            genre:   genreSelect.value,
+            mood:    moodSelect.value,
+            themeText: document.getElementById('theme-text').value.trim(),
+            vocalLang: document.getElementById('vocal-lang-select').value,
+            weirdness: document.getElementById('weirdness-slider').value
+          })
+        });
+        const data = await resp.json();
+        if (data.success) {
+          area.value = data.lyrics;
+          showToast('🎤 가사가 생성되었습니다!', 'success');
+        } else {
+          showToast('가사 생성 실패: ' + (data.error || '오류'), 'error');
+        }
+      } catch (e) {
+        showToast('네트워크 오류', 'error');
+      } finally {
+        icon.textContent = '✨'; btn.disabled = false;
+      }
+    }
+
+    async function generateStyleAI() {
+      const btn  = document.getElementById('btn-gen-style');
+      const icon = document.getElementById('style-btn-icon');
+      const area = document.getElementById('advanced-style');
+      icon.textContent = '⏳'; btn.disabled = true;
+      try {
+        const token = localStorage.getItem('gpm_token');
+        const resp = await fetch('/api/generate-style', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+          body: JSON.stringify({
+            country:        countrySelect.value,
+            genre:          genreSelect.value,
+            mood:           moodSelect.value,
+            subStyles:      selectedSubStyles,
+            refArtist:      document.getElementById('ref-artist-input').value.trim(),
+            styleInfluence: document.getElementById('styleinfluence-slider').value,
+            weirdness:      document.getElementById('weirdness-slider').value
+          })
+        });
+        const data = await resp.json();
+        if (data.success) {
+          area.value = data.style;
+          // 태그 미리보기
+          const preview = document.getElementById('style-tags-preview');
+          const tags = data.style.split(',').map(t => t.trim()).filter(Boolean);
+          preview.innerHTML = tags.map(t =>
+            '<span style="background:rgba(6,182,212,0.15); border:1px solid rgba(6,182,212,0.3); border-radius:20px; padding:2px 10px; font-size:11px; color:#67e8f9; font-weight:600;">' + t + '</span>'
+          ).join('');
+          preview.classList.remove('hidden');
+          showToast('🎨 스타일이 추천되었습니다!', 'success');
+        } else {
+          showToast('스타일 생성 실패: ' + (data.error || '오류'), 'error');
+        }
+      } catch (e) {
+        showToast('네트워크 오류', 'error');
+      } finally {
+        icon.textContent = '✨'; btn.disabled = false;
+      }
+    }
 
     // ─── Change handlers ───
     countrySelect.addEventListener('change', () => {

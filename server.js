@@ -2142,6 +2142,79 @@ REMINDER: Apply the full V5 7-step formula. Vary energy from soft→intense acro
 });
 
 // ═══════════════════════════════════════════════════════════════
+// 🎤 고급 모드 - 가사 자동생성 API
+// ═══════════════════════════════════════════════════════════════
+app.post('/api/generate-lyrics', verifyToken, async (req, res) => {
+    try {
+        if (!GEMINI_API_KEY) return res.status(503).json({ success: false, error: 'API 키 없음' });
+        const { country, genre, mood, themeText, vocalLang, weirdness } = req.body;
+        const countryInfo   = COUNTRY_STYLES[country]  || { name: country || 'Global' };
+        const genreInfo     = GENRE_MAP[genre]          || { name: genre  || 'Pop' };
+        const moodInfo      = MOOD_MAP[mood]            || { name: mood   || 'Energetic' };
+        const vocalLangInfo = VOCAL_LANG_MAP[vocalLang] || { label: 'Korean' };
+        const weirdnessNum  = Math.min(100, Math.max(0, Number(weirdness) || 50));
+
+        const lyricsPrompt = 'Write compelling song lyrics for a ' + genreInfo.name + ' track.'
+            + ' Region/Culture: ' + countryInfo.name + '.'
+            + ' Mood: ' + moodInfo.name + '.'
+            + ' Language: ' + vocalLangInfo.label + '.'
+            + (themeText ? ' Theme: "' + themeText + '".' : '')
+            + ' Weirdness level: ' + weirdnessNum + '% (0=conventional, 100=experimental/surreal).'
+            + ' Write complete lyrics with [Verse 1], [Pre-Chorus], [Chorus], [Verse 2], [Bridge] sections.'
+            + ' Make it emotionally resonant and singable.'
+            + ' Return ONLY the lyrics text with no JSON wrapper or commentary.';
+
+        const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
+        const response = await ai.models.generateContent({
+            model: GEMINI_MODEL,
+            contents: [{ role: 'user', parts: [{ text: lyricsPrompt }] }]
+        });
+        const lyrics = (response.text || '').trim();
+        console.log('✅ /api/generate-lyrics (user: ' + req.user.username + ')');
+        res.json({ success: true, lyrics });
+    } catch (err) {
+        console.error('generate-lyrics error:', err);
+        res.status(500).json({ success: false, error: err.message || '서버 오류' });
+    }
+});
+
+// ═══════════════════════════════════════════════════════════════
+// 🎨 고급 모드 - 스타일 자동추천 API
+// ═══════════════════════════════════════════════════════════════
+app.post('/api/generate-style', verifyToken, async (req, res) => {
+    try {
+        if (!GEMINI_API_KEY) return res.status(503).json({ success: false, error: 'API 키 없음' });
+        const { country, genre, mood, subStyles, refArtist, styleInfluence, weirdness } = req.body;
+        const countryInfo  = COUNTRY_STYLES[country] || { name: country || 'Global' };
+        const genreInfo    = GENRE_MAP[genre]         || { name: genre  || 'Pop', style: '' };
+        const moodInfo     = MOOD_MAP[mood]           || { name: mood   || 'Energetic' };
+        const influenceNum = Math.min(100, Math.max(0, Number(styleInfluence) || 50));
+        const weirdnessNum = Math.min(100, Math.max(0, Number(weirdness)      || 50));
+
+        const stylePrompt = 'You are a Suno AI style expert. Generate a perfect style descriptor string.'
+            + ' Genre: ' + genreInfo.name + '. Region: ' + countryInfo.name + '. Mood: ' + moodInfo.name + '.'
+            + (subStyles && subStyles.length ? ' Sub-styles: ' + subStyles.join(', ') + '.' : '')
+            + (refArtist ? ' Reference: ' + refArtist + '.' : '')
+            + ' Style influence: ' + influenceNum + '% (higher = more distinct/defined).'
+            + ' Weirdness: ' + weirdnessNum + '% (higher = more experimental).'
+            + ' Output ONLY a comma-separated style tag string (max 200 chars, English only).'
+            + ' Include: sub-genre, instruments, production style, era/vibe. No explanations.';
+
+        const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
+        const response = await ai.models.generateContent({
+            model: GEMINI_MODEL,
+            contents: [{ role: 'user', parts: [{ text: stylePrompt }] }]
+        });
+        const style = (response.text || '').trim().replace(/\n/g, ', ');
+        console.log('✅ /api/generate-style (user: ' + req.user.username + ')');
+        res.json({ success: true, style });
+    } catch (err) {
+        console.error('generate-style error:', err);
+        res.status(500).json({ success: false, error: err.message || '서버 오류' });
+    }
+});
+
+// ═══════════════════════════════════════════════════════════════
 // 🎨 이미지 AI 프롬프트 생성 엔진 (고급 버전)
 // 플레이리스트 컨셉 → Midjourney / DALL-E / Niji / SD / NanoBanana
 // ═══════════════════════════════════════════════════════════════
