@@ -3065,14 +3065,17 @@ app.get('/api/suno-status', async (req, res) => {
 if (process.env.NODE_ENV !== 'production') {
     app.listen(PORT, () => {
         console.log(`
-    ╔══════════════════════════════════════════════════╗
-    ║                                                  ║
-    ║   🎵 Global Plly Master Server                   ║
-    ║   Running on http://localhost:${PORT}              ║
-    ║                                                  ║
-    ║   코다리 개발부장이 충성스럽게 서빙 중! 🐟       ║
-    ║                                                  ║
-    ╚══════════════════════════════════════════════════╝
+    ╔══════════════════════════════════════════════════════════╗
+    ║                                                          ║
+    ║   🎵 Global Plly Master Server                           ║
+    ║                                                          ║
+    ║   🖥️  Local  : http://localhost:${PORT}                    ║
+    ║   🌐  Deploy : https://global-plly-master.vercel.app/   ║
+    ║                                                          ║
+    ║   🐟 코다리 개발부장 — 충성스럽게 서빙 중!              ║
+    ║   🌸 영자 실장       — 디자인 곱게 신경 중!             ║
+    ║                                                          ║
+    ╚══════════════════════════════════════════════════════════╝
     `);
     });
 }
