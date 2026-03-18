@@ -2159,19 +2159,27 @@ app.post('/api/generate-lyrics', verifyToken, async (req, res) => {
             + ' Mood: ' + moodInfo.name + '.'
             + ' Language: ' + vocalLangInfo.label + '.'
             + (themeText ? ' Theme: "' + themeText + '".' : '')
-            + ' Weirdness level: ' + weirdnessNum + '% (0=conventional, 100=experimental/surreal).'
             + ' Write complete lyrics with [Verse 1], [Pre-Chorus], [Chorus], [Verse 2], [Bridge] sections.'
             + ' Make it emotionally resonant and singable.'
-            + ' Return ONLY the lyrics text with no JSON wrapper or commentary.';
+            + ' Return a JSON object: { "title": "<creative song title in the lyrics language>", "lyrics": "<full lyrics text>" }'
+            + ' No other text, only valid JSON.';
 
         const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
         const response = await ai.models.generateContent({
             model: GEMINI_MODEL,
-            contents: [{ role: 'user', parts: [{ text: lyricsPrompt }] }]
+            contents: [{ role: 'user', parts: [{ text: lyricsPrompt }] }],
+            config: { responseMimeType: 'application/json' }
         });
-        const lyrics = (response.text || '').trim();
+        let title = '', lyrics = '';
+        try {
+            const parsed = JSON.parse((response.text || '').trim());
+            title  = parsed.title  || '';
+            lyrics = parsed.lyrics || (response.text || '').trim();
+        } catch(e) {
+            lyrics = (response.text || '').trim();
+        }
         console.log('✅ /api/generate-lyrics (user: ' + req.user.username + ')');
-        res.json({ success: true, lyrics });
+        res.json({ success: true, title, lyrics });
     } catch (err) {
         console.error('generate-lyrics error:', err);
         res.status(500).json({ success: false, error: err.message || '서버 오류' });
