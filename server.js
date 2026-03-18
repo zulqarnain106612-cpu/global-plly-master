@@ -1648,16 +1648,10 @@ app.get('/api/gemini-status', verifyToken, async (req, res) => {
         if (!GEMINI_API_KEY || GEMINI_API_KEY === '여기에_Gemini_API_키를_붙여넣으세요') {
             return res.json({ connected: false, model: null, reason: 'API Key not configured' });
         }
-        // 간단한 ping 테스트 (빠르게 끝나는 최소 요청)
-        const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
-        await ai.models.generateContent({
-            model: GEMINI_MODEL,
-            contents: [{ role: 'user', parts: [{ text: 'ping' }] }],
-            config: { maxOutputTokens: 1 }
-        });
-        res.json({ connected: true, model: GEMINI_MODEL });
+        // 키 존재 여부만 확인 (실제 API 호출 없이 빠르게 응답)
+        return res.json({ connected: true, model: GEMINI_MODEL });
     } catch (err) {
-        res.json({ connected: false, model: GEMINI_MODEL, reason: err.message });
+        return res.json({ connected: false, model: GEMINI_MODEL, reason: err.message });
     }
 });
 
