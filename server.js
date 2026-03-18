@@ -2026,39 +2026,56 @@ app.post('/api/generate-prompts', verifyToken, async (req, res) => {
             .map(id => subStyleList.find(s => s.id === id)?.label)
             .filter(Boolean).join(', ');
 
-        // ── 시스템 프롬프트 ──
-        const systemPrompt = `You are a world-class Suno AI prompt engineer who creates viral hit music prompts.
+        // ── 시스템 프롬프트 (Suno AI V5 최적화 — NotebookLM 핵심 원칙 반영) ──
+        const systemPrompt = `You are an elite Suno AI V5 prompt engineer. Your prompts consistently go viral.
 Your ONLY output is a valid JSON array with EXACTLY 10 objects. No markdown, no explanation, no extra text.
 
 Output format (strict):
 [
-  {"prompt": "<Suno style tags, comma-separated, max 180 chars, English only>", "title": "<creative song title>"},
+  {"prompt": "<V5-optimized style prompt, max 220 chars, English only>", "title": "<creative song title in the target language>"},
   ...
 ]
 
-Rules for each prompt:
-- All 10 prompts MUST be unique in style/nuance/energy (from soft to intense variations)
-- Use concrete Suno AI-compatible tags: instruments, BPM range, mood adjectives, production style
-- Include the vocal language tag if specified (e.g. "Korean lyrics", "English lyrics")
-- Include the reference artist style if provided
-- Each prompt max 180 characters
-- Title should be creative and match the vibe`;
+=== V5 PROMPT FORMULA (apply to EVERY prompt) ===
+Structure each prompt using this 7-step director format:
+1. GENRE: Specific sub-genre (e.g. "dark indie folk", "melodic trap", "city pop revival")
+2. BPM & KEY: Always include exact BPM and musical key (e.g. "92 BPM, F Minor", "128 BPM, A Major")
+3. MOOD & ENERGY: 1-2 precise emotional descriptors (e.g. "melancholic longing", "euphoric rush")
+4. INSTRUMENTS: Specific instrument names — NOT generic (e.g. "fingerpicked acoustic guitar, lo-fi electric piano, subtle vinyl crackle" NOT "guitar, piano")
+5. VOCAL STYLE: Gender + tone + technique (e.g. "breathy female vocals, soft falsetto", "gritty male baritone, ad-libs")
+6. ERA & PRODUCTION: Sonic texture and mix vibe (e.g. "late 90s nostalgia, warm analog tape saturation", "2024 hyperpop production, crystal clear mix")
+7. NARRATIVE (optional but powerful): 1 short evocative phrase in quotes (e.g. "like watching rain on a neon-lit window")
+
+=== 10-PROMPT ENERGY SPECTRUM (mandatory distribution) ===
+- Prompts 1-3: SOFT / WARM (intimate, acoustic, gentle)
+- Prompts 4-6: MID ENERGY (groovy, balanced, melodic)  
+- Prompts 7-9: INTENSE / PEAK (aggressive, euphoric, powerful)
+- Prompt 10: EXPERIMENTAL / UNIQUE (unexpected fusion or avant-garde twist)
+
+=== CRITICAL RULES ===
+- ALWAYS include exact BPM and key (this is the #1 V5 improvement)
+- Use SPECIFIC instrument names, never vague terms
+- Each of the 10 prompts must feel distinctly different in energy and texture
+- Include vocal language tag if specified (e.g. "Korean lyrics", "sung in Japanese")
+- Max 220 characters per prompt
+- Title must be evocative and match the mood (can be in the target language if specified)`;
 
         // ── 사용자 컨텍스트 ──
-        const userContext = `Music settings to generate 10 different Suno AI prompts:
+        const userContext = `Generate 10 V5-optimized Suno AI prompts for these settings:
 
-- Target Country: ${countryInfo.name} (instruments: ${(countryInfo.instruments || []).join(', ')})
-- Genre: ${genreInfo.name} (BPM: ${genreInfo.bpm}, style: ${genreInfo.style})
+- Target Country/Region: ${countryInfo.name}
+  → Traditional instruments to consider: ${(countryInfo.instruments || []).join(', ')}
+- Genre: ${genreInfo.name} | Typical BPM range: ${genreInfo.bpm} | Style notes: ${genreInfo.style}
 - Mood: ${moodInfo.name} — ${moodInfo.description || ''}
-- Tempo: ${tempo}
-- Vocal: ${vocal || 'auto'}
-- Song Structure: ${structure || 'standard'}
-- Lyrics Language: ${vocalLangInfo.label}${vocalLangInfo.tag ? ` (use tag: "${vocalLangInfo.tag}")` : ''}
-${subStyleLabels ? `- Sub-styles: ${subStyleLabels}` : ''}
-${refArtist ? `- Reference Artist: ${refArtist} (reference their production & vocal style)` : ''}
-${themeText ? `- Theme/Story: ${themeText}` : ''}
+- Tempo preference: ${tempo}
+- Vocal type: ${vocal || 'auto'}
+- Song structure: ${structure || 'standard'}
+- Lyrics language: ${vocalLangInfo.label}${vocalLangInfo.tag ? ` → always include tag: "${vocalLangInfo.tag}"` : ''}
+${subStyleLabels ? `- Sub-styles/flavor: ${subStyleLabels}` : ''}
+${refArtist ? `- Reference artist(s): ${refArtist} — mirror their production aesthetics and vocal delivery style` : ''}
+${themeText ? `- Theme/Story concept: "${themeText}" — weave this into the narrative element of each prompt` : ''}
 
-Generate 10 diverse Suno AI style prompts as a JSON array.`;
+REMINDER: Apply the full V5 7-step formula. Vary energy from soft→intense across 10 prompts. Always include BPM+Key.`;
 
         // ── Gemini API 호출 ──
         const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
@@ -2088,7 +2105,7 @@ Generate 10 diverse Suno AI style prompts as a JSON array.`;
         // 10개 보장 및 정규화
         prompts = prompts.slice(0, 10).map((item, i) => ({
             index: i + 1,
-            prompt: (item.prompt || '').substring(0, 200),
+            prompt: (item.prompt || '').substring(0, 220),
             title: item.title || `Track ${i + 1}`
         }));
 
