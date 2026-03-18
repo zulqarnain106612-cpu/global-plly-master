@@ -800,62 +800,105 @@
       anime:      '⚡ 애니',       dinner:    '🍷 저녁식사',  kids:      '🧸 어린이',
     };
 
-    // Substyle map (simplified — just enough for UI)
+    // Substyle map — V5 확장 (NotebookLM 학습 반영)
     const SUBSTYLE_MAP = {
       kpop: [
-        { id:'girlcrush', label:'👊 걸크러쉬' }, { id:'cute', label:'🍭 큐티/청량' },
-        { id:'y2k', label:'💿 Y2K 레트로' },     { id:'hybe', label:'🌙 몽환/아련' },
-        { id:'boygroup', label:'🔥 보이그룹' },   { id:'hiphopkpop', label:'🎤 K-힙합팝' },
-        { id:'emotional', label:'💜 감성 K-Pop' },{ id:'classic', label:'🎵 클래식 아이돌' },
+        { id:'girlcrush',  label:'👊 걸크러쉬' },    { id:'cute',      label:'🍭 큐티/청량' },
+        { id:'y2k',        label:'💿 Y2K 레트로' },   { id:'hybe',      label:'🌙 몽환/아련' },
+        { id:'boygroup',   label:'🔥 보이그룹' },     { id:'hiphopkpop',label:'🎤 K-힙합팝' },
+        { id:'emotional',  label:'💜 감성 K-Pop' },   { id:'classic',   label:'🎵 클래식 아이돌' },
+        { id:'bg_dark',    label:'🖤 다크 보이그룹' },{ id:'girl_gen',  label:'✨ 4세대 걸그룹' },
+        { id:'retro_idol', label:'📼 뉴트로 아이돌' },{ id:'concept_art',label:'🎨 컨셉돌' },
       ],
       hiphop: [
-        { id:'trap', label:'⛓️ 트랩/다크' }, { id:'oldschool', label:'🎙️ 올드스쿨' },
-        { id:'drill', label:'🔫 드릴' },     { id:'lofi_hip', label:'☕ 로파이 힙합' },
-        { id:'emo_rap', label:'💔 이모 랩' }, { id:'conscious', label:'✊ 컨셔스 랩' },
+        { id:'trap',       label:'⛓️ 트랩/다크' },   { id:'oldschool', label:'🎙️ 올드스쿨' },
+        { id:'drill',      label:'🔫 드릴' },         { id:'lofi_hip',  label:'☕ 로파이 힙합' },
+        { id:'emo_rap',    label:'💔 이모 랩' },      { id:'conscious', label:'✊ 컨셔스 랩' },
+        { id:'melodic_rap',label:'🎶 멜로딕 랩' },   { id:'boom_bap',  label:'🥁 붐뱁' },
+        { id:'jersey_club',label:'🏙️ 저지 클럽' },
       ],
       edm: [
-        { id:'festival', label:'🎉 페스티벌' }, { id:'futurebass', label:'🌊 퓨처 베이스' },
-        { id:'techno', label:'🖤 테크노' },     { id:'house', label:'🏠 딥 하우스' },
-        { id:'hyperpop', label:'💥 하이퍼팝' },
+        { id:'festival',   label:'🎉 페스티벌' },    { id:'futurebass', label:'🌊 퓨처 베이스' },
+        { id:'techno',     label:'🖤 테크노' },       { id:'house',      label:'🏠 딥 하우스' },
+        { id:'hyperpop',   label:'💥 하이퍼팝' },    { id:'melodic_edm',label:'🎵 멜로딕 EDM' },
+        { id:'trance',     label:'🌀 트랜스' },       { id:'dubstep',    label:'⚡ 덥스텝' },
+        { id:'dnb',        label:'🥁 드럼앤베이스' },{ id:'garage',     label:'🚗 UK 개러지' },
       ],
       rnb: [
-        { id:'neosoul', label:'🌿 네오소울' }, { id:'urban', label:'🌆 어반 R&B' },
-        { id:'alternative', label:'🌀 얼터너티브' }, { id:'classic_rnb', label:'💿 클래식 소울' },
+        { id:'neosoul',    label:'🌿 네오소울' },    { id:'urban',      label:'🌆 어반 R&B' },
+        { id:'alternative',label:'🌀 얼터너티브' },  { id:'classic_rnb',label:'💿 클래식 소울' },
+        { id:'quiet_storm',label:'🌙 콰이어스톰' },  { id:'trap_rnb',   label:'🖤 트랩 R&B' },
+        { id:'bedroom_pop',label:'🛏️ 베드룸 팝' },
       ],
       rock: [
-        { id:'indierock', label:'🎸 인디 록' }, { id:'hardrock', label:'⚡ 하드 록' },
-        { id:'punk', label:'🔴 펑크' },         { id:'shoegaze', label:'🌫️ 슈게이징' },
+        { id:'indierock',  label:'🎸 인디 록' },     { id:'hardrock',   label:'⚡ 하드 록' },
+        { id:'punk',       label:'🔴 펑크' },         { id:'shoegaze',   label:'🌫️ 슈게이징' },
+        { id:'emo',        label:'💔 이모' },         { id:'math_rock',  label:'🔢 매스 록' },
+        { id:'grunge',     label:'🟤 그런지' },       { id:'postrock',   label:'🌌 포스트 록' },
       ],
       pop: [
-        { id:'synthpop', label:'🎹 신스팝' }, { id:'darkpop', label:'🖤 다크 팝' },
-        { id:'bubblegum', label:'🫧 버블검 팝' }, { id:'hyperpop2', label:'💥 하이퍼팝' },
+        { id:'synthpop',   label:'🎹 신스팝' },      { id:'darkpop',    label:'🖤 다크 팝' },
+        { id:'bubblegum',  label:'🫧 버블검 팝' },   { id:'hyperpop2',  label:'💥 하이퍼팝' },
+        { id:'electropop', label:'⚡ 일렉트로팝' },  { id:'dreampop',   label:'🌸 드림팝' },
+        { id:'power_pop',  label:'🔥 파워팝' },
       ],
       jpop: [
-        { id:'city_pop', label:'🌃 시티팝' }, { id:'anime_ost', label:'⚡ 애니메 OP/ED' },
-        { id:'vocaloid', label:'🤖 보컬로이드' }, { id:'jrock', label:'🎸 J-Rock' },
+        { id:'city_pop',   label:'🌃 시티팝' },      { id:'anime_ost',  label:'⚡ 애니메 OP/ED' },
+        { id:'vocaloid',   label:'🤖 보컬로이드' },  { id:'jrock',      label:'🎸 J-Rock' },
+        { id:'shibuya_kei',label:'🌸 시부야계' },     { id:'enka',       label:'🎤 엔카' },
+        { id:'visual_kei', label:'💄 비주얼계' },
       ],
       phonk: [
-        { id:'drift', label:'🚗 드리프트 포크' }, { id:'cowbell', label:'🔔 카우벨 포크' },
-        { id:'romanian', label:'🌙 루마니안 포크' }, { id:'rage_phonk', label:'🔥 레이지 포크' },
+        { id:'drift',      label:'🚗 드리프트 포크' },{ id:'cowbell',   label:'🔔 카우벨 포크' },
+        { id:'romanian',   label:'🌙 루마니안 포크' },{ id:'rage_phonk', label:'🔥 레이지 포크' },
+        { id:'dark_phonk', label:'💀 다크 포크' },   { id:'slowed_reverb',label:'🌊 슬로우드+리버브' },
       ],
       jazz: [
-        { id:'smooth', label:'🥂 스무스 재즈' }, { id:'bebop', label:'🎷 비밥' },
-        { id:'modal', label:'🌌 모달/퓨전' },     { id:'swing', label:'🎩 스윙/빅밴드' },
+        { id:'smooth',     label:'🥂 스무스 재즈' }, { id:'bebop',      label:'🎷 비밥' },
+        { id:'modal',      label:'🌌 모달/퓨전' },   { id:'swing',      label:'🎩 스윙/빅밴드' },
+        { id:'nu_jazz',    label:'🎵 뉴재즈' },      { id:'jazz_hop',   label:'☕ 재즈합' },
       ],
       lofi: [
-        { id:'study', label:'📚 공부/집중' }, { id:'late_night', label:'🌙 심야/감성' },
+        { id:'study',      label:'📚 공부/집중' },   { id:'late_night', label:'🌙 심야/감성' },
+        { id:'rainy',      label:'🌧️ 빗소리 로파이' },{ id:'japanese_lofi',label:'🎌 재팬 로파이' },
+        { id:'chill_hop',  label:'☕ 칠홉' },
       ],
       khiphop: [
-        { id:'flex', label:'💎 플렉스' }, { id:'lyrical', label:'📖 서정적' },
-        { id:'street', label:'🏙️ 스트리트' }, { id:'groove', label:'🎷 그루브' },
+        { id:'flex',       label:'💎 플렉스' },      { id:'lyrical',    label:'📖 서정적' },
+        { id:'street',     label:'🏙️ 스트리트' },    { id:'groove',     label:'🎷 그루브' },
+        { id:'melodic_kr', label:'🎶 멜로딕 K-랩' },
       ],
       trot: [
-        { id:'classic_trot', label:'🎤 클래식 트로트' }, { id:'modern_trot', label:'✨ 뉴트로 트로트' },
-        { id:'dance_trot', label:'💃 댄스 트로트' },
+        { id:'classic_trot',label:'🎤 클래식 트로트' }, { id:'modern_trot',label:'✨ 뉴트로 트로트' },
+        { id:'dance_trot', label:'💃 댄스 트로트' }, { id:'emotional_trot',label:'💕 감성 트로트' },
       ],
       ballad: [
-        { id:'piano_ballad', label:'🎹 피아노 발라드' }, { id:'power_ballad', label:'🔥 파워 발라드' },
-        { id:'kballad', label:'🇰🇷 한국 발라드' },     { id:'acoustic_ballad', label:'🎸 어쿠스틱' },
+        { id:'piano_ballad',label:'🎹 피아노 발라드' }, { id:'power_ballad',label:'🔥 파워 발라드' },
+        { id:'kballad',    label:'🇰🇷 한국 발라드' }, { id:'acoustic_ballad',label:'🎸 어쿠스틱' },
+        { id:'cinematic',  label:'🎬 시네마틱' },    { id:'orchestral',  label:'🎻 오케스트라' },
+      ],
+      afrobeats: [
+        { id:'amapiano_sub',label:'🎹 아마피아노' }, { id:'afropop',    label:'🌍 아프로팝' },
+        { id:'highlife_sub',label:'🎺 하이라이프' }, { id:'afro_trap',  label:'⛓️ 아프로트랩' },
+        { id:'afro_soul',  label:'🌿 아프로소울' },
+      ],
+      reggaeton: [
+        { id:'perreo',     label:'💃 페레오' },      { id:'dembow',     label:'🥁 뎀보우' },
+        { id:'mambo',      label:'🎺 맘보/살사' },   { id:'latin_trap', label:'⛓️ 라틴 트랩' },
+        { id:'cumbia',     label:'🪘 쿰비아' },
+      ],
+      bollywood: [
+        { id:'film_score',  label:'🎬 필름 스코어' },{ id:'fusion_jazz', label:'🎷 인디 퓨전' },
+        { id:'filmi_pop',   label:'🌟 필미팝' },     { id:'bhangra_pop', label:'🥁 방그라팝' },
+      ],
+      indiepop: [
+        { id:'dreampop_sub',label:'🌸 드림팝' },     { id:'bedroom',    label:'🛏️ 베드룸팝' },
+        { id:'folk_pop',   label:'🪕 포크팝' },      { id:'jangle_pop', label:'🎸 잰글팝' },
+        { id:'lo_indie',   label:'📼 로파이 인디' },
+      ],
+      kindie: [
+        { id:'dream_indie', label:'🌸 몽환 인디' },  { id:'folk_indie',  label:'🪕 포크 인디' },
+        { id:'noise_pop',   label:'🔊 노이즈팝' },   { id:'post_indie',  label:'🌀 포스트 인디' },
       ],
     };
 
@@ -1369,40 +1412,41 @@
 
     // 장르명 → 폼 값 매핑
     const GENRE_LABEL_MAP = {
-      'K-Pop':           { genre:'kpop',      country:'korea',   mood:'confidence',         tempo:'medium-fast (100-120 BPM)', vocal:'female vocals',              lang:'korean',     structure:'standard' },
-      'K-Hip Hop':       { genre:'khiphop',   country:'korea',   mood:'melancholy',         tempo:'moderate (80-100 BPM)',     vocal:'male vocals',               lang:'korean',     structure:'standard' },
-      'K-Indie':         { genre:'kindie',    country:'korea',   mood:'melancholy',         tempo:'slow (60-80 BPM)',          vocal:'auto',                      lang:'korean',     structure:'standard' },
-      'Trot':            { genre:'trot',      country:'korea',   mood:'romantic',           tempo:'moderate (80-100 BPM)',     vocal:'female vocals',             lang:'korean',     structure:'standard' },
-      'Ballad':          { genre:'ballad',    country:'korea',   mood:'melancholy',         tempo:'slow (60-80 BPM)',          vocal:'auto',                      lang:'korean',     structure:'standard' },
-      'J-Pop':           { genre:'jpop',      country:'japan',   mood:'confidence',         tempo:'medium-fast (100-120 BPM)', vocal:'female vocals',             lang:'japanese',   structure:'standard' },
-      'Anime OST':       { genre:'anisong',   country:'japan',   mood:'epic',               tempo:'fast (120-140 BPM)',        vocal:'female vocals',             lang:'japanese',   structure:'extended' },
-      'City Pop':        { genre:'citypop',   country:'japan',   mood:'night_drive',        tempo:'moderate (80-100 BPM)',     vocal:'female vocals',             lang:'japanese',   structure:'standard' },
-      'Hip-Hop':         { genre:'hiphop',    country:'usa',     mood:'aggressive',         tempo:'moderate (80-100 BPM)',     vocal:'male vocals',               lang:'english',    structure:'standard' },
-      'Hip-Hop / Trap':  { genre:'hiphop',    country:'usa',     mood:'aggressive',         tempo:'moderate (80-100 BPM)',     vocal:'male vocals',               lang:'english',    structure:'standard' },
-      'R&B':             { genre:'rnb',       country:'usa',     mood:'romantic',           tempo:'slow (60-80 BPM)',          vocal:'female vocals',             lang:'english',    structure:'standard' },
-      'R&B / Soul':      { genre:'rnb',       country:'usa',     mood:'romantic',           tempo:'slow (60-80 BPM)',          vocal:'female vocals',             lang:'english',    structure:'standard' },
-      'Pop':             { genre:'pop',       country:'usa',     mood:'confidence',         tempo:'medium-fast (100-120 BPM)', vocal:'auto',                      lang:'english',    structure:'standard' },
-      'EDM':             { genre:'edm',       country:'usa',     mood:'party',              tempo:'fast (120-140 BPM)',        vocal:'instrumental, no lyrics',   lang:'instrumental',structure:'standard' },
-      'Phonk':           { genre:'phonk',     country:'usa',     mood:'gym',                tempo:'fast (120-140 BPM)',        vocal:'male vocals',               lang:'english',    structure:'short' },
-      'Lo-Fi':           { genre:'lofi',      country:'usa',     mood:'chill',              tempo:'slow (60-80 BPM)',          vocal:'instrumental, no lyrics',   lang:'instrumental',structure:'standard' },
-      'Indie Pop':       { genre:'indiepop',  country:'uk',      mood:'melancholy',         tempo:'slow (60-80 BPM)',          vocal:'female vocals',             lang:'english',    structure:'standard' },
-      'Alt Rock':        { genre:'rock',      country:'uk',      mood:'aggressive',         tempo:'medium-fast (100-120 BPM)', vocal:'male vocals',               lang:'english',    structure:'standard' },
-      'Jazz':            { genre:'jazz',      country:'usa',     mood:'chill',              tempo:'moderate (80-100 BPM)',     vocal:'instrumental, no lyrics',   lang:'instrumental',structure:'standard' },
-      'Reggaeton':       { genre:'reggaeton', country:'mexico',  mood:'party',              tempo:'fast (120-140 BPM)',        vocal:'male vocals',               lang:'spanish',    structure:'standard' },
-      'Latin Pop':       { genre:'pop',       country:'mexico',  mood:'romantic',           tempo:'medium-fast (100-120 BPM)', vocal:'auto',                      lang:'spanish',    structure:'standard' },
-      'Afrobeats':       { genre:'afrobeats', country:'nigeria', mood:'party',              tempo:'medium-fast (100-120 BPM)', vocal:'male vocals',               lang:'english',    structure:'standard' },
-      'Bollywood':       { genre:'bollywood', country:'india',   mood:'romantic',           tempo:'moderate (80-100 BPM)',     vocal:'female vocals',             lang:'hindi',      structure:'extended' },
-      'Classical':       { genre:'ballad',    country:'korea',   mood:'melancholy',         tempo:'slow (60-80 BPM)',          vocal:'instrumental, no lyrics',   lang:'instrumental',structure:'standard' },
-      'Acoustic':        { genre:'ballad',    country:'korea',   mood:'melancholy',         tempo:'slow (60-80 BPM)',          vocal:'auto',                      lang:'auto',       structure:'standard' },
-      'Baile Funk':      { genre:'bailefunk', country:'brazil',  mood:'party',              tempo:'fast (120-140 BPM)',        vocal:'male vocals',               lang:'portuguese', structure:'short' },
-      'Amapiano':        { genre:'afrobeats', country:'nigeria', mood:'chill',              tempo:'moderate (80-100 BPM)',     vocal:'auto',                      lang:'english',    structure:'standard' },
-      'Samba':           { genre:'reggaeton', country:'brazil',  mood:'party',              tempo:'fast (120-140 BPM)',        vocal:'auto',                      lang:'portuguese', structure:'standard' },
-      'Bossa Nova':      { genre:'jazz',      country:'brazil',  mood:'chill',              tempo:'slow (60-80 BPM)',          vocal:'female vocals',             lang:'portuguese', structure:'standard' },
-      'Techno':          { genre:'edm',       country:'germany', mood:'gym',                tempo:'very fast (140-180 BPM)',   vocal:'instrumental, no lyrics',   lang:'instrumental',structure:'extended' },
-      'Rock':            { genre:'rock',      country:'usa',     mood:'aggressive',         tempo:'fast (120-140 BPM)',        vocal:'male vocals',               lang:'english',    structure:'standard' },
-      'Mariachi':        { genre:'ballad',    country:'mexico',  mood:'romantic',           tempo:'moderate (80-100 BPM)',     vocal:'male and female duet vocals',lang:'spanish',   structure:'standard' },
-      'Chanson':         { genre:'ballad',    country:'france',  mood:'romantic',           tempo:'slow (60-80 BPM)',          vocal:'female vocals',             lang:'french',     structure:'standard' },
-      'Highlife':        { genre:'afrobeats', country:'nigeria', mood:'party',              tempo:'moderate (80-100 BPM)',     vocal:'auto',                      lang:'english',    structure:'standard' },
+      // subStyles: 클릭 시 자동 선택될 세부스타일 ID 배열 (SUBSTYLE_MAP의 id와 일치)
+      'K-Pop':           { genre:'kpop',      country:'korea',   mood:'confidence',  tempo:'medium-fast (100-120 BPM)', vocal:'female vocals',             lang:'korean',      structure:'standard', subStyles:['girl_gen','cute'] },
+      'K-Hip Hop':       { genre:'khiphop',   country:'korea',   mood:'melancholy',  tempo:'moderate (80-100 BPM)',     vocal:'male vocals',               lang:'korean',      structure:'standard', subStyles:['lyrical','melodic_kr'] },
+      'K-Indie':         { genre:'kindie',    country:'korea',   mood:'melancholy',  tempo:'slow (60-80 BPM)',          vocal:'auto',                      lang:'korean',      structure:'standard', subStyles:['dream_indie','folk_indie'] },
+      'Trot':            { genre:'trot',      country:'korea',   mood:'romantic',    tempo:'moderate (80-100 BPM)',     vocal:'female vocals',             lang:'korean',      structure:'standard', subStyles:['modern_trot'] },
+      'Ballad':          { genre:'ballad',    country:'korea',   mood:'melancholy',  tempo:'slow (60-80 BPM)',          vocal:'auto',                      lang:'korean',      structure:'standard', subStyles:['piano_ballad','kballad'] },
+      'J-Pop':           { genre:'jpop',      country:'japan',   mood:'confidence',  tempo:'medium-fast (100-120 BPM)', vocal:'female vocals',             lang:'japanese',    structure:'standard', subStyles:[] },
+      'Anime OST':       { genre:'anisong',   country:'japan',   mood:'epic',        tempo:'fast (120-140 BPM)',        vocal:'female vocals',             lang:'japanese',    structure:'extended', subStyles:['anime_ost'] },
+      'City Pop':        { genre:'citypop',   country:'japan',   mood:'night_drive', tempo:'moderate (80-100 BPM)',     vocal:'female vocals',             lang:'japanese',    structure:'standard', subStyles:['city_pop'] },
+      'Hip-Hop':         { genre:'hiphop',    country:'usa',     mood:'confidence',  tempo:'moderate (80-100 BPM)',     vocal:'male vocals',               lang:'english',     structure:'standard', subStyles:['boom_bap','oldschool'] },
+      'Hip-Hop / Trap':  { genre:'hiphop',    country:'usa',     mood:'gym',         tempo:'moderate (80-100 BPM)',     vocal:'male vocals',               lang:'english',     structure:'standard', subStyles:['trap','drill'] },
+      'R&B':             { genre:'rnb',       country:'usa',     mood:'romantic',    tempo:'slow (60-80 BPM)',          vocal:'female vocals',             lang:'english',     structure:'standard', subStyles:['neosoul','urban'] },
+      'R&B / Soul':      { genre:'rnb',       country:'usa',     mood:'romantic',    tempo:'slow (60-80 BPM)',          vocal:'female vocals',             lang:'english',     structure:'standard', subStyles:['classic_rnb','neosoul'] },
+      'Pop':             { genre:'pop',       country:'usa',     mood:'confidence',  tempo:'medium-fast (100-120 BPM)', vocal:'auto',                      lang:'english',     structure:'standard', subStyles:['synthpop'] },
+      'EDM':             { genre:'edm',       country:'usa',     mood:'party',       tempo:'fast (120-140 BPM)',        vocal:'instrumental, no lyrics',   lang:'instrumental', structure:'standard', subStyles:['festival','melodic_edm'] },
+      'Phonk':           { genre:'phonk',     country:'usa',     mood:'gym',         tempo:'fast (120-140 BPM)',        vocal:'male vocals',               lang:'english',     structure:'short',    subStyles:['drift','rage_phonk'] },
+      'Lo-Fi':           { genre:'lofi',      country:'usa',     mood:'study',       tempo:'slow (60-80 BPM)',          vocal:'instrumental, no lyrics',   lang:'instrumental', structure:'standard', subStyles:['study','chill_hop'] },
+      'Indie Pop':       { genre:'indiepop',  country:'uk',      mood:'melancholy',  tempo:'slow (60-80 BPM)',          vocal:'female vocals',             lang:'english',     structure:'standard', subStyles:['dreampop_sub','bedroom'] },
+      'Alt Rock':        { genre:'rock',      country:'uk',      mood:'anger',       tempo:'medium-fast (100-120 BPM)', vocal:'male vocals',               lang:'english',     structure:'standard', subStyles:['indierock','shoegaze'] },
+      'Jazz':            { genre:'jazz',      country:'usa',     mood:'cafe',        tempo:'moderate (80-100 BPM)',     vocal:'instrumental, no lyrics',   lang:'instrumental', structure:'standard', subStyles:['smooth','jazz_hop'] },
+      'Reggaeton':       { genre:'reggaeton', country:'mexico',  mood:'party',       tempo:'fast (120-140 BPM)',        vocal:'male vocals',               lang:'spanish',     structure:'standard', subStyles:['perreo','dembow'] },
+      'Latin Pop':       { genre:'pop',       country:'mexico',  mood:'romantic',    tempo:'medium-fast (100-120 BPM)', vocal:'auto',                      lang:'spanish',     structure:'standard', subStyles:[] },
+      'Afrobeats':       { genre:'afrobeats', country:'nigeria', mood:'party',       tempo:'medium-fast (100-120 BPM)', vocal:'male vocals',               lang:'english',     structure:'standard', subStyles:['afropop','amapiano_sub'] },
+      'Bollywood':       { genre:'bollywood', country:'india',   mood:'romantic',    tempo:'moderate (80-100 BPM)',     vocal:'female vocals',             lang:'hindi',       structure:'extended', subStyles:['filmi_pop'] },
+      'Classical':       { genre:'ballad',    country:'korea',   mood:'nostalgia',   tempo:'slow (60-80 BPM)',          vocal:'instrumental, no lyrics',   lang:'instrumental', structure:'standard', subStyles:['orchestral','cinematic'] },
+      'Acoustic':        { genre:'ballad',    country:'korea',   mood:'melancholy',  tempo:'slow (60-80 BPM)',          vocal:'auto',                      lang:'auto',        structure:'standard', subStyles:['acoustic_ballad'] },
+      'Baile Funk':      { genre:'bailefunk', country:'brazil',  mood:'club',        tempo:'fast (120-140 BPM)',        vocal:'male vocals',               lang:'portuguese',  structure:'short',    subStyles:[] },
+      'Amapiano':        { genre:'afrobeats', country:'nigeria', mood:'chill',       tempo:'moderate (80-100 BPM)',     vocal:'auto',                      lang:'english',     structure:'standard', subStyles:['amapiano_sub'] },
+      'Samba':           { genre:'reggaeton', country:'brazil',  mood:'party',       tempo:'fast (120-140 BPM)',        vocal:'auto',                      lang:'portuguese',  structure:'standard', subStyles:[] },
+      'Bossa Nova':      { genre:'jazz',      country:'brazil',  mood:'cafe',        tempo:'slow (60-80 BPM)',          vocal:'female vocals',             lang:'portuguese',  structure:'standard', subStyles:['smooth'] },
+      'Techno':          { genre:'edm',       country:'germany', mood:'gym',         tempo:'very fast (140-180 BPM)',   vocal:'instrumental, no lyrics',   lang:'instrumental', structure:'extended', subStyles:['techno','dnb'] },
+      'Rock':            { genre:'rock',      country:'usa',     mood:'anger',       tempo:'fast (120-140 BPM)',        vocal:'male vocals',               lang:'english',     structure:'standard', subStyles:['hardrock','grunge'] },
+      'Mariachi':        { genre:'ballad',    country:'mexico',  mood:'romantic',    tempo:'moderate (80-100 BPM)',     vocal:'male and female duet vocals',lang:'spanish',    structure:'standard', subStyles:[] },
+      'Chanson':         { genre:'ballad',    country:'france',  mood:'romantic',    tempo:'slow (60-80 BPM)',          vocal:'female vocals',             lang:'french',      structure:'standard', subStyles:[] },
+      'Highlife':        { genre:'afrobeats', country:'nigeria', mood:'party',       tempo:'moderate (80-100 BPM)',     vocal:'auto',                      lang:'english',     structure:'standard', subStyles:['highlife_sub'] },
     };
 
     // 정적 트렌드 데이터 (로딩 전 초기값 / fallback)
@@ -1609,7 +1653,6 @@
       const map = GENRE_LABEL_MAP[genreLabel] || {};
       const countryData = _trendsData[countryKey];
 
-      // ─── AI 추천 셋팅 자동 입력 (빨간박스 제외) ───
       const countryFormVal = map.country || countryData?.key || 'usa';
       const genreFormVal   = map.genre   || 'pop';
 
@@ -1617,13 +1660,19 @@
       document.getElementById('select-country').value = countryFormVal;
       document.getElementById('select-genre').value   = genreFormVal;
 
-      // ② 무드
-      if (map.mood) document.getElementById('select-mood').value = map.mood;
+      // ② 무드 — 항상 강제 적용 (누락 방지: MOOD_MAP에 없는 값이면 첫 번째 옵션으로 fallback)
+      const moodVal = map.mood || 'chill';
+      const moodSelect = document.getElementById('select-mood');
+      if (moodSelect) {
+        // 해당 option이 존재하는지 확인 후 적용
+        const moodOptionExists = Array.from(moodSelect.options).some(o => o.value === moodVal);
+        moodSelect.value = moodOptionExists ? moodVal : moodSelect.options[1]?.value || moodVal;
+      }
 
       // ③ 템포
       if (map.tempo) document.getElementById('select-tempo').value = map.tempo;
 
-      // ④ 보컬 (Refinement)
+      // ④ 보컬
       const vocalEl = document.getElementById('vocal-select');
       if (vocalEl && map.vocal) vocalEl.value = map.vocal;
 
@@ -1635,21 +1684,35 @@
       const structEl = document.getElementById('structure-select');
       if (structEl && map.structure) structEl.value = map.structure;
 
-      // ─── 국가 플래그 + 서브스타일 + 아티스트 칩 갱신 ───
+      // ─── 플래그 + 서브스타일 + 아티스트 칩 갱신 ───
       const info = COUNTRY_STYLES[countryFormVal];
       const flagEl = document.getElementById('country-flag');
       if (flagEl) flagEl.textContent = info?.flag || '';
+
       renderSubstyles(genreFormVal);
       renderArtistChips(genreFormVal);
 
-      // ─── mood-emoji 갱신 ───
-      const moodEl = document.getElementById('mood-emoji');
-      if (moodEl && map.mood && MOOD_MAP) {
-        const moodLabel = MOOD_MAP[map.mood];
-        if (moodLabel) moodEl.textContent = moodLabel.split(' ')[0];
+      // ⑦ 세부스타일 자동 선택 — renderSubstyles 직후 실행
+      const autoSubStyles = map.subStyles || [];
+      if (autoSubStyles.length > 0) {
+        setTimeout(() => {
+          selectedSubStyles = [];
+          autoSubStyles.forEach(id => {
+            const btn = document.querySelector(`.substyle-tag[data-id="${id}"]`);
+            if (btn) {
+              btn.classList.add('active');
+              selectedSubStyles.push(id);
+            }
+          });
+        }, 50);
       }
 
-      // ─── 빨간 박스 (레퍼런스 아티스트, 테마/스토리)는 건드리지 않음 ───
+      // ─── mood-emoji 갱신 ───
+      const moodEl = document.getElementById('mood-emoji');
+      if (moodEl && MOOD_MAP) {
+        const moodLabel = MOOD_MAP[moodVal];
+        if (moodLabel) moodEl.textContent = moodLabel.split(' ')[0];
+      }
 
       checkFormReady();
 
@@ -1659,11 +1722,11 @@
         if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }, 100);
 
-      // 적용 내용 요약 토스트
+      // 토스트 — 세부스타일 적용 여부도 표시
       const parts = [
-        map.mood   ? `무드: ${map.mood}` : null,
+        `무드: ${moodVal}`,
         map.tempo  ? `템포: ${map.tempo.split(' ')[0]}` : null,
-        map.vocal  ? `보컬: ${map.vocal.split(' ')[0]}` : null,
+        autoSubStyles.length > 0 ? `스타일 ${autoSubStyles.length}개` : null,
       ].filter(Boolean);
       showToast(`🎵 ${genreLabel} 적용! ${parts.join(' · ')}`, 'success');
     }
