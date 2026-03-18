@@ -1454,7 +1454,7 @@ function generateSunoPrompt(country, genre, mood, tempo, vocal = 'auto', structu
     let lyricsThemeTxt = themeText.trim();
     if (!lyricsThemeTxt) {
         // ✨ 다이나믹 가사 프롬프트 생성 (매번 동일 조건이어도 다른 내용이 나오도록)
-        const timeOfDay = ['at midnight', 'during a golden sunset', 'in the early morning mist', 'under a neon-lit sky', 'on a rainy afternoon'];
+        const timeOfDay = ['at midnight', 'during a golden sunset', 'in the early morning mist', 'under a starless sky', 'on a rainy afternoon', 'at the edge of dawn', 'during the last hour of summer'];
         const characters = ['a lone wanderer', 'two star-crossed lovers', 'a passionate dreamer', 'someone seeking peace', 'a rebel with a cause'];
         const actions = ['finding hidden beauty', 'letting go of the past', 'racing towards the future', 'reflecting on memories', 'embracing the chaos'];
 
@@ -2042,7 +2042,7 @@ Structure each prompt using this 7-step director format:
 4. INSTRUMENTS: Specific instrument names — NOT generic (e.g. "fingerpicked acoustic guitar, lo-fi electric piano, subtle vinyl crackle" NOT "guitar, piano")
 5. VOCAL STYLE: Gender + tone + technique (e.g. "breathy female vocals, soft falsetto", "gritty male baritone, ad-libs")
 6. ERA & PRODUCTION: Sonic texture and mix vibe (e.g. "late 90s nostalgia, warm analog tape saturation", "2024 hyperpop production, crystal clear mix")
-7. NARRATIVE (optional but powerful): 1 short evocative phrase in quotes (e.g. "like watching rain on a neon-lit window")
+7. NARRATIVE (optional but powerful): 1 short evocative phrase in quotes (e.g. "like chasing something you can never catch", "the weight of a silent room after goodbye")
 
 === 10-PROMPT ENERGY SPECTRUM (mandatory distribution) ===
 - Prompts 1-3: SOFT / WARM (intimate, acoustic, gentle)
@@ -2207,6 +2207,7 @@ app.post('/api/generate-lyrics', verifyToken, async (req, res) => {
             + ' Write complete lyrics with [Verse 1], [Pre-Chorus], [Chorus], [Verse 2], [Bridge] sections.'
             + ' Make it emotionally resonant and singable.'
             + ' Variation seed #' + randomSeed + ' — output must feel like a completely different song from any previous generation.'
+            + ' TITLE RULE: The title must be specific and evocative — avoid generic overused words like "neon", "echo", "fire", "rise", "glow", "shine", "night", "dream", "light", "soul". Make it unexpected and tied to the narrative arc.'
             + ' Return a JSON object: { "title": "<creative song title in the lyrics language>", "lyrics": "<full lyrics text>" }'
             + ' No other text, only valid JSON.';
 
