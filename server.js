@@ -2155,13 +2155,15 @@ app.post('/api/generate-lyrics', verifyToken, async (req, res) => {
             + (themeText ? ' Theme: "' + themeText + '".' : '')
             + ' Write complete lyrics with [Verse 1], [Pre-Chorus], [Chorus], [Verse 2], [Bridge] sections.'
             + ' Make it emotionally resonant and singable.'
+            + ' IMPORTANT: Be highly creative and unique — seed #' + Math.floor(Math.random()*99999) + '. Choose a completely different angle, story, or imagery each time. Avoid clichés.'
             + ' Return a JSON object: { "title": "<creative song title in the lyrics language>", "lyrics": "<full lyrics text>" }'
             + ' No other text, only valid JSON.';
 
         const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
         const response = await ai.models.generateContent({
             model: GEMINI_MODEL,
-            contents: [{ role: 'user', parts: [{ text: lyricsPrompt }] }]
+            contents: [{ role: 'user', parts: [{ text: lyricsPrompt }] }],
+            config: { temperature: 1.4 }
         });
         let title = '', lyrics = '';
         try {
@@ -2199,12 +2201,14 @@ app.post('/api/generate-style', verifyToken, async (req, res) => {
             + ' Style influence: ' + influenceNum + '% (higher = more distinct/defined).'
             + ' Weirdness: ' + weirdnessNum + '% (higher = more experimental).'
             + ' Output ONLY a comma-separated style tag string (max 200 chars, English only).'
-            + ' Include: sub-genre, instruments, production style, era/vibe. No explanations.';
+            + ' Include: sub-genre, instruments, production style, era/vibe. No explanations.'
+            + ' Be creative and varied — seed #' + Math.floor(Math.random()*99999) + '.';
 
         const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
         const response = await ai.models.generateContent({
             model: GEMINI_MODEL,
-            contents: [{ role: 'user', parts: [{ text: stylePrompt }] }]
+            contents: [{ role: 'user', parts: [{ text: stylePrompt }] }],
+            config: { temperature: 1.2 }
         });
         const style = (response.text || '').trim().replace(/\n/g, ', ');
         console.log('✅ /api/generate-style (user: ' + req.user.username + ')');
