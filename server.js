@@ -2148,11 +2148,41 @@ app.post('/api/generate-lyrics', verifyToken, async (req, res) => {
         const vocalLangInfo = VOCAL_LANG_MAP[vocalLang] || { label: 'Korean' };
         const weirdnessNum  = Math.min(100, Math.max(0, Number(weirdness) || 50));
 
+        // 무드별 가사 테마 풀 — 무드에 맞는 구체적인 스토리 선택
+        const MOOD_THEMES = {
+            dawn:       ['watching the city wake up alone before anyone else', 'the silence between 4am and sunrise when thoughts run deepest', 'writing a letter I\'ll never send in the pre-dawn dark', 'the first coffee before the world gets loud again'],
+            running:    ['pushing past the wall when lungs scream stop', 'running from who I used to be — and winning', 'every step on the pavement is proof I\'m still alive', 'the street belongs to me at 6am with music in my ears'],
+            cafe:       ['strangers sharing the same silence in a corner booth', 'overhearing a love story two tables over', 'coffee getting cold while I think of you', 'the writer who comes here every day and never finishes the chapter'],
+            night_drive:['driving with no destination after midnight just to feel free', 'city lights blurring past at 120km/h', 'the music that only sounds right past midnight on empty roads', 'a phone call I can\'t make while doing 100 on the highway'],
+            study:      ['the library at 2am when everyone else gave up', 'memorizing constellations instead of studying for the exam', 'one more page and then I\'ll sleep — three hours later', 'the pen that runs dry right before the most important line'],
+            party:      ['the exact moment the drop hits and everything disappears', 'finding my person across a crowded dance floor', 'dancing like tonight is the last night of everything', 'three songs in and suddenly the whole world is beautiful'],
+            romantic:   ['the first time our hands touched by accident and neither moved away', 'slow dancing in the kitchen at midnight for no reason', 'the look across the room that said everything words couldn\'t', 'you fell asleep on my shoulder and I stayed still for hours'],
+            melancholy: ['reading old messages at 3am on a rainy night', 'laughing alone at an inside joke only two people ever knew', 'packing up an apartment full of someone else\'s ghost', 'the smell of rain and the memory of a person I can\'t call'],
+            epic:       ['the warrior\'s final stand when everyone else has fallen', 'rising from ash when the whole world said it was over', 'the moment the hero realizes the real enemy was always within', 'carrying the weight of everyone\'s future on one set of shoulders'],
+            chill:      ['floating in still water watching clouds move and thinking nothing', 'the lazy Sunday afternoon that fixes everything broken in a week', 'breathing slower until the whole world finally makes sense', 'no plans, no phone, just the sound of wind and being okay'],
+            cyberpunk:  ['hacking the system from a neon-soaked basement at midnight', 'love in a city where emotions are illegal and monitored', 'the last human in a metropolis of beautiful machines', 'selling yesterday\'s memories to afford tomorrow\'s electricity'],
+            summer:     ['the last day of summer before everything changes forever', 'salt in your hair and sand between your toes and nothing mattering', 'the vacation fling that almost became a real life', 'beach bonfire songs we made up and never wrote down'],
+            gym:        ['one more rep when every muscle is begging you to quit', 'becoming the person last year\'s version couldn\'t imagine', 'the grind nobody sees but the results everyone asks about', 'iron and sweat and silence — this is who I\'m becoming'],
+            roadtrip:   ['windows down, no destination, just the road and the song', 'leaving everything behind at the state line without looking back', 'finding a diner at 3am in the middle of absolutely nowhere', 'the playlist that became the entire soundtrack of one summer'],
+            gaming:     ['the final boss that took a hundred attempts and one perfect run', 'leveling up in the game and realizing it mirrors real life', 'the hero who discovered they were living inside a simulation', 'pressing continue when the real world feels like permanent game over'],
+            nostalgia:  ['the summer of years ago that I can\'t get back no matter what', 'finding an old mixtape under the bed with your handwriting on it', 'driving past the old house and it\'s completely different now', 'the song that teleports me back to being seventeen instantly'],
+            heartbreak: ['finding your hoodie in the back of my closet six months later', 'deleting the photos but not the 3am memories', 'the last voicemail I listen to and never reply to', 'running into you at the grocery store and pretending I\'m fine'],
+            confidence: ['walking into every room like the invitation was mandatory', 'nobody can touch what I built from absolutely nothing', 'the glow-up they said would never happen happening publicly', 'too valuable for people who can\'t see it'],
+            hopeful:    ['writing the first line of a chapter that finally feels different', 'planting seeds for a garden I\'ll see bloom next spring', 'the moment you realize things are actually slowly getting better', 'the first day of something that quietly changes everything'],
+            anger:      ['burning down every bridge they built on top of my back', 'everything I should have said in that last argument and didn\'t', 'they told me to calm down so I got louder and clearer', 'rage as the purest form of love that has nowhere left to go'],
+            rain:       ['trapped inside watching the city blur through a wet window', 'the argument that started the exact moment the rain began', 'running out into the rain because staying inside was worse', 'the specific smell of rain hitting concrete after a long drought'],
+            forest:     ['the hike that made me forget my own name completely', 'finding a clearing deep in the woods where no one has ever been', 'the tree older than every single problem I have ever had', 'turning off the phone and walking into the green until I disappear'],
+            club:       ['the 2am hour when only the real music plays', 'making eye contact across the dance floor and not looking away', 'losing yourself completely in the bassline until the body takes over', 'the DJ who played exactly what I needed at exactly the right moment'],
+            wedding:    ['the speech I rewrote forty times and cried through anyway', 'watching my best person become someone\'s entire universe', 'the moment the doors opened and every single person stood up', 'the first dance when only two people exist in the whole room'],
+            sleep:      ['the dream where you came back and everything was fine again', 'falling asleep to a voice that feels like the safest place', 'the thoughts that only appear after midnight when guards are down', 'finally letting go of today before drifting somewhere better'],
+        };
+        // 무드 테마 또는 범용 아크 선택
+        const moodThemePool = MOOD_THEMES[mood] || ['rising hope against all odds', 'bittersweet nostalgia for a lost moment', 'forbidden desire that burns bright', 'identity crisis and self-discovery'];
+        const randomArc = moodThemePool[Math.floor(Math.random() * moodThemePool.length)];
+
         // 랜덤 다양성 요소 생성
         const perspectives = ['first-person singular', 'first-person plural', 'second-person direct address', 'third-person observer'];
-        const narrativeArcs = ['rising hope against all odds', 'bittersweet nostalgia for a lost moment', 'revenge and reclaiming power', 'quiet acceptance after heartbreak', 'forbidden desire that burns bright', 'identity crisis and self-discovery', 'unexpected joy in ordinary life', 'haunting memory that won\'t fade'];
         const randomPerspective = perspectives[Math.floor(Math.random() * perspectives.length)];
-        const randomArc = narrativeArcs[Math.floor(Math.random() * narrativeArcs.length)];
         const randomSeed = Math.floor(Math.random() * 999999);
 
         // 기존 데이터에서 랜덤 픽
