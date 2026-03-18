@@ -1073,9 +1073,8 @@
             country: countrySelect.value,
             genre:   genreSelect.value,
             mood:    moodSelect.value,
-            themeText: document.getElementById('theme-text').value.trim(),
-            vocalLang: document.getElementById('vocal-lang-select').value,
-            weirdness: document.getElementById('weirdness-slider').value
+            themeText: (document.getElementById('theme-text') || {value:''}).value.trim(),
+            vocalLang: (document.getElementById('vocal-lang-select') || {value:'ko'}).value
           })
         });
         // 응답이 JSON이 아닐 경우 대비
