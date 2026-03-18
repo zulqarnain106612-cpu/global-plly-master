@@ -2161,8 +2161,7 @@ app.post('/api/generate-lyrics', verifyToken, async (req, res) => {
         const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
         const response = await ai.models.generateContent({
             model: GEMINI_MODEL,
-            contents: [{ role: 'user', parts: [{ text: lyricsPrompt }] }],
-            config: { responseMimeType: 'application/json' }
+            contents: [{ role: 'user', parts: [{ text: lyricsPrompt }] }]
         });
         let title = '', lyrics = '';
         try {

@@ -1118,9 +1118,7 @@
             genre:          genreSelect.value,
             mood:           moodSelect.value,
             subStyles:      selectedSubStyles,
-            refArtist:      document.getElementById('ref-artist-input').value.trim(),
-            styleInfluence: document.getElementById('styleinfluence-slider').value,
-            weirdness:      document.getElementById('weirdness-slider').value
+            refArtist:      (document.getElementById('ref-artist-input') || {value:''}).value.trim()
           })
         });
         const rawStyle = await resp.text();
