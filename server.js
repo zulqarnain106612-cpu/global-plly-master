@@ -2148,14 +2148,18 @@ app.post('/api/generate-lyrics', verifyToken, async (req, res) => {
         const vocalLangInfo = VOCAL_LANG_MAP[vocalLang] || { label: 'Korean' };
         const weirdnessNum  = Math.min(100, Math.max(0, Number(weirdness) || 50));
 
+        const perspectives = ['first-person singular', 'first-person plural', 'second-person', 'third-person narrative'];
+        const randomPerspective = perspectives[Math.floor(Math.random() * perspectives.length)];
+        const randomSeed = Math.floor(Math.random() * 999999);
         const lyricsPrompt = 'Write compelling song lyrics for a ' + genreInfo.name + ' track.'
             + ' Region/Culture: ' + countryInfo.name + '.'
             + ' Mood: ' + moodInfo.name + '.'
             + ' Language: ' + vocalLangInfo.label + '.'
-            + (themeText ? ' Theme: "' + themeText + '".' : '')
+            + (themeText ? ' Theme: "' + themeText + '".' : ' Pick a completely unexpected, original theme — not love, not party, not success.')
+            + ' Perspective: ' + randomPerspective + '.'
             + ' Write complete lyrics with [Verse 1], [Pre-Chorus], [Chorus], [Verse 2], [Bridge] sections.'
             + ' Make it emotionally resonant and singable.'
-            + ' IMPORTANT: Be highly creative and unique — seed #' + Math.floor(Math.random()*99999) + '. Choose a completely different angle, story, or imagery each time. Avoid clichés.'
+            + ' IMPORTANT: Variation seed #' + randomSeed + ' — every generation must feel like a different song. Use a unique metaphor, unusual imagery, or an unexpected narrative arc. Never repeat structures or phrases from previous outputs.'
             + ' Return a JSON object: { "title": "<creative song title in the lyrics language>", "lyrics": "<full lyrics text>" }'
             + ' No other text, only valid JSON.';
 
@@ -2166,7 +2170,7 @@ app.post('/api/generate-lyrics', verifyToken, async (req, res) => {
                 response = await ai.models.generateContent({
                     model: GEMINI_MODEL,
                     contents: lyricsPrompt,
-                    config: { temperature: 1.0 }
+                    config: { temperature: 1.2, topP: 0.95 }
                 });
                 break;
             } catch (e) {
@@ -2216,13 +2220,13 @@ app.post('/api/generate-style', verifyToken, async (req, res) => {
             + ' Weirdness: ' + weirdnessNum + '% (higher = more experimental).'
             + ' Output ONLY a comma-separated style tag string (max 200 chars, English only).'
             + ' Include: sub-genre, instruments, production style, era/vibe. No explanations.'
-            + ' Be creative and varied — seed #' + Math.floor(Math.random()*99999) + '.';
+            + ' Variation seed #' + Math.floor(Math.random()*999999) + ' — choose completely different instruments, production techniques, and era references each time. Never output the same tag combination twice.';
 
         const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
         const response = await ai.models.generateContent({
             model: GEMINI_MODEL,
-            contents: [{ role: 'user', parts: [{ text: stylePrompt }] }],
-            config: { temperature: 1.2 }
+            contents: stylePrompt,
+            config: { temperature: 1.3, topP: 0.97 }
         });
         const style = (response.text || '').trim().replace(/\n/g, ', ');
         console.log('✅ /api/generate-style (user: ' + req.user.username + ')');
