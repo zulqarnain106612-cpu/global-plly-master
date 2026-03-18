@@ -1137,15 +1137,21 @@
             weirdness: document.getElementById('weirdness-slider').value
           })
         });
-        const data = await resp.json();
+        // 응답이 JSON이 아닐 경우 대비
+        const rawText = await resp.text();
+        let data;
+        try { data = JSON.parse(rawText); } catch(e) {
+          showToast('가사 생성 실패: HTTP ' + resp.status + ' — ' + rawText.substring(0, 60), 'error');
+          return;
+        }
         if (data.success) {
           area.value = data.lyrics;
           showToast('🎤 가사가 생성되었습니다!', 'success');
         } else {
-          showToast('가사 생성 실패: ' + (data.error || '오류'), 'error');
+          showToast('가사 생성 실패: ' + (data.error || 'HTTP ' + resp.status), 'error');
         }
       } catch (e) {
-        showToast('네트워크 오류', 'error');
+        showToast('네트워크 오류: ' + e.message, 'error');
       } finally {
         icon.textContent = '✨'; btn.disabled = false;
       }
