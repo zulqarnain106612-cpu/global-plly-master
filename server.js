@@ -2160,11 +2160,23 @@ app.post('/api/generate-lyrics', verifyToken, async (req, res) => {
             + ' No other text, only valid JSON.';
 
         const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
-        const response = await ai.models.generateContent({
-            model: GEMINI_MODEL,
-            contents: lyricsPrompt,
-            config: { temperature: 1.0 }
-        });
+        let response, lastErr;
+        for (let attempt = 1; attempt <= 3; attempt++) {
+            try {
+                response = await ai.models.generateContent({
+                    model: GEMINI_MODEL,
+                    contents: lyricsPrompt,
+                    config: { temperature: 1.0 }
+                });
+                break;
+            } catch (e) {
+                lastErr = e;
+                console.error(`generate-lyrics attempt ${attempt} failed:`, e.message);
+                if (attempt < 3) await new Promise(r => setTimeout(r, 1000 * attempt));
+            }
+        }
+        if (!response) throw lastErr;
+
         const rawText = response.candidates?.[0]?.content?.parts?.[0]?.text || '';
         let title = '', lyrics = '';
         try {
@@ -2178,7 +2190,7 @@ app.post('/api/generate-lyrics', verifyToken, async (req, res) => {
         console.log('✅ /api/generate-lyrics (user: ' + req.user.username + ')');
         res.json({ success: true, title, lyrics });
     } catch (err) {
-        console.error('generate-lyrics error:', err);
+        console.error('generate-lyrics final error:', err.message, err.status || '');
         res.status(500).json({ success: false, error: err.message || '서버 오류' });
     }
 });
