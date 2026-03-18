@@ -2008,8 +2008,7 @@ app.post('/api/generate-prompts', verifyToken, async (req, res) => {
             });
         }
 
-        const { country, genre, mood, tempo, vocal, vocalLang, structure, subStyles, refArtist, themeText, count: reqCount } = req.body;
-        const promptCount = (reqCount === 1 || reqCount === '1') ? 1 : 10;
+        const { country, genre, mood, tempo, vocal, structure, vocalLang, subStyles, refArtist, themeText } = req.body;
 
         if (!country || !genre || !mood || !tempo) {
             return res.status(400).json({
@@ -2030,49 +2029,8 @@ app.post('/api/generate-prompts', verifyToken, async (req, res) => {
             .map(id => subStyleList.find(s => s.id === id)?.label)
             .filter(Boolean).join(', ');
 
-        // ─── 1개 vs 10개 모드 분기 ───
-        let systemPrompt, userContext;
-
-        if (promptCount === 1) {
-            // ── 단일 프롬프트 모드 ──
-            systemPrompt = `You are an elite Suno AI V5 prompt engineer. Your prompts consistently go viral.
-
-Generate exactly 1 JSON object (not an array) with this format:
-{ "prompt": "<Suno AI prompt>", "title": "<evocative track title>" }
-
-Structure the prompt using the 7-step director format:
-1. GENRE: Specific sub-genre
-2. BPM & KEY: Always include exact BPM and musical key
-3. MOOD & ENERGY: 1-2 precise emotional descriptors
-4. INSTRUMENTS: Specific instrument names (never generic)
-5. VOCAL STYLE: Gender + tone + technique
-6. ERA & PRODUCTION: Sonic texture and mix vibe
-7. NARRATIVE (optional): 1 short evocative phrase in quotes
-
-=== CRITICAL RULES ===
-- ALWAYS include exact BPM and key
-- Use SPECIFIC instrument names, never vague terms
-- Max 220 characters for the prompt
-- Return only valid JSON, no markdown fences`;
-
-            userContext = `Generate 1 V5-optimized Suno AI prompt for these settings:
-
-- Target Country/Region: ${countryInfo.name}
-  → Traditional instruments to consider: ${(countryInfo.instruments || []).join(', ')}
-- Genre: ${genreInfo.name} | BPM range: ${genreInfo.bpm} | Style: ${genreInfo.style}
-- Mood: ${moodInfo.name} — ${moodInfo.description || ''}
-- Tempo preference: ${tempo}
-- Vocal type: ${vocal || 'auto'}
-- Song structure: ${structure || 'standard'}
-- Lyrics language: ${vocalLangInfo.label}${vocalLangInfo.tag ? ` → always include tag: "${vocalLangInfo.tag}"` : ''}
-${subStyleLabels ? `- Sub-styles/flavor: ${subStyleLabels}` : ''}
-${refArtist ? `- Reference artist(s): ${refArtist} — mirror their production aesthetics and vocal delivery style` : ''}
-${themeText ? `- Theme/Story concept: "${themeText}" — weave this into the narrative element` : ''}
-
-Return JSON format: {"prompt": "...", "title": "..."}. Apply V5 7-step formula. Always include BPM+Key.`;
-
-        } else {
-            // ── 10개 모드 (기존) ──
+        // ── 시스템 프롬프트 (Suno AI V5 최적화 — NotebookLM 핵심 원칙 반영) ──
+        const systemPrompt = `You are an elite Suno AI V5 prompt engineer. Your prompts consistently go viral.
 Your ONLY output is a valid JSON array with EXACTLY 10 objects. No markdown, no explanation, no extra text.
 
 Output format (strict):
@@ -2105,7 +2063,8 @@ Structure each prompt using this 7-step director format:
 - Max 220 characters per prompt
 - Title must be evocative and match the mood (can be in the target language if specified)`;
 
-            userContext = `Generate 10 V5-optimized Suno AI prompts for these settings:
+        // ── 사용자 컨텍스트 ──
+        const userContext = `Generate 10 V5-optimized Suno AI prompts for these settings:
 
 - Target Country/Region: ${countryInfo.name}
   → Traditional instruments to consider: ${(countryInfo.instruments || []).join(', ')}
@@ -2118,9 +2077,8 @@ Structure each prompt using this 7-step director format:
 ${subStyleLabels ? `- Sub-styles/flavor: ${subStyleLabels}` : ''}
 ${refArtist ? `- Reference artist(s): ${refArtist} — mirror their production aesthetics and vocal delivery style` : ''}
 ${themeText ? `- Theme/Story concept: "${themeText}" — weave this into the narrative element of each prompt` : ''}
-            userContext += `
+
 REMINDER: Apply the full V5 7-step formula. Vary energy from soft→intense across 10 prompts. Always include BPM+Key.`;
-        } // end 10개 모드
 
         // ── Gemini API 호출 ──
         const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
@@ -2136,19 +2094,8 @@ REMINDER: Apply the full V5 7-step formula. Vary energy from soft→intense acro
         let rawText = response.text.replace(/```json/g, '').replace(/```/g, '').trim();
         let prompts;
         try {
-            const parsed = JSON.parse(rawText);
-            if (promptCount === 1) {
-                // 단일 객체 또는 배열 첫 번째 요소 처리
-                const item = Array.isArray(parsed) ? parsed[0] : parsed;
-                prompts = [{ index: 1, prompt: (item.prompt || '').substring(0, 220), title: item.title || 'Track 1' }];
-            } else {
-                if (!Array.isArray(parsed)) throw new Error('Response is not an array');
-                prompts = parsed.slice(0, 10).map((item, i) => ({
-                    index: i + 1,
-                    prompt: (item.prompt || '').substring(0, 220),
-                    title: item.title || `Track ${i + 1}`
-                }));
-            }
+            prompts = JSON.parse(rawText);
+            if (!Array.isArray(prompts)) throw new Error('Response is not an array');
         } catch (parseErr) {
             console.error('Gemini JSON parse error:', parseErr.message, '\nRaw:', rawText.substring(0, 300));
             return res.status(502).json({
@@ -2157,6 +2104,13 @@ REMINDER: Apply the full V5 7-step formula. Vary energy from soft→intense acro
                 detail: parseErr.message
             });
         }
+
+        // 10개 보장 및 정규화
+        prompts = prompts.slice(0, 10).map((item, i) => ({
+            index: i + 1,
+            prompt: (item.prompt || '').substring(0, 220),
+            title: item.title || `Track ${i + 1}`
+        }));
 
         // ── Supabase 히스토리 저장 (비동기, 실패해도 응답 지연 없음) ──
         if (supabase) {
