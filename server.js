@@ -1618,12 +1618,15 @@ async function callSunoAPI(prompt, titleSuggestion) {
 function verifyToken(req, res, next) {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
-    if (!token) return res.status(401).json({ success: false, message: '로그인이 필요합니다.' });
+    if (!token) return res.status(401).json({ success: false, message: '로그인이 필요합니다.', code: 'NO_TOKEN' });
     try {
         req.user = jwt.verify(token, JWT_SECRET);
         next();
-    } catch {
-        return res.status(403).json({ success: false, message: '세션이 만료되었습니다. 다시 로그인해주세요.' });
+    } catch (err) {
+        if (err.name === 'TokenExpiredError') {
+            return res.status(403).json({ success: false, message: '세션이 만료되었습니다. 다시 로그인해주세요.', code: 'TOKEN_EXPIRED' });
+        }
+        return res.status(403).json({ success: false, message: '인증 정보가 올바르지 않습니다. 다시 로그인해주세요.', code: 'INVALID_TOKEN' });
     }
 }
 
@@ -1762,7 +1765,7 @@ app.post('/api/auth/login', async (req, res) => {
 
         // 관리자 계정 체크 (Supabase 없이도 동작)
         if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
-            const token = jwt.sign({ id: 'admin', username: ADMIN_USERNAME, role: 'admin', realName: '관리자' }, JWT_SECRET, { expiresIn: '24h' });
+            const token = jwt.sign({ id: 'admin', username: ADMIN_USERNAME, role: 'admin', realName: '관리자' }, JWT_SECRET, { expiresIn: '7d' });
             return res.json({ success: true, token, role: 'admin', username: ADMIN_USERNAME, realName: '관리자' });
         }
 
@@ -1778,7 +1781,7 @@ app.post('/api/auth/login', async (req, res) => {
         if (user.role === 'rejected')
             return res.status(403).json({ success: false, message: '❌ 가입 신청이 거절되었습니다. 관리자에게 문의해주세요.' });
 
-        const token = jwt.sign({ id: user.id, username: user.username, role: user.role, realName: user.real_name }, JWT_SECRET, { expiresIn: '24h' });
+        const token = jwt.sign({ id: user.id, username: user.username, role: user.role, realName: user.real_name }, JWT_SECRET, { expiresIn: '7d' });
         res.json({ success: true, token, role: user.role, username: user.username, realName: user.real_name });
     } catch (e) {
         res.status(500).json({ success: false, message: '서버 오류: ' + e.message });

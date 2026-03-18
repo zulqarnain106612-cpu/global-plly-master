@@ -1069,6 +1069,11 @@
         });
 
         const data = await resp.json();
+        if (resp.status === 403 || resp.status === 401) {
+          showToast('⏰ 세션이 만료되었습니다. 다시 로그인해주세요.', 'error');
+          setTimeout(() => { window.location.href = '/logout'; }, 2500);
+          return;
+        }
         if (!resp.ok || !data.success) {
           throw new Error(data.error || `서버 오류 (${resp.status})`);
         }
@@ -1094,7 +1099,13 @@
         showToast(`✨ ${_prompts.length}개 프롬프트 생성 완료!`, 'success');
 
       } catch (err) {
-        showToast('❌ 오류: ' + err.message, 'error');
+        // 403 = 세션 만료 → 자동 로그아웃 후 로그인 페이지로 이동
+        if (err.message && err.message.includes('403')) {
+          showToast('⏰ 세션이 만료되었습니다. 다시 로그인해주세요.', 'error');
+          setTimeout(() => { window.location.href = '/logout'; }, 2500);
+        } else {
+          showToast('❌ 오류: ' + err.message, 'error');
+        }
         console.error(err);
       } finally {
         btn.disabled  = false;
