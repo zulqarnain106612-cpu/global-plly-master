@@ -668,6 +668,20 @@
 
         <!-- ═══ Generate Button ═══ -->
         <div style="animation: fadeUp 0.5s 0.2s ease-out forwards; opacity:0;">
+          <!-- 생성 개수 토글 -->
+          <div class="flex items-center justify-center gap-2 mb-3">
+            <span class="text-xs text-slate-400 font-semibold">생성 개수:</span>
+            <div style="display:flex; gap:4px; background:rgba(255,255,255,0.05); border-radius:10px; padding:3px;">
+              <button id="toggle-count-1" onclick="setPromptCount(1)"
+                style="padding:4px 14px; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer; transition:all 0.18s; border:none; color:#94a3b8; background:transparent;">
+                ⚡ 1개
+              </button>
+              <button id="toggle-count-10" onclick="setPromptCount(10)"
+                style="padding:4px 14px; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer; transition:all 0.18s; border:none; background:rgba(139,92,246,0.25); color:#c4b5fd;">
+                🎵 10개
+              </button>
+            </div>
+          </div>
           <button id="btn-generate" class="btn-generate" disabled onclick="generatePrompts()">
             <span id="btn-spinner" class="spinner hidden"></span>
             <span id="btn-icon" class="text-2xl">🎵</span>
@@ -1031,6 +1045,30 @@
       if (copied === total && total > 0) showToast('🎉 모든 프롬프트가 복사되었습니다!', 'success');
     }
 
+
+    // ─── 생성 개수 토글 ───
+    let currentPromptCount = 10;
+    function setPromptCount(n) {
+      currentPromptCount = n;
+      const btn1  = document.getElementById('toggle-count-1');
+      const btn10 = document.getElementById('toggle-count-10');
+      const btnText = document.getElementById('btn-text');
+      const btnIcon = document.getElementById('btn-icon');
+      const activeStyle  = 'background:rgba(139,92,246,0.25); color:#c4b5fd;';
+      const inactiveStyle = 'background:transparent; color:#94a3b8;';
+      if (n === 1) {
+        btn1.style.cssText  = btn1.style.cssText.replace(/background:[^;]+;/g,'').replace(/color:[^;]+;/g,'') + activeStyle;
+        btn10.style.cssText = btn10.style.cssText.replace(/background:[^;]+;/g,'').replace(/color:[^;]+;/g,'') + inactiveStyle;
+        if (btnText) btnText.textContent = '⚡ 프롬프트 1개 빠른 생성';
+        if (btnIcon) btnIcon.textContent = '⚡';
+      } else {
+        btn10.style.cssText = btn10.style.cssText.replace(/background:[^;]+;/g,'').replace(/color:[^;]+;/g,'') + activeStyle;
+        btn1.style.cssText  = btn1.style.cssText.replace(/background:[^;]+;/g,'').replace(/color:[^;]+;/g,'') + inactiveStyle;
+        if (btnText) btnText.textContent = '🎵 프롬프트 10개 자동 생성';
+        if (btnIcon) btnIcon.textContent = '🎵';
+      }
+    }
+
     // ─── Generate ───
     async function generatePrompts() {
       const country  = countrySelect.value;
@@ -1065,7 +1103,7 @@
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`
           },
-          body: JSON.stringify({ country, genre, mood, tempo, vocal, vocalLang, structure, subStyles: selectedSubStyles, refArtist, themeText })
+          body: JSON.stringify({ country, genre, mood, tempo, vocal, vocalLang, structure, subStyles: selectedSubStyles, refArtist, themeText, count: currentPromptCount })
         });
 
         const data = await resp.json();
