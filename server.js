@@ -2148,18 +2148,35 @@ app.post('/api/generate-lyrics', verifyToken, async (req, res) => {
         const vocalLangInfo = VOCAL_LANG_MAP[vocalLang] || { label: 'Korean' };
         const weirdnessNum  = Math.min(100, Math.max(0, Number(weirdness) || 50));
 
-        const perspectives = ['first-person singular', 'first-person plural', 'second-person', 'third-person narrative'];
+        // 랜덤 다양성 요소 생성
+        const perspectives = ['first-person singular', 'first-person plural', 'second-person direct address', 'third-person observer'];
+        const narrativeArcs = ['rising hope against all odds', 'bittersweet nostalgia for a lost moment', 'revenge and reclaiming power', 'quiet acceptance after heartbreak', 'forbidden desire that burns bright', 'identity crisis and self-discovery', 'unexpected joy in ordinary life', 'haunting memory that won\'t fade'];
         const randomPerspective = perspectives[Math.floor(Math.random() * perspectives.length)];
+        const randomArc = narrativeArcs[Math.floor(Math.random() * narrativeArcs.length)];
         const randomSeed = Math.floor(Math.random() * 999999);
+
+        // 기존 데이터에서 랜덤 픽
+        const pickRandom = (arr, n) => arr ? arr.sort(() => Math.random() - 0.5).slice(0, n) : [];
+        const randomInstruments = pickRandom(countryInfo.instruments || [], 2);
+        const randomVibe = pickRandom(countryInfo.vibes || [], 1)[0] || '';
+        const randomMoodTags = pickRandom(moodInfo.tags || [], 2);
+        const randomGenreTags = pickRandom(genreInfo.tags || [], 2);
+        const decades = ['1980s', '1990s', '2000s', '2010s', '2020s'];
+        const randomDecade = decades[Math.floor(Math.random() * decades.length)];
+
         const lyricsPrompt = 'Write compelling song lyrics for a ' + genreInfo.name + ' track.'
             + ' Region/Culture: ' + countryInfo.name + '.'
-            + ' Mood: ' + moodInfo.name + '.'
+            + ' Mood: ' + moodInfo.name + (randomMoodTags.length ? ' (' + randomMoodTags.join(', ') + ')' : '') + '.'
             + ' Language: ' + vocalLangInfo.label + '.'
-            + (themeText ? ' Theme: "' + themeText + '".' : ' Pick a completely unexpected, original theme — not love, not party, not success.')
+            + (themeText ? ' Theme: "' + themeText + '".' : ' Theme must follow this narrative arc: "' + randomArc + '".')
             + ' Perspective: ' + randomPerspective + '.'
+            + (randomInstruments.length ? ' Feature these instruments prominently: ' + randomInstruments.join(', ') + '.' : '')
+            + (randomVibe ? ' Overall vibe: ' + randomVibe + '.' : '')
+            + (randomGenreTags.length ? ' Style anchors: ' + randomGenreTags.join(', ') + '.' : '')
+            + ' Production era feel: ' + randomDecade + '.'
             + ' Write complete lyrics with [Verse 1], [Pre-Chorus], [Chorus], [Verse 2], [Bridge] sections.'
             + ' Make it emotionally resonant and singable.'
-            + ' IMPORTANT: Variation seed #' + randomSeed + ' — every generation must feel like a different song. Use a unique metaphor, unusual imagery, or an unexpected narrative arc. Never repeat structures or phrases from previous outputs.'
+            + ' Variation seed #' + randomSeed + ' — output must feel like a completely different song from any previous generation.'
             + ' Return a JSON object: { "title": "<creative song title in the lyrics language>", "lyrics": "<full lyrics text>" }'
             + ' No other text, only valid JSON.';
 
@@ -2170,7 +2187,7 @@ app.post('/api/generate-lyrics', verifyToken, async (req, res) => {
                 response = await ai.models.generateContent({
                     model: GEMINI_MODEL,
                     contents: lyricsPrompt,
-                    config: { temperature: 1.2, topP: 0.95 }
+                    config: { temperature: 1.2, topP: 0.95, topK: 40 }
                 });
                 break;
             } catch (e) {
@@ -2212,21 +2229,44 @@ app.post('/api/generate-style', verifyToken, async (req, res) => {
         const influenceNum = Math.min(100, Math.max(0, Number(styleInfluence) || 50));
         const weirdnessNum = Math.min(100, Math.max(0, Number(weirdness)      || 50));
 
+        // 기존 데이터에서 랜덤 픽
+        const pickRandomStyle = (arr, n) => arr ? arr.sort(() => Math.random() - 0.5).slice(0, n) : [];
+        const styleInstruments = pickRandomStyle(countryInfo.instruments || [], 2);
+        const styleVibe = pickRandomStyle(countryInfo.vibes || [], 1)[0] || '';
+        const styleScale = pickRandomStyle(countryInfo.scales || [], 1)[0] || '';
+        const styleMoodTags = pickRandomStyle(moodInfo.tags || [], 2);
+        const styleGenreTags = pickRandomStyle(genreInfo.tags || [], 2);
+        const bpmRange = genreInfo.bpm || '100-130';
+        const bpmParts = bpmRange.split('-');
+        const randomBpm = bpmParts.length === 2
+            ? Math.floor(Math.random() * (parseInt(bpmParts[1]) - parseInt(bpmParts[0]) + 1) + parseInt(bpmParts[0]))
+            : parseInt(bpmParts[0]) || 120;
+        const productionTechniques = ['sidechain compression', 'reverb-heavy', 'dry and punchy', 'lo-fi texture', 'futuristic hyper-production', 'analog warmth', 'glitchy electronic', 'orchestral layering', 'stripped-back acoustic', 'heavy distortion'];
+        const randomProduction = pickRandomStyle(productionTechniques, 2);
+        const decades = ['1980s', '1990s', '2000s', '2010s', '2020s'];
+        const randomDecade = decades[Math.floor(Math.random() * decades.length)];
+
         const stylePrompt = 'You are a Suno AI style expert. Generate a perfect style descriptor string.'
             + ' Genre: ' + genreInfo.name + '. Region: ' + countryInfo.name + '. Mood: ' + moodInfo.name + '.'
             + (subStyles && subStyles.length ? ' Sub-styles: ' + subStyles.join(', ') + '.' : '')
-            + (refArtist ? ' Reference: ' + refArtist + '.' : '')
-            + ' Style influence: ' + influenceNum + '% (higher = more distinct/defined).'
-            + ' Weirdness: ' + weirdnessNum + '% (higher = more experimental).'
-            + ' Output ONLY a comma-separated style tag string (max 200 chars, English only).'
-            + ' Include: sub-genre, instruments, production style, era/vibe. No explanations.'
-            + ' Variation seed #' + Math.floor(Math.random()*999999) + ' — choose completely different instruments, production techniques, and era references each time. Never output the same tag combination twice.';
+            + (refArtist ? ' Reference artist: ' + refArtist + '.' : '')
+            + ' Style influence: ' + influenceNum + '% (higher = more genre-defining). Weirdness: ' + weirdnessNum + '% (higher = more experimental).'
+            + (styleInstruments.length ? ' Highlight these instruments: ' + styleInstruments.join(', ') + '.' : '')
+            + (styleVibe ? ' Core vibe: ' + styleVibe + '.' : '')
+            + (styleScale ? ' Tonality/scale: ' + styleScale + '.' : '')
+            + (styleMoodTags.length ? ' Mood anchors: ' + styleMoodTags.join(', ') + '.' : '')
+            + (styleGenreTags.length ? ' Genre tags: ' + styleGenreTags.join(', ') + '.' : '')
+            + ' BPM: approximately ' + randomBpm + '.'
+            + ' Production era: ' + randomDecade + ' production feel.'
+            + ' Production technique: ' + randomProduction.join(' + ') + '.'
+            + ' Output ONLY a comma-separated style tag string (max 200 chars, English only). No explanations.'
+            + ' Variation seed #' + Math.floor(Math.random()*999999) + ' — output must use completely different tag combinations each time.';
 
         const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
         const response = await ai.models.generateContent({
             model: GEMINI_MODEL,
             contents: stylePrompt,
-            config: { temperature: 1.3, topP: 0.97 }
+            config: { temperature: 1.3, topP: 0.97, topK: 40 }
         });
         const style = (response.text || '').trim().replace(/\n/g, ', ');
         console.log('✅ /api/generate-style (user: ' + req.user.username + ')');

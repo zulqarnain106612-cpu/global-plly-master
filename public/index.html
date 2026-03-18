@@ -1101,11 +1101,12 @@
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
           body: JSON.stringify({
-            country: countrySelect.value,
-            genre:   genreSelect.value,
-            mood:    moodSelect.value,
+            country:   countrySelect.value,
+            genre:     genreSelect.value,
+            mood:      moodSelect.value,
             themeText: (document.getElementById('theme-text') || {value:''}).value.trim(),
-            vocalLang: (document.getElementById('vocal-lang-select') || {value:'ko'}).value
+            vocalLang: (document.getElementById('vocal-lang-select') || {value:'ko'}).value,
+            weirdness: parseInt((document.getElementById('weirdness-slider') || {value:'50'}).value) || 50
           })
         });
         // 응답이 JSON이 아닐 경우 대비
@@ -1149,7 +1150,9 @@
             genre:          genreSelect.value,
             mood:           moodSelect.value,
             subStyles:      selectedSubStyles,
-            refArtist:      (document.getElementById('ref-artist-input') || {value:''}).value.trim()
+            refArtist:      (document.getElementById('ref-artist-input') || {value:''}).value.trim(),
+            weirdness:      parseInt((document.getElementById('weirdness-slider') || {value:'50'}).value) || 50,
+            styleInfluence: parseInt((document.getElementById('style-influence-slider') || {value:'50'}).value) || 50
           })
         });
         const rawStyle = await resp.text();
