@@ -7,6 +7,8 @@
   <title>Global Plly Master - Luminous Edition</title>
   <meta name="description" content="타겟 국가와 분위기를 선택하면 최적화된 Suno AI 프롬프트를 자동 생성하는 음원 제작 시스템">
 
+  <!-- Fonts -->
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
   <!-- Google Fonts: Plus Jakarta Sans for Display, Manrope for UI -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -19,8 +21,8 @@
       theme: {
         extend: {
           fontFamily: {
-            sans: ['Manrope', 'sans-serif'],
-            display: ['Plus Jakarta Sans', 'sans-serif'],
+            sans: ['Pretendard', 'Manrope', 'sans-serif'],
+            display: ['Pretendard', 'Plus Jakarta Sans', 'sans-serif'],
             mono: ['JetBrains Mono', 'monospace'],
           },
           colors: {
@@ -32,8 +34,8 @@
               primaryLight: '#FF7575',
               primaryDark: '#b1202d',
               text: '#2d2f31',
-              textMuted: '#9c9d9f',
-              textDarker: '#5a5c5d',
+              textMuted: '#717375',
+              textDarker: '#4a4b4c',
               outlineFade: 'rgba(172, 173, 175, 0.2)'
             }
           },
@@ -284,39 +286,39 @@
         <div class="w-12 h-12 rounded-[1rem] bg-gradient-to-tr from-[#FF5A5F] to-[#ffc2cd] flex items-center justify-center text-white text-2xl shadow-glow">🎵</div>
         <div>
           <h1 class="font-display font-extrabold text-lg leading-tight tracking-tight text-luminous-text">PLLY <span class="text-luminous-primary">MASTER</span></h1>
-          <p class="text-[10px] text-luminous-textMuted mt-1 uppercase tracking-widest font-bold">Studio Dashboard</p>
+          <p class="text-[10px] text-luminous-textMuted mt-1 uppercase tracking-widest font-bold">Studio 대시보드</p>
         </div>
       </div>
     </div>
 
     <nav class="flex-1 overflow-y-auto pb-6">
-      <div class="sidebar-section-label">Main Control</div>
+      <div class="sidebar-section-label">메인 컨트롤</div>
       <a class="nav-link active" href="/">
-        <span class="w-6 flex justify-center text-lg">🏠</span><span>Dashboard</span>
+        <span class="w-6 flex justify-center text-lg">🏠</span><span>대시보드</span>
       </a>
       <a id="btn-admin-nav" class="nav-link" style="display:none;" href="/admin.html">
-        <span class="w-6 flex justify-center text-lg">🛡️</span><span>Admin Station</span>
+        <span class="w-6 flex justify-center text-lg">🛡️</span><span>관리자 모드</span>
       </a>
 
-      <div class="sidebar-section-label">Insights</div>
-      <a class="nav-link" href="/results.html" id="nav-recent-results" style="opacity:0.6;" title="Recent results">
-        <span class="w-6 flex justify-center text-lg">🎵</span><span class="flex-1">Latest Outputs</span>
+      <div class="sidebar-section-label">인사이트</div>
+      <a class="nav-link" href="/results.html" id="nav-recent-results" style="opacity:0.6;" title="최근 결과">
+        <span class="w-6 flex justify-center text-lg">🎵</span><span class="flex-1">최근 생성 결과</span>
         <span id="nav-results-badge" class="bg-luminous-primaryLight/10 text-luminous-primary px-2 py-0.5 rounded-full text-[10px] font-bold"></span>
       </a>
       <button class="nav-link w-full text-left" onclick="switchView('history')">
-        <span class="w-6 flex justify-center text-lg">📋</span><span class="flex-1">Task History</span>
+        <span class="w-6 flex justify-center text-lg">📋</span><span class="flex-1">작업 내역</span>
       </button>
       <button class="nav-link w-full text-left" onclick="switchView('trends')">
-        <span class="w-6 flex justify-center text-lg">🌍</span><span class="flex-1">Global Trends</span>
+        <span class="w-6 flex justify-center text-lg">🌍</span><span class="flex-1">글로벌 트렌드</span>
       </button>
 
-      <div class="sidebar-section-label">AI System</div>
+      <div class="sidebar-section-label">AI 시스템</div>
       <div class="mx-3 mt-2 p-4 rounded-2xl bg-luminous-surfaceLow border border-white">
         <div class="flex items-center gap-3">
           <div id="gemini-dot" class="w-2.5 h-2.5 rounded-full bg-slate-300" style="transition:background 0.4s;"></div>
           <div class="flex-1 min-w-0">
-            <p class="text-[10px] font-bold text-luminous-textDarker uppercase tracking-wider">Gemini Status</p>
-            <p id="gemini-status-text" class="text-[11px] font-semibold text-luminous-text truncate">Verifying...</p>
+            <p class="text-[10px] font-bold text-luminous-textDarker uppercase tracking-wider">Gemini 연결 상태</p>
+            <p id="gemini-status-text" class="text-[11px] font-semibold text-luminous-text truncate">연결 확인 중...</p>
           </div>
           <span id="gemini-icon" class="text-base">⏳</span>
         </div>
@@ -329,7 +331,7 @@
         <div class="w-10 h-10 rounded-full bg-luminous-text text-white flex items-center justify-center font-bold shadow-sm">👤</div>
         <div class="flex-1 min-w-0">
           <p id="user-display" class="text-sm font-bold text-luminous-text truncate">User</p>
-          <p class="text-[10px] text-luminous-primary font-bold uppercase tracking-wider">Luminous Pro</p>
+          <p class="text-[10px] text-luminous-primary font-bold uppercase tracking-wider">루미너스 프로</p>
         </div>
         <button onclick="doLogout()" class="text-luminous-textMuted hover:text-luminous-primary p-2 rounded-full transition-all">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
@@ -346,8 +348,8 @@
       <div class="trends-panel-header">
         <div class="flex items-center justify-between mb-4">
           <div class="flex items-center gap-2">
-            <h3 class="font-display font-bold text-lg text-luminous-text">Trend Analytics</h3>
-            <span class="bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-widest">Live</span>
+            <h3 class="font-display font-bold text-lg text-luminous-text">트렌드 분석</h3>
+            <span class="bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-widest">실시간 작동중</span>
           </div>
           <button id="btn-refresh-trends" onclick="loadTrends()" class="text-luminous-textMuted hover:text-luminous-primary transition-colors p-2 rounded-full hover:bg-luminous-surfaceLow font-bold text-lg">🔄</button>
         </div>
@@ -356,7 +358,7 @@
       <div class="trends-panel-body" id="age-trends-body">
          <div class="text-center py-20 text-luminous-textMuted">
             <div class="spinner mx-auto mb-4" style="border-color: rgba(90,92,93,0.2); border-top-color: #FF5A5F;"></div>
-            <p class="font-bold">Syncing insights...</p>
+            <p class="font-bold">인사이트 동기화 중...</p>
          </div>
       </div>
     </div>
@@ -371,10 +373,10 @@
           <span id="admin-badge" class="hidden bg-[#fff5e6] text-[#b35900] px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest">Admin</span>
         </div>
         <h2 class="font-display font-extrabold text-4xl text-luminous-text leading-tight tracking-tight">
-          Compose the Sound <br>
-          <span style="background: linear-gradient(135deg, #b1202d, #ff7575); -webkit-background-clip: text; color: transparent;">of Tomorrow.</span>
+          내일의 사운드를 <br>
+          <span style="background: linear-gradient(135deg, #b1202d, #ff7575); -webkit-background-clip: text; color: transparent;">설계하세요.</span>
         </h2>
-        <p class="text-luminous-textDarker mt-4 text-base font-medium">Select your criteria to automatically generate 10 highly optimized Suno AI prompts.</p>
+        <p class="text-luminous-textDarker mt-4 text-base font-medium">원하는 옵션을 셋팅하면 최적화된 Suno AI 마스터 프롬프트 세트가 자동으로 배출됩니다.</p>
       </header>
 
       <div id="prompt-form" class="space-y-8">
@@ -384,29 +386,29 @@
           <div class="flex items-center gap-4 mb-8">
             <div class="w-10 h-10 rounded-full bg-luminous-surfaceLow flex items-center justify-center text-sm font-bold text-luminous-textDarker">1</div>
             <div>
-              <h3 class="font-display font-extrabold text-xl text-luminous-text">Target Settings</h3>
-              <p class="text-xs text-luminous-textMuted font-medium mt-1">Define the fundamental genre and market.</p>
+              <h3 class="font-display font-extrabold text-xl text-luminous-text">1. 타겟 설정</h3>
+              <p class="text-xs text-luminous-textMuted font-medium mt-1">기본적인 음악 장르와 진출할 목표 시장(국가)을 설정합니다.</p>
             </div>
           </div>
           <div class="grid grid-cols-2 gap-8 mb-6">
             <div>
-              <label class="input-label">Target Market <span id="country-flag" class="ml-1 text-lg"></span></label>
-              <select id="select-country" class="select-premium"><option value="" disabled selected>Choose market...</option></select>
+              <label class="input-label">타겟 시장 (국가) <span id="country-flag" class="ml-1 text-lg"></span></label>
+              <select id="select-country" class="select-premium"><option value="" disabled selected>시장(국가) 선택...</option></select>
             </div>
             <div>
-              <label class="input-label">Primary Genre</label>
-              <select id="select-genre" class="select-premium"><option value="" disabled selected>Choose genre...</option></select>
+              <label class="input-label">메인 장르</label>
+              <select id="select-genre" class="select-premium"><option value="" disabled selected>메인 장르 선택...</option></select>
             </div>
           </div>
           <div class="grid grid-cols-2 gap-8">
             <div>
-              <label class="input-label">Vibe / Mood <span id="mood-emoji" class="ml-1 text-lg"></span></label>
-              <select id="select-mood" class="select-premium"><option value="" disabled selected>Choose vibe...</option></select>
+              <label class="input-label">바이브 / 곡 분위기 <span id="mood-emoji" class="ml-1 text-lg"></span></label>
+              <select id="select-mood" class="select-premium"><option value="" disabled selected>분위기 선택...</option></select>
             </div>
             <div>
-              <label class="input-label">Tempo (BPM)</label>
+              <label class="input-label">곡 템포 (BPM)</label>
               <select id="select-tempo" class="select-premium">
-                <option value="" disabled selected>Choose tempo...</option>
+                <option value="" disabled selected>템포 선택...</option>
                 <option value="very slow (40-60 BPM)">🐢 Very Slow (40-60)</option>
                 <option value="slow (60-80 BPM)">🌙 Slow (60-80)</option>
                 <option value="moderate (80-100 BPM)">🚶 Moderate (80-100)</option>
@@ -421,22 +423,22 @@
         <!-- Section 01.5: Substyles -->
         <section id="substyle-section" class="glass-card" style="display:none; animation: fadeUp 0.6s ease-out forwards; opacity:0;">
           <div class="mb-5">
-            <h3 class="font-display font-extrabold text-lg text-luminous-text">Sub-Styles <span class="text-sm font-medium text-luminous-textMuted ml-2 normal-case tracking-normal">(Multiple selection)</span></h3>
+            <h3 class="font-display font-extrabold text-lg text-luminous-text">서브 스타일 <span class="text-sm font-medium text-luminous-textMuted ml-2 normal-case tracking-normal">(다중 선택 가능)</span></h3>
           </div>
           <div id="substyle-tags" class="flex flex-wrap gap-2"></div>
         </section>
 
-        <!-- Section 02: Refinement -->
+        <!-- Section 02: 2. 세부 설정 -->
         <section class="glass-card" style="animation: fadeUp 0.6s 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity:0;">
           <div class="flex items-center gap-4 mb-8">
             <div class="w-10 h-10 rounded-full bg-luminous-surfaceLow flex items-center justify-center text-sm font-bold text-luminous-textDarker">2</div>
             <div>
-              <h3 class="font-display font-extrabold text-xl text-luminous-text">Refinement</h3>
-              <p class="text-xs text-luminous-textMuted font-medium mt-1">Adjust vocals, structure, and artistic influences.</p>
+              <h3 class="font-display font-extrabold text-xl text-luminous-text">2. 세부 설정</h3>
+              <p class="text-xs text-luminous-textMuted font-medium mt-1">보컬 형태, 곡 구조 및 예술적 레퍼런스를 디테일하게 조정합니다.</p>
             </div>
           </div>
           <div class="grid grid-cols-3 gap-6 mb-6">
-            <div><label class="input-label">Vocals</label>
+            <div><label class="input-label">보컬 유형</label>
               <select id="vocal-select" class="select-premium">
                 <option value="auto">🤖 Auto</option>
                 <option value="male vocals">👨 Male</option>
@@ -447,7 +449,7 @@
                 <option value="instrumental, no lyrics">🎸 Instrumental</option>
               </select>
             </div>
-            <div><label class="input-label">Lyrics Language</label>
+            <div><label class="input-label">가사 언어</label>
               <select id="vocal-lang-select" class="select-premium">
                 <option value="auto">🤖 Auto</option>
                 <option value="korean">🇰🇷 Korean</option>
@@ -458,7 +460,7 @@
                 <option value="instrumental">🎸 No Lyrics</option>
               </select>
             </div>
-            <div><label class="input-label">Song Structure</label>
+            <div><label class="input-label">곡 구조</label>
               <select id="structure-select" class="select-premium">
                 <option value="standard">📻 Standard (~3m)</option>
                 <option value="short">📱 Short-form (~1m)</option>
@@ -470,7 +472,7 @@
           
           <div class="mb-6">
             <label class="input-label">Reference Artists <span class="text-[11px] normal-case text-luminous-textMuted font-medium tracking-normal">(Optional)</span></label>
-            <input type="text" id="ref-artist-input" class="input-luminous" placeholder="e.g. aespa, Daft Punk, The Weeknd...">
+            <input type="text" id="ref-artist-input" class="input-luminous" placeholder="예: aespa, NewJeans, Daft Punk...">
           </div>
           <div id="artist-chips-wrap" class="mt-4 hidden p-4 bg-[#fafafa] rounded-2xl border border-[#f0f1f3]">
             <label class="input-label !mb-3 border-b border-[#f0f1f3] pb-2">⭐ AI Suggested</label>
@@ -479,7 +481,7 @@
 
           <div class="mt-6">
             <label class="input-label">Theme / Storyline <span class="text-[11px] normal-case text-luminous-textMuted font-medium tracking-normal">(Optional)</span></label>
-            <textarea id="theme-text" rows="2" class="textarea-luminous" placeholder="e.g. A melancholic night ride through Neo-Seoul..."></textarea>
+            <textarea id="theme-text" rows="2" class="textarea-luminous" placeholder="예: 비 오는 사이버펑크 네오 서울을 질주하는 도시적인 베이스라인..."></textarea>
           </div>
         </section>
 
@@ -515,23 +517,23 @@
 
         <div class="flex justify-center -mt-2 mb-4">
           <button id="btn-advanced-toggle" onclick="toggleAdvancedMode()" class="px-6 py-2.5 rounded-full bg-white border border-luminous-surfaceLow text-sm font-bold shadow-sm hover:shadow-md hover:border-luminous-primaryLight transition-all text-luminous-textDarker">
-            <span id="advanced-toggle-icon">⚡</span> <span id="advanced-toggle-text">Advanced Tools</span>
+            <span id="advanced-toggle-icon">⚡</span> <span id="advanced-toggle-text">고급 생성 설정</span>
           </button>
         </div>
 
         <!-- Submit Section -->
         <div style="animation: fadeUp 0.6s 0.3s forwards; opacity:0;">
           <div class="flex items-center justify-center gap-4 mb-5">
-            <span class="text-sm font-bold text-luminous-textMuted uppercase tracking-widest">Output Quantity</span>
+            <span class="text-sm font-bold text-luminous-textMuted uppercase tracking-widest">출력 개수 설정</span>
             <div class="bg-luminous-surfaceLow p-1 rounded-full flex gap-1 shadow-inner">
-              <button id="toggle-count-1" onclick="setPromptCount(1)" class="px-5 py-2 rounded-full text-sm font-bold text-luminous-textDarker transition-all border-none bg-transparent hover:text-luminous-text">1 Prompt</button>
-              <button id="toggle-count-10" onclick="setPromptCount(10)" class="px-5 py-2 rounded-full text-sm font-extrabold text-luminous-primary bg-white shadow-sm border border-luminous-surfaceLow transition-all">10 Prompts</button>
+              <button id="toggle-count-1" onclick="setPromptCount(1)" class="px-5 py-2 rounded-full text-sm font-bold text-luminous-textDarker transition-all border-none bg-transparent hover:text-luminous-text">1개 단일 생성</button>
+              <button id="toggle-count-10" onclick="setPromptCount(10)" class="px-5 py-2 rounded-full text-sm font-extrabold text-luminous-primary bg-white shadow-sm border border-luminous-surfaceLow transition-all">10연속 배치 생성</button>
             </div>
           </div>
           <button id="btn-generate" class="btn-generate text-xl font-display font-bold py-5" disabled onclick="generatePrompts()">
             <span id="btn-spinner" class="spinner hidden"></span>
             <span id="btn-icon" class="text-2xl mr-2">🎵</span>
-            <span id="btn-text">Extract Master Prompts</span>
+            <span id="btn-text">마스터 프롬프트 생성하기</span>
           </button>
           <p class="text-center text-xs font-bold text-luminous-textMuted mt-4 uppercase tracking-[0.05em] opacity-60">Engineered with Gemini 2.0 Flash</p>
         </div>
@@ -564,7 +566,7 @@
       <div id="view-history" class="hidden">
         <div class="flex items-center gap-6 mb-10 border-b border-luminous-surfaceLow pb-6">
           <button onclick="switchView('dashboard')" class="w-12 h-12 rounded-full bg-white shadow-sm flex items-center justify-center hover:bg-luminous-surfaceLow transition-all text-xl">←</button>
-          <h3 class="font-display font-extrabold text-3xl text-luminous-text">Task History</h3>
+          <h3 class="font-display font-extrabold text-3xl text-luminous-text">작업 내역</h3>
         </div>
         <div id="history-list" class="space-y-4"></div>
       </div>

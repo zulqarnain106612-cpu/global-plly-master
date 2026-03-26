@@ -7,6 +7,8 @@
   <title>Global Plly Master - Luminous Edition</title>
   <meta name="description" content="타겟 국가와 분위기를 선택하면 최적화된 Suno AI 프롬프트를 자동 생성하는 음원 제작 시스템">
 
+  <!-- Fonts -->
+  <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
   <!-- Google Fonts: Plus Jakarta Sans for Display, Manrope for UI -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -19,8 +21,8 @@
       theme: {
         extend: {
           fontFamily: {
-            sans: ['Manrope', 'sans-serif'],
-            display: ['Plus Jakarta Sans', 'sans-serif'],
+            sans: ['Pretendard', 'Manrope', 'sans-serif'],
+            display: ['Pretendard', 'Plus Jakarta Sans', 'sans-serif'],
             mono: ['JetBrains Mono', 'monospace'],
           },
           colors: {
@@ -32,8 +34,8 @@
               primaryLight: '#FF7575',
               primaryDark: '#b1202d',
               text: '#2d2f31',
-              textMuted: '#9c9d9f',
-              textDarker: '#5a5c5d',
+              textMuted: '#717375',
+              textDarker: '#4a4b4c',
               outlineFade: 'rgba(172, 173, 175, 0.2)'
             }
           },
@@ -284,39 +286,39 @@
         <div class="w-12 h-12 rounded-[1rem] bg-gradient-to-tr from-[#FF5A5F] to-[#ffc2cd] flex items-center justify-center text-white text-2xl shadow-glow">🎵</div>
         <div>
           <h1 class="font-display font-extrabold text-lg leading-tight tracking-tight text-luminous-text">PLLY <span class="text-luminous-primary">MASTER</span></h1>
-          <p class="text-[10px] text-luminous-textMuted mt-1 uppercase tracking-widest font-bold">Studio Dashboard</p>
+          <p class="text-[10px] text-luminous-textMuted mt-1 uppercase tracking-widest font-bold">Studio 대시보드</p>
         </div>
       </div>
     </div>
 
     <nav class="flex-1 overflow-y-auto pb-6">
-      <div class="sidebar-section-label">Main Control</div>
+      <div class="sidebar-section-label">메인 컨트롤</div>
       <a class="nav-link active" href="/">
-        <span class="w-6 flex justify-center text-lg">🏠</span><span>Dashboard</span>
+        <span class="w-6 flex justify-center text-lg">🏠</span><span>대시보드</span>
       </a>
       <a id="btn-admin-nav" class="nav-link" style="display:none;" href="/admin.html">
-        <span class="w-6 flex justify-center text-lg">🛡️</span><span>Admin Station</span>
+        <span class="w-6 flex justify-center text-lg">🛡️</span><span>관리자 모드</span>
       </a>
 
-      <div class="sidebar-section-label">Insights</div>
+      <div class="sidebar-section-label">인사이트</div>
       <a class="nav-link" href="/results.html" id="nav-recent-results" style="opacity:0.6;" title="Recent results">
-        <span class="w-6 flex justify-center text-lg">🎵</span><span class="flex-1">Latest Outputs</span>
+        <span class="w-6 flex justify-center text-lg">🎵</span><span class="flex-1">최근 생성 결과</span>
         <span id="nav-results-badge" class="bg-luminous-primaryLight/10 text-luminous-primary px-2 py-0.5 rounded-full text-[10px] font-bold"></span>
       </a>
       <button class="nav-link w-full text-left" onclick="switchView('history')">
-        <span class="w-6 flex justify-center text-lg">📋</span><span class="flex-1">Task History</span>
+        <span class="w-6 flex justify-center text-lg">📋</span><span class="flex-1">작업 내역</span>
       </button>
       <button class="nav-link w-full text-left" onclick="switchView('trends')">
-        <span class="w-6 flex justify-center text-lg">🌍</span><span class="flex-1">Global Trends</span>
+        <span class="w-6 flex justify-center text-lg">🌍</span><span class="flex-1">글로벌 트렌드</span>
       </button>
 
-      <div class="sidebar-section-label">AI System</div>
+      <div class="sidebar-section-label">AI 시스템</div>
       <div class="mx-3 mt-2 p-4 rounded-2xl bg-luminous-surfaceLow border border-white">
         <div class="flex items-center gap-3">
           <div id="gemini-dot" class="w-2.5 h-2.5 rounded-full bg-slate-300" style="transition:background 0.4s;"></div>
           <div class="flex-1 min-w-0">
-            <p class="text-[10px] font-bold text-luminous-textDarker uppercase tracking-wider">Gemini Status</p>
-            <p id="gemini-status-text" class="text-[11px] font-semibold text-luminous-text truncate">Verifying...</p>
+            <p class="text-[10px] font-bold text-luminous-textDarker uppercase tracking-wider">Gemini 연결 상태</p>
+            <p id="gemini-status-text" class="text-[11px] font-semibold text-luminous-text truncate">연결 확인 중...</p>
           </div>
           <span id="gemini-icon" class="text-base">⏳</span>
         </div>
@@ -329,7 +331,7 @@
         <div class="w-10 h-10 rounded-full bg-luminous-text text-white flex items-center justify-center font-bold shadow-sm">👤</div>
         <div class="flex-1 min-w-0">
           <p id="user-display" class="text-sm font-bold text-luminous-text truncate">User</p>
-          <p class="text-[10px] text-luminous-primary font-bold uppercase tracking-wider">Luminous Pro</p>
+          <p class="text-[10px] text-luminous-primary font-bold uppercase tracking-wider">루미너스 프로</p>
         </div>
         <button onclick="doLogout()" class="text-luminous-textMuted hover:text-luminous-primary p-2 rounded-full transition-all">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
@@ -457,7 +459,7 @@
       document.getElementById('page-title').textContent = '단일 프롬프트 결과';
       var escaped = (result.prompt.prompt || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
       var m = result.music;
-      var titleText = m ? (m.title || 'Untitled') : 'Single Prompt Output';
+      var titleText = m ? (m.title || 'Untitled') : '단일 프롬프트 생성 결과';
       var mInfo = m ? '<div class="text-[11px] text-[#FF5A5F] uppercase font-bold tracking-widest mt-1">' + (m.duration||'') + '</div>' : '<p class="text-sm text-luminous-textMuted">가사 스크립트는 고급 모드에서 사용 가능합니다.</p>';
 
       container.innerHTML = '<div class="glass-card bg-white rounded-[2rem] p-8 lg:p-12 shadow-[0_20px_40px_rgba(45,47,49,0.04)] border border-transparent hover:shadow-[0_30px_60px_rgba(45,47,49,0.08)] transition-all max-w-4xl mx-auto">' +
@@ -474,7 +476,7 @@
         '<div id="image-prompt-section" class="mt-12 pt-10 border-t border-[#f0f1f3]">' +
           '<div class="flex items-center gap-4 mb-6">' +
             '<div class="w-12 h-12 rounded-[1rem] bg-gradient-to-br from-fuchsia-400 to-purple-500 flex items-center justify-center text-xl shadow-[0_10px_30px_rgba(217,70,239,0.2)]">🎨</div>' +
-            '<div><h3 class="text-[20px] font-display font-black text-luminous-text">Image &amp; Video Prompts</h3><p class="text-xs text-luminous-textMuted font-bold mt-1 tracking-wide">앨범 커버 및 뮤직비디오용 AI 프롬프트 (16:9)</p></div>' +
+            '<div><h3 class="text-[20px] font-display font-black text-luminous-text">이미지 및 비디오 프롬프트</h3><p class="text-xs text-luminous-textMuted font-bold mt-1 tracking-wide">결과 분석 기반 앨범 커버 및 비디오 백그라운드 프롬프트 (16:9)</p></div>' +
             '<div id="img-loading" class="ml-auto flex items-center gap-2 text-fuchsia-500 text-[13px] font-bold hidden"><div class="spinner w-4 h-4 border-2 border-fuchsia-200 border-t-fuchsia-500"></div>생성 중...</div>' +
           '</div>' +
           '<div class="flex flex-wrap gap-2 mb-6"><button class="px-5 py-2.5 rounded-full text-[13px] font-bold text-luminous-textMuted bg-[#f0f1f3] hover:bg-[#e7e8ea] hover:text-luminous-text transition-all img-tab active" data-tab="whisk" onclick="switchImgTab(\'whisk\')">🌀 Whisk (Pika)</button><button class="px-5 py-2.5 rounded-full text-[13px] font-bold text-luminous-textMuted bg-[#f0f1f3] hover:bg-[#e7e8ea] hover:text-luminous-text transition-all img-tab" data-tab="flow" onclick="switchImgTab(\'flow\')">🎬 FLOW (Video)</button><button class="px-5 py-2.5 rounded-full text-[13px] font-bold text-luminous-textMuted bg-[#f0f1f3] hover:bg-[#e7e8ea] hover:text-luminous-text transition-all img-tab" data-tab="grok" onclick="switchImgTab(\'grok\')">🤖 Grok (Image)</button></div>' +
@@ -536,7 +538,7 @@
         '<div id="batch-image-section" class="mt-16 pt-10 border-t border-[#f0f1f3]">' +
           '<div class="flex items-center gap-4 mb-6">' +
             '<div class="w-12 h-12 shrink-0 rounded-[1rem] bg-gradient-to-br from-fuchsia-400 to-purple-600 flex items-center justify-center text-xl shadow-[0_10px_30px_rgba(217,70,239,0.25)]">🎨</div>' +
-            '<div><h2 class="text-[20px] font-display font-black text-luminous-text">Image &amp; Video Prompts</h2><p class="text-xs text-luminous-textMuted font-bold mt-1">각 트랙별 앨범 커버 및 뮤직비디오용 AI 프롬프트 (16:9)</p></div>' +
+            '<div><h2 class="text-[20px] font-display font-black text-luminous-text">이미지 및 비디오 프롬프트</h2><p class="text-xs text-luminous-textMuted font-bold mt-1">각 결과별 앨범 커버와 뮤직비디오에 사용할 AI 프롬프트 (16:9)</p></div>' +
             '<div id="batch-img-loading" class="ml-auto flex items-center gap-2 text-fuchsia-500 text-[13px] font-bold hidden"><div class="spinner w-4 h-4 border-2 border-fuchsia-200 border-t-fuchsia-500"></div>생성 중...</div>' +
           '</div>' +
           '<div class="flex flex-wrap gap-2 mb-6"><button class="px-5 py-2.5 rounded-full text-[13px] font-bold text-luminous-textMuted bg-[#f0f1f3] hover:bg-[#e7e8ea] hover:text-luminous-text transition-all img-tab active" data-tab="whisk" onclick="switchBatchImgTab(\'whisk\')">🌀 Whisk</button><button class="px-5 py-2.5 rounded-full text-[13px] font-bold text-luminous-textMuted bg-[#f0f1f3] hover:bg-[#e7e8ea] hover:text-luminous-text transition-all img-tab" data-tab="flow" onclick="switchBatchImgTab(\'flow\')">🎬 FLOW</button><button class="px-5 py-2.5 rounded-full text-[13px] font-bold text-luminous-textMuted bg-[#f0f1f3] hover:bg-[#e7e8ea] hover:text-luminous-text transition-all img-tab" data-tab="grok" onclick="switchBatchImgTab(\'grok\')">🤖 Grok</button></div>' +
