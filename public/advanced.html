@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Global Plly Master - Luminous Edition</title>
+  <title>Advanced Mode - Global Plly Master</title>
   <meta name="description" content="타겟 국가와 분위기를 선택하면 최적화된 Suno AI 프롬프트를 자동 생성하는 음원 제작 시스템">
 
   <!-- Fonts -->
@@ -293,13 +293,13 @@
 
     <nav class="flex-1 overflow-y-auto pb-6">
       <div class="sidebar-section-label">메인 컨트롤</div>
-      <a class="nav-link active" href="/">
+      <a class="nav-link" href="/">
         <span class="w-6 flex justify-center text-lg">🏠</span><span>대시보드</span>
       </a>
       <a id="btn-admin-nav" class="nav-link" style="display:none;" href="/admin.html">
         <span class="w-6 flex justify-center text-lg">🛡️</span><span>관리자 모드</span>
       </a>
-      <a class="nav-link" id="nav-advanced" href="/advanced.html">
+      <a class="nav-link active" id="nav-advanced" href="/advanced.html">
         <span class="w-6 flex justify-center text-lg">⚡</span><span>고급 모드</span>
       </a>
 
@@ -376,10 +376,10 @@
           <span id="admin-badge" class="hidden bg-[#fff5e6] text-[#b35900] px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest">Admin</span>
         </div>
         <h2 class="font-display font-extrabold text-4xl text-luminous-text leading-tight tracking-tight">
-          내일의 사운드를 <br>
-          <span style="background: linear-gradient(135deg, #b1202d, #ff7575); -webkit-background-clip: text; color: transparent;">설계하세요.</span>
+          디테일 그 이상의 완성도. <br>
+          <span style="background: linear-gradient(135deg, #b1202d, #ff7575); -webkit-background-clip: text; color: transparent;">고급 모드</span>
         </h2>
-        <p class="text-luminous-textDarker mt-4 text-base font-medium">원하는 옵션을 셋팅하면 최적화된 Suno AI 마스터 프롬프트 세트가 자동으로 배출됩니다.</p>
+        <p class="text-luminous-textDarker mt-4 text-base font-medium">목표에 따라 가사와 스타일 프롬프트를 매뉴얼하게 디자인하고 디테일을 통제하세요.</p>
       </header>
 
       <div id="prompt-form" class="space-y-8">
@@ -488,21 +488,45 @@
           </div>
         </section>
 
+        <!-- Advanced Panel -->
+        <div id="advanced-panel" style="display:block; animation: fadeUp 0.4s ease-out forwards;">
+          <!-- Lyrics -->
+          <div class="bg-[#fafafa] border border-luminous-surfaceLow rounded-[2rem] p-8 mb-6 shadow-sm">
+            <div class="flex items-center justify-between mb-6">
+              <h4 class="font-display font-extrabold text-lg text-luminous-text">🎤 Lyrics Generator</h4>
+              <div class="flex gap-2">
+                <button id="btn-copy-title" onclick="copyAdv('lyrics-title','btn-copy-title')" class="btn-copy">Title</button>
+                <button id="btn-copy-lyrics" onclick="copyAdv('advanced-lyrics','btn-copy-lyrics')" class="btn-copy">Lyrics</button>
+                <button onclick="generateLyricsAI()" id="btn-gen-lyrics" class="btn-copy !bg-luminous-text !text-white hover:!bg-luminous-primaryLight hover:!text-white ml-2">✨ Auto Generate</button>
+              </div>
+            </div>
+            <input type="text" id="lyrics-title" class="input-luminous mb-4 font-bold" placeholder="Song Title (Auto-fills on generate)" />
+            <textarea id="advanced-lyrics" rows="5" class="textarea-luminous !font-mono text-sm leading-relaxed" placeholder="Type custom lyrics or leave blank for instrumental."></textarea>
+          </div>
+
+          <!-- Styles -->
+          <div class="bg-[#fafafa] border border-luminous-surfaceLow rounded-[2rem] p-8 mb-6 shadow-sm">
+            <div class="flex items-center justify-between mb-6">
+              <h4 class="font-display font-extrabold text-lg text-luminous-text">🎨 Style Directives</h4>
+              <div class="flex gap-2">
+                <button id="btn-copy-style" onclick="copyAdv('advanced-style','btn-copy-style')" class="btn-copy">Copy Style</button>
+                <button onclick="generateStyleAI()" id="btn-gen-style" class="btn-copy !bg-luminous-text !text-white hover:!bg-luminous-primaryLight hover:!text-white ml-2">✨ Optimize Style</button>
+              </div>
+            </div>
+            <textarea id="advanced-style" rows="2" class="textarea-luminous !font-mono text-sm leading-relaxed" placeholder="e.g. Neo-Soul, heavy bassline, ethereal synth..."></textarea>
+            <div id="style-tags-preview" class="flex flex-wrap gap-2 mt-4 hidden"></div>
+          </div>
+        </div>
+
         
 
         <!-- Submit Section -->
         <div style="animation: fadeUp 0.6s 0.3s forwards; opacity:0;">
-          <div class="flex items-center justify-center gap-4 mb-5">
-            <span class="text-sm font-bold text-luminous-textMuted uppercase tracking-widest">출력 개수 설정</span>
-            <div class="bg-luminous-surfaceLow p-1 rounded-full flex gap-1 shadow-inner">
-              <button id="toggle-count-1" onclick="setPromptCount(1)" class="px-5 py-2 rounded-full text-sm font-bold text-luminous-textDarker transition-all border-none bg-transparent hover:text-luminous-text">1개 단일 생성</button>
-              <button id="toggle-count-10" onclick="setPromptCount(10)" class="px-5 py-2 rounded-full text-sm font-extrabold text-luminous-primary bg-white shadow-sm border border-luminous-surfaceLow transition-all">10연속 배치 생성</button>
-            </div>
-          </div>
-          <button id="btn-generate" class="btn-generate text-xl font-display font-bold py-5" disabled onclick="generatePrompts()">
+          
+          <button id="btn-generate" class="btn-generate text-xl font-display font-bold py-5" disabled onclick="window.promptCount = 1; generatePrompts()">
             <span id="btn-spinner" class="spinner hidden"></span>
             <span id="btn-icon" class="text-2xl mr-2">🎵</span>
-            <span id="btn-text">마스터 프롬프트 생성하기</span>
+            <span id="btn-text">선택한 옵션으로 1개 프롬프트 완성하기</span>
           </button>
           <p class="text-center text-xs font-bold text-luminous-textMuted mt-4 uppercase tracking-[0.05em] opacity-60">Engineered with Gemini 2.0 Flash</p>
         </div>
