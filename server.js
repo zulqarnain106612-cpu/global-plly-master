@@ -2002,7 +2002,7 @@ app.post('/api/generate-prompts', verifyToken, async (req, res) => {
             });
         }
 
-        const { country, genre, mood, tempo, vocal, structure, vocalLang, subStyles, refArtist, themeText, count } = req.body;
+        const { country, genre, mood, tempo, vocal, structure, vocalLang, subStyles, refArtist, themeText, count, customLyrics, customStyle } = req.body;
         const promptCount = (count === 1) ? 1 : 10;
 
         if (!country || !genre || !mood || !tempo) {
@@ -2074,6 +2074,7 @@ ${subStyleLabels ? `- Sub-styles/flavor: ${subStyleLabels}` : ''}
 ${refArtist ? `- Reference artist(s): ${refArtist} — mirror their production aesthetics and vocal delivery style` : ''}
 ${themeText ? `- Theme/Story concept: "${themeText}" — weave this into the narrative element of each prompt` : ''}
 
+${customStyle ? '- VERY IMPORTANT OVERRIDE for style/genre/vibe: "' + customStyle + '"\n' : ''}${customLyrics ? '- VERY IMPORTANT OVERRIDE for lyrics: Use the exact lyrics provided here for all 10 generations, minimally adjusting them to fit the mood: "' + customLyrics + '"\n' : ''}
 REMINDER: Apply the full V5 7-step formula. Vary energy from soft→intense across 10 prompts. Always include BPM+Key.`;
 
         // ── Gemini API 호출 ──

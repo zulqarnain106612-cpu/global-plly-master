@@ -1064,6 +1064,8 @@
       const structure = document.getElementById('structure-select').value;
       const refArtist = document.getElementById('ref-artist-input').value.trim();
       const themeText = document.getElementById('theme-text').value.trim();
+      const customLyrics = document.getElementById('advanced-lyrics').value.trim();
+      const customStyle = document.getElementById('advanced-style').value.trim();
 
       // UI → loading state
       const btn     = document.getElementById('btn-generate');
@@ -1087,7 +1089,7 @@
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`
           },
-          body: JSON.stringify({ country, genre, mood, tempo, vocal, vocalLang, structure, subStyles: selectedSubStyles, refArtist, themeText, count: currentPromptCount })
+          body: JSON.stringify({ country, genre, mood, tempo, vocal, vocalLang, structure, subStyles: selectedSubStyles, refArtist, themeText, customLyrics, customStyle, count: currentPromptCount })
         });
 
         const data = await resp.json();
@@ -1119,6 +1121,7 @@
         if (nav) nav.style.opacity = '1';
 
         showToast(`✨ ${_prompts.length}개 프롬프트 생성 완료!`, 'success');
+        setTimeout(() => { window.location.href = '/results.html'; }, 600);
 
       } catch (err) {
         // 403 = 세션 만료 → 자동 로그아웃 후 로그인 페이지로 이동
@@ -1946,7 +1949,7 @@
     renderCountryTabs();
     renderAgeTrends(_currentCountry);
 
-    setTimeout(checkGeminiStatus, 1500);
+    document.addEventListener('DOMContentLoaded', () => { setTimeout(checkGeminiStatus, 500); });
 
   </script>
 
