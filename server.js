@@ -2030,7 +2030,7 @@ Your ONLY output is a valid JSON array with EXACTLY 10 objects. No markdown, no 
 
 Output format (strict):
 [
-  {"prompt": "<V5-optimized style prompt, max 220 chars, English only>", "title": "<creative song title in the target language>"},
+  {"prompt": "<V5-optimized style prompt, max 220 chars, English only>", "title": "<creative song title in the target language>", "lyrics": "<Full song lyrics including [Intro], [Verse], [Chorus], and [Outro] in the target language>"},
   ...
 ]
 
@@ -2056,7 +2056,8 @@ Structure each prompt using this 7-step director format:
 - Each of the 10 prompts must feel distinctly different in energy and texture
 - Include vocal language tag if specified (e.g. "Korean lyrics", "sung in Japanese")
 - Max 220 characters per prompt
-- Title must be evocative and match the mood (can be in the target language if specified)`;
+- Title must be evocative and match the mood (can be in the target language if specified)
+- The 'lyrics' field MUST contain the full song lyrics. It MUST structurally include an [Intro], at least one [Verse] and [Chorus], and an [Outro].`;
 
         // ── 사용자 컨텍스트 ──
         const userContext = `Generate 10 V5-optimized Suno AI prompts for these settings:
@@ -2104,12 +2105,13 @@ REMINDER: Apply the full V5 7-step formula. Vary energy from soft→intense acro
         const parsed = prompts;
         if (promptCount === 1) {
             const item = Array.isArray(parsed) ? parsed[0] : parsed;
-            prompts = [{ index: 1, prompt: (item.prompt || '').substring(0, 220), title: item.title || 'Track 1' }];
+            prompts = [{ index: 1, prompt: (item.prompt || '').substring(0, 220), title: item.title || 'Track 1', lyrics: item.lyrics || '' }];
         } else {
             prompts = parsed.slice(0, 10).map((item, i) => ({
                 index: i + 1,
                 prompt: (item.prompt || '').substring(0, 220),
-                title: item.title || ('Track ' + (i + 1))
+                title: item.title || ('Track ' + (i + 1)),
+                lyrics: item.lyrics || ''
             }));
         }
 
@@ -2157,7 +2159,7 @@ app.post('/api/generate-lyrics', verifyToken, async (req, res) => {
             + ' Language: ' + vocalLangInfo.label + '.'
             + (themeText ? ' Theme: "' + themeText + '".' : ' Pick a completely unexpected, original theme — not love, not party, not success.')
             + ' Perspective: ' + randomPerspective + '.'
-            + ' Write complete lyrics with [Verse 1], [Pre-Chorus], [Chorus], [Verse 2], [Bridge] sections.'
+            + ' Write complete lyrics with [Intro], [Verse 1], [Pre-Chorus], [Chorus], [Verse 2], [Bridge], and [Outro] sections.'
             + ' Make it emotionally resonant and singable.'
             + ' IMPORTANT: Variation seed #' + randomSeed + ' — every generation must feel like a different song. Use a unique metaphor, unusual imagery, or an unexpected narrative arc. Never repeat structures or phrases from previous outputs.'
             + ' Return a JSON object: { "title": "<creative song title in the lyrics language>", "lyrics": "<full lyrics text>" }'

@@ -1144,6 +1144,7 @@
       grid.innerHTML = '';
       prompts.forEach((p, i) => {
         const escaped = (p.prompt || '').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        const escapedLyrics = (p.lyrics || '').replace(/</g,'&lt;').replace(/>/g,'&gt;');
         const card = document.createElement('div');
         card.className = 'prompt-card';
         card.id = `card-${i}`;
@@ -1151,11 +1152,17 @@
           <div class="flex items-center justify-between mb-3">
             <div class="flex items-center gap-3">
               <div class="num-badge">${p.index}</div>
-              <span class="text-sm font-bold text-white truncate" style="max-width:200px;">${p.title || 'Track ' + p.index}</span>
+              <span class="text-sm font-bold text-[var(--md-sys-color-on-surface)] truncate" style="max-width:200px;">${p.title || 'Track ' + p.index}</span>
             </div>
-            <button id="copy-btn-${i}" class="btn-copy" onclick="copyCard(${i})">📋 복사</button>
+            <div class="flex items-center gap-2">
+              <button id="copy-btn-style-${i}" class="btn-copy text-xs" onclick="copyStyle(${i})">✨ 스타일</button>
+              <button id="copy-btn-lyrics-${i}" class="btn-copy text-xs" onclick="copyLyrics(${i})">🎤 가사</button>
+            </div>
           </div>
-          <div class="prompt-text">${escaped}</div>
+          <div class="text-xs text-[var(--md-sys-color-primary)] mb-1 font-bold tracking-tight">Style Prompt</div>
+          <div class="prompt-text mb-3" style="max-height:80px; overflow-y:auto;">${escaped}</div>
+          <div class="text-xs text-[var(--md-sys-color-primary)] mb-1 font-bold tracking-tight">Full Lyrics</div>
+          <div class="prompt-text" style="max-height:120px; overflow-y:auto; white-space:pre-wrap; font-size:12px; line-height:1.6;">${escapedLyrics || '가사가 포함되지 않았습니다.'}</div>
         `;
         grid.appendChild(card);
       });
@@ -1166,27 +1173,37 @@
       setTimeout(() => resultsArea.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
     }
 
-    function copyCard(i) {
+    function copyStyle(i) {
       if (!_prompts[i]) return;
       copyText(_prompts[i].prompt);
       _copied[i] = true;
-      const btn = document.getElementById('copy-btn-' + i);
-      if (btn) { btn.textContent = '✅ 복사됨'; btn.classList.add('copied'); }
+      const btn = document.getElementById('copy-btn-style-' + i);
+      if (btn) { btn.textContent = '✅ 저장됨'; btn.classList.add('copied'); }
       updateCopyProgress();
-      showToast(`#${_prompts[i].index} 프롬프트 복사!`, 'success');
+      showToast(`#${_prompts[i].index} 스타일 복사 완료!`, 'success');
+    }
+
+    function copyLyrics(i) {
+      if (!_prompts[i]) return;
+      copyText(_prompts[i].lyrics || '');
+      const btn = document.getElementById('copy-btn-lyrics-' + i);
+      if (btn) { btn.textContent = '✅ 저장됨'; btn.classList.add('copied'); }
+      showToast(`#${_prompts[i].index} 가사 복사 완료!`, 'success');
     }
 
     function copyAllPrompts() {
       if (!_prompts.length) return;
-      const all = _prompts.map(p => `[#${p.index}] ${p.title}\n${p.prompt}`).join('\n\n---\n\n');
+      const all = _prompts.map(p => `[#${p.index}] ${p.title}\n[Style]\n${p.prompt}\n\n[Lyrics]\n${p.lyrics || ''}`).join('\n\n---\n\n');
       copyText(all);
       _prompts.forEach((_, i) => {
         _copied[i] = true;
-        const btn = document.getElementById('copy-btn-' + i);
-        if (btn) { btn.textContent = '✅ 복사됨'; btn.classList.add('copied'); }
+        const btnStyle = document.getElementById('copy-btn-style-' + i);
+        const btnLyrics = document.getElementById('copy-btn-lyrics-' + i);
+        if (btnStyle) { btnStyle.textContent = '✅ 저장됨'; btnStyle.classList.add('copied'); }
+        if (btnLyrics) { btnLyrics.textContent = '✅ 저장됨'; btnLyrics.classList.add('copied'); }
       });
       updateCopyProgress();
-      showToast('전체 복사 완료!', 'success');
+      showToast('스타일 & 가사 전체 세트 복사 완료!', 'success');
     }
 
     // ══════════════════════════════════════════════════════
