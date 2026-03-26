@@ -27,21 +27,21 @@
           },
           colors: {
             luminous: {
-              bg: '#f6f6f8',
-              surfaceLow: '#f0f1f3',
-              surface: '#ffffff',
+              bg: '#0f1115',
+              surfaceLow: '#1a1d24',
+              surface: '#242831',
               primary: '#FF5A5F',
               primaryLight: '#FF7575',
               primaryDark: '#b1202d',
-              text: '#2d2f31',
-              textMuted: '#717375',
-              textDarker: '#4a4b4c',
-              outlineFade: 'rgba(172, 173, 175, 0.2)'
+              text: '#f3f4f6',
+              textMuted: '#9ca3af',
+              textDarker: '#d1d5db',
+              outlineFade: 'rgba(255, 255, 255, 0.1)'
             }
           },
           boxShadow: {
-            'ambient': '0px 20px 40px rgba(45, 47, 49, 0.04)',
-            'ambient-hover': '0px 30px 60px rgba(45, 47, 49, 0.08)',
+            'ambient': '0px 20px 40px rgba(0, 0, 0, 0.2)',
+            'ambient-hover': '0px 30px 60px rgba(0, 0, 0, 0.4)',
             'glow': '0 10px 30px rgba(255, 90, 95, 0.25)',
           }
         },
@@ -52,13 +52,13 @@
   <style>
     /* ═══ Scrollbar ═══ */
     ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-track { background: #f6f6f8; }
-    ::-webkit-scrollbar-thumb { background: rgba(172, 173, 175, 0.4); border-radius: 10px; }
+    ::-webkit-scrollbar-track { background: #0f1115; }
+    ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 10px; }
     ::-webkit-scrollbar-thumb:hover { background: rgba(255, 90, 95, 0.6); }
 
     body {
-      background-color: #f6f6f8;
-      color: #2d2f31;
+      background-color: #0f1115;
+      color: #f3f4f6;
       overflow: hidden;
       display: flex;
       height: 100vh;
@@ -68,8 +68,8 @@
     /* ═══ Sidebar ═══ */
     .app-sidebar {
       width: 260px; min-width: 260px; height: 100vh;
-      background: #ffffff;
-      box-shadow: 0px 0px 40px rgba(45, 47, 49, 0.03);
+      background: #1a1d24;
+      box-shadow: 0px 0px 40px rgba(0, 0, 0, 0.2);
       display: flex; flex-direction: column;
       z-index: 50;
     }
@@ -77,7 +77,7 @@
     .main-viewport {
       flex: 1; height: 100vh; overflow: hidden;
       display: flex;
-      background-color: #f6f6f8;
+      background-color: #0f1115;
     }
 
     @media (max-width: 1280px) {
@@ -99,8 +99,8 @@
     /* ═══ Trends Panel ═══ */
     .trends-panel {
       width: 400px; min-width: 360px; height: 100vh;
-      background: #ffffff;
-      box-shadow: -20px 0px 40px rgba(45, 47, 49, 0.02);
+      background: #1a1d24;
+      box-shadow: -20px 0px 40px rgba(0, 0, 0, 0.2);
       display: flex; flex-direction: column;
       overflow: hidden;
       z-index: 40;
@@ -117,19 +117,19 @@
       display: inline-flex; align-items: center; gap: 6px;
       padding: 8px 16px; border-radius: 999px;
       font-size: 13px; font-weight: 700;
-      color: #5a5c5d; cursor: pointer; transition: all 0.2s;
-      background: #f0f1f3;
+      color: #d1d5db; cursor: pointer; transition: all 0.2s;
+      background: #242831;
     }
-    .country-tab:hover { background: #e7e8ea; color: #2d2f31; }
+    .country-tab:hover { background: #2d333e; color: #f3f4f6; }
     .country-tab.active { background: rgba(255, 90, 95, 0.1); color: #FF5A5F; }
 
     .age-row {
       padding: 18px; border-radius: 1.25rem;
-      background: #fafafa;
+      background: #15181e;
       margin-bottom: 12px; transition: all 0.2s;
       border: 1px solid transparent;
     }
-    .age-row:hover { background: #ffffff; border-color: rgba(255, 90, 95, 0.15); box-shadow: 0 10px 20px rgba(45,47,49,0.03); }
+    .age-row:hover { background: #1a1d24; border-color: rgba(255, 90, 95, 0.3); box-shadow: 0 10px 20px rgba(0,0,0,0.3); }
     .age-row-header { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
     
     .genre-list-item {
@@ -138,17 +138,17 @@
       cursor: pointer; transition: all 0.2s; width: 100%;
     }
     .genre-list-item:hover { background: rgba(255, 90, 95, 0.05); }
-    .genre-list-item .rank { font-size: 12px; font-weight: 800; color: #9c9d9f; min-width: 20px; }
+    .genre-list-item .rank { font-size: 12px; font-weight: 800; color: #6b7280; min-width: 20px; }
     .genre-list-item .rank-1 { color: #FF5A5F; }
-    .genre-list-item .gname { flex: 1; font-size: 13.5px; font-weight: 700; color: #2d2f31; }
+    .genre-list-item .gname { flex: 1; font-size: 13.5px; font-weight: 700; color: #f3f4f6; }
     .genre-list-item.hot .gname { color: #b1202d; }
     .genre-list-item.rising .gname { color: #007a4d; }
 
     .genre-chip {
       display: inline-flex; align-items: center; gap: 4px;
       padding: 6px 14px; border-radius: 999px; font-size: 12px; font-weight: 700;
-      background: #ffffff; color: #5a5c5d; cursor: pointer; transition: all 0.2s;
-      border: 1px solid #e7e8ea; margin: 4px 2px;
+      background: #1a1d24; color: #d1d5db; cursor: pointer; transition: all 0.2s;
+      border: 1px solid #2d333e; margin: 4px 2px;
     }
     .genre-chip:hover { background: #FF5A5F; color: #fff; border-color: #FF5A5F; }
     .genre-chip.hot { color: #b1202d; border-color: rgba(177, 32, 45, 0.2); background: rgba(177, 32, 45, 0.05); }
@@ -158,37 +158,37 @@
 
     /* ═══ Nav ═══ */
     .sidebar-section-label {
-      font-size: 11px; font-weight: 800; color: #9c9d9f;
+      font-size: 11px; font-weight: 800; color: #6b7280;
       padding: 0 20px; margin-bottom: 8px; margin-top: 24px;
       text-transform: uppercase; letter-spacing: 0.1em;
     }
     .nav-link {
       display: flex; align-items: center; gap: 14px;
       padding: 12px 20px; border-radius: 12px;
-      color: #5a5c5d; font-weight: 700; font-size: 14px;
+      color: #d1d5db; font-weight: 700; font-size: 14px;
       transition: all 0.2s; cursor: pointer; text-decoration: none; margin: 4px 12px;
     }
-    .nav-link:hover { background: #f0f1f3; color: #2d2f31; }
+    .nav-link:hover { background: #242831; color: #f3f4f6; }
     .nav-link.active {
       background: rgba(255, 90, 95, 0.1); color: #FF5A5F;
     }
 
     /* ═══ Input & Select ═══ */
     .input-label {
-      display: block; font-size: 12px; font-weight: 800; color: #5a5c5d;
+      display: block; font-size: 12px; font-weight: 800; color: #d1d5db;
       margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em;
     }
     .select-premium, .input-luminous, .textarea-luminous {
-      background-color: #f6f6f8;
-      border: 1px solid rgba(172, 173, 175, 0.25);
+      background-color: #0f1115;
+      border: 1px solid rgba(255, 255, 255, 0.1);
       border-radius: 12px; padding: 14px 16px;
-      color: #2d2f31; font-size: 14px; font-weight: 600; width: 100%;
+      color: #f3f4f6; font-size: 14px; font-weight: 600; width: 100%;
       outline: none; transition: all 0.2s;
       font-family: 'Manrope', sans-serif;
     }
     .select-premium {
       appearance: none; cursor: pointer;
-      background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%235a5c5d' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+      background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23d1d5db' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
       background-position: right 14px center; background-repeat: no-repeat; background-size: 1.2rem;
       padding-right: 40px;
     }
@@ -214,23 +214,23 @@
 
     /* ═══ Glass Card ═══ */
     .glass-card {
-      background: #ffffff; border-radius: 1.5rem;
-      box-shadow: 0px 20px 40px rgba(45, 47, 49, 0.04);
+      background: #1a1d24; border-radius: 1.5rem;
+      box-shadow: 0px 20px 40px rgba(0, 0, 0, 0.2);
       padding: 32px; transition: all 0.3s ease;
       border: 1px solid transparent; 
     }
-    .glass-card:hover { box-shadow: 0px 30px 60px rgba(45, 47, 49, 0.06); }
+    .glass-card:hover { box-shadow: 0px 30px 60px rgba(0, 0, 0, 0.3); }
 
     /* ═══ Results Area ═══ */
     .prompt-card {
-      background: #fcfcfd; border-radius: 1.25rem;
+      background: #1e222b; border-radius: 1.25rem;
       padding: 24px; transition: all 0.2s ease;
-      border: 1px solid rgba(172, 173, 175, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.05);
     }
-    .prompt-card:hover { background: #ffffff; border-color: rgba(255, 90, 95, 0.2); box-shadow: 0 16px 32px rgba(45, 47, 49, 0.05); }
+    .prompt-card:hover { background: #1a1d24; border-color: rgba(255, 90, 95, 0.2); box-shadow: 0 16px 32px rgba(45, 47, 49, 0.05); }
     .prompt-text {
       font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.7; color: #b1202d;
-      background: rgba(255, 90, 95, 0.04); border-radius: 12px; padding: 16px 20px;
+      background: rgba(255, 90, 95, 0.1); border-radius: 12px; padding: 16px 20px;
       word-break: break-all; white-space: pre-wrap; font-weight: 500;
     }
 
@@ -243,9 +243,9 @@
 
     .substyle-tag {
       padding: 8px 16px; border-radius: 999px; font-size: 13px; font-weight: 700;
-      color: #5a5c5d; background: #f0f1f3; cursor: pointer; transition: all 0.2s;
+      color: #d1d5db; background: #242831; cursor: pointer; transition: all 0.2s;
     }
-    .substyle-tag:hover { background: #e7e8ea; color: #2d2f31; }
+    .substyle-tag:hover { background: #2d333e; color: #f3f4f6; }
     .substyle-tag.active { background: rgba(255, 90, 95, 0.1); color: #FF5A5F; border: 1px solid rgba(255, 90, 95, 0.2); margin: -1px; }
 
     /* Highlights for Auto-selected */
@@ -261,9 +261,9 @@
 
     /* Head Header */
     .glass-header {
-      background: rgba(246, 246, 248, 0.7); backdrop-filter: blur(20px);
+      background: rgba(15, 17, 21, 0.7); backdrop-filter: blur(20px);
       border-radius: 1.5rem; padding: 24px 32px;
-      box-shadow: 0px 10px 30px rgba(45, 47, 49, 0.03); margin-bottom: 32px;
+      box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.2); margin-bottom: 32px;
     }
   </style>
 </head>
@@ -271,7 +271,7 @@
 <body>
 
   <!-- Mobile Overlay -->
-  <div class="mobile-overlay fixed inset-0 z-[9999] bg-[#f6f6f8] hidden flex-col items-center justify-center p-12 text-center lg:hidden">
+  <div class="mobile-overlay fixed inset-0 z-[9999] bg-[#0f1115] hidden flex-col items-center justify-center p-12 text-center lg:hidden">
     <div class="text-7xl mb-8" style="animation: float 6s ease-in-out infinite;">📱</div>
     <h2 class="font-display font-extrabold text-3xl text-luminous-text mb-6 uppercase tracking-tighter">Desktop Only</h2>
     <p class="text-luminous-textDarker text-lg font-medium leading-relaxed">Global Plly Master is a premium studio tool.<br>Please open on desktop for the full Luminous experience.</p>
@@ -373,7 +373,7 @@
       <header class="glass-header" style="animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity:0;">
         <div class="flex items-center gap-3 mb-3">
           <span class="bg-luminous-surfaceLow text-luminous-textDarker px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest">AI Engine Generator</span>
-          <span id="admin-badge" class="hidden bg-[#fff5e6] text-[#b35900] px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest">Admin</span>
+          <span id="admin-badge" class="hidden bg-[#451a03] text-[#fdba74] px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest">Admin</span>
         </div>
         <h2 class="font-display font-extrabold text-4xl text-luminous-text leading-tight tracking-tight">
           내일의 사운드를 <br>
@@ -477,8 +477,8 @@
             <label class="input-label">Reference Artists <span class="text-[11px] normal-case text-luminous-textMuted font-medium tracking-normal">(Optional)</span></label>
             <input type="text" id="ref-artist-input" class="input-luminous" placeholder="예: aespa, NewJeans, Daft Punk...">
           </div>
-          <div id="artist-chips-wrap" class="mt-4 hidden p-4 bg-[#fafafa] rounded-2xl border border-[#f0f1f3]">
-            <label class="input-label !mb-3 border-b border-[#f0f1f3] pb-2">⭐ AI Suggested</label>
+          <div id="artist-chips-wrap" class="mt-4 hidden p-4 bg-[#15181e] rounded-2xl border border-[#242831]">
+            <label class="input-label !mb-3 border-b border-[#242831] pb-2">⭐ AI Suggested</label>
             <div id="artist-chips" class="flex flex-wrap gap-2"></div>
           </div>
 
@@ -509,7 +509,7 @@
 
         <!-- Results Area -->
         <div id="results-area" class="hidden pb-12" style="animation: fadeUp 0.6s ease-out forwards; opacity:0;">
-          <div class="glass-header !bg-[#ffffff] !p-8 !mb-8 !flex !justify-between !items-center !border !border-luminous-surfaceLow">
+          <div class="glass-header !bg-[#1a1d24] !p-8 !mb-8 !flex !justify-between !items-center !border !border-luminous-surfaceLow">
             <div class="flex items-center gap-4">
               <div class="w-12 h-12 bg-luminous-primaryLight/10 text-luminous-primary rounded-2xl flex items-center justify-center text-2xl font-bold">✨</div>
               <div>
