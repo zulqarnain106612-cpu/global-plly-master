@@ -1,342 +1,11 @@
-<!DOCTYPE html>
-<html lang="ko">
+const fs = require('fs');
 
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Global Plly Master - Luminous Edition</title>
-  <meta name="description" content="타겟 국가와 분위기를 선택하면 최적화된 Suno AI 프롬프트를 자동 생성하는 음원 제작 시스템">
+try {
+  let indexHtml = fs.readFileSync('public/index.html', 'utf8');
+  const asideEndIndex = indexHtml.indexOf('</aside>') + 8;
+  const headAndSidebar = indexHtml.substring(0, asideEndIndex);
 
-  <!-- Google Fonts: Plus Jakarta Sans for Display, Manrope for UI -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-
-  <!-- Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          fontFamily: {
-            sans: ['Manrope', 'sans-serif'],
-            display: ['Plus Jakarta Sans', 'sans-serif'],
-            mono: ['JetBrains Mono', 'monospace'],
-          },
-          colors: {
-            luminous: {
-              bg: '#f6f6f8',
-              surfaceLow: '#f0f1f3',
-              surface: '#ffffff',
-              primary: '#FF5A5F',
-              primaryLight: '#FF7575',
-              primaryDark: '#b1202d',
-              text: '#2d2f31',
-              textMuted: '#9c9d9f',
-              textDarker: '#5a5c5d',
-              outlineFade: 'rgba(172, 173, 175, 0.2)'
-            }
-          },
-          boxShadow: {
-            'ambient': '0px 20px 40px rgba(45, 47, 49, 0.04)',
-            'ambient-hover': '0px 30px 60px rgba(45, 47, 49, 0.08)',
-            'glow': '0 10px 30px rgba(255, 90, 95, 0.25)',
-          }
-        },
-      },
-    }
-  </script>
-
-  <style>
-    /* ═══ Scrollbar ═══ */
-    ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-track { background: #f6f6f8; }
-    ::-webkit-scrollbar-thumb { background: rgba(172, 173, 175, 0.4); border-radius: 10px; }
-    ::-webkit-scrollbar-thumb:hover { background: rgba(255, 90, 95, 0.6); }
-
-    body {
-      background-color: #f6f6f8;
-      color: #2d2f31;
-      overflow: hidden;
-      display: flex;
-      height: 100vh;
-      width: 100vw;
-    }
-
-    /* ═══ Sidebar ═══ */
-    .app-sidebar {
-      width: 260px; min-width: 260px; height: 100vh;
-      background: #ffffff;
-      box-shadow: 0px 0px 40px rgba(45, 47, 49, 0.03);
-      display: flex; flex-direction: column;
-      z-index: 50;
-    }
-
-    .main-viewport {
-      flex: 1; height: 100vh; overflow: hidden;
-      display: flex;
-      background-color: #f6f6f8;
-    }
-
-    @media (max-width: 1280px) {
-      .app-sidebar { width: 220px; min-width: 220px; }
-      .trends-panel { width: 320px; min-width: 290px; }
-      .content-area { padding: 32px 32px; }
-    }
-    @media (max-width: 1024px) {
-      .app-sidebar { width: 200px; min-width: 180px; }
-      .trends-panel { width: 280px; min-width: 260px; }
-      .content-area { padding: 24px; }
-    }
-    @media (max-width: 768px) {
-      .app-sidebar, .trends-panel { display: none; }
-      .main-viewport { overflow-y: auto; }
-      .content-area { padding: 20px 16px; }
-    }
-
-    /* ═══ Trends Panel ═══ */
-    .trends-panel {
-      width: 400px; min-width: 360px; height: 100vh;
-      background: #ffffff;
-      box-shadow: -20px 0px 40px rgba(45, 47, 49, 0.02);
-      display: flex; flex-direction: column;
-      overflow: hidden;
-      z-index: 40;
-    }
-    .trends-panel-header {
-      padding: 24px 28px 16px;
-      border-bottom: 1px solid #f0f1f3;
-      flex-shrink: 0;
-    }
-    .trends-panel-body {
-      flex: 1; overflow-y: auto; padding: 20px 24px;
-    }
-    .country-tab {
-      display: inline-flex; align-items: center; gap: 6px;
-      padding: 8px 16px; border-radius: 999px;
-      font-size: 13px; font-weight: 700;
-      color: #5a5c5d; cursor: pointer; transition: all 0.2s;
-      background: #f0f1f3;
-    }
-    .country-tab:hover { background: #e7e8ea; color: #2d2f31; }
-    .country-tab.active { background: rgba(255, 90, 95, 0.1); color: #FF5A5F; }
-
-    .age-row {
-      padding: 18px; border-radius: 1.25rem;
-      background: #fafafa;
-      margin-bottom: 12px; transition: all 0.2s;
-      border: 1px solid transparent;
-    }
-    .age-row:hover { background: #ffffff; border-color: rgba(255, 90, 95, 0.15); box-shadow: 0 10px 20px rgba(45,47,49,0.03); }
-    .age-row-header { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
-    
-    .genre-list-item {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 8px 10px; border-radius: 10px;
-      cursor: pointer; transition: all 0.2s; width: 100%;
-    }
-    .genre-list-item:hover { background: rgba(255, 90, 95, 0.05); }
-    .genre-list-item .rank { font-size: 12px; font-weight: 800; color: #9c9d9f; min-width: 20px; }
-    .genre-list-item .rank-1 { color: #FF5A5F; }
-    .genre-list-item .gname { flex: 1; font-size: 13.5px; font-weight: 700; color: #2d2f31; }
-    .genre-list-item.hot .gname { color: #b1202d; }
-    .genre-list-item.rising .gname { color: #007a4d; }
-
-    .genre-chip {
-      display: inline-flex; align-items: center; gap: 4px;
-      padding: 6px 14px; border-radius: 999px; font-size: 12px; font-weight: 700;
-      background: #ffffff; color: #5a5c5d; cursor: pointer; transition: all 0.2s;
-      border: 1px solid #e7e8ea; margin: 4px 2px;
-    }
-    .genre-chip:hover { background: #FF5A5F; color: #fff; border-color: #FF5A5F; }
-    .genre-chip.hot { color: #b1202d; border-color: rgba(177, 32, 45, 0.2); background: rgba(177, 32, 45, 0.05); }
-    .genre-chip.rising { color: #007a4d; border-color: rgba(0, 122, 77, 0.2); background: rgba(0, 122, 77, 0.05); }
-
-    .content-area { padding: 48px 64px; flex: 1; overflow-y: auto; }
-
-    /* ═══ Nav ═══ */
-    .sidebar-section-label {
-      font-size: 11px; font-weight: 800; color: #9c9d9f;
-      padding: 0 20px; margin-bottom: 8px; margin-top: 24px;
-      text-transform: uppercase; letter-spacing: 0.1em;
-    }
-    .nav-link {
-      display: flex; align-items: center; gap: 14px;
-      padding: 12px 20px; border-radius: 12px;
-      color: #5a5c5d; font-weight: 700; font-size: 14px;
-      transition: all 0.2s; cursor: pointer; text-decoration: none; margin: 4px 12px;
-    }
-    .nav-link:hover { background: #f0f1f3; color: #2d2f31; }
-    .nav-link.active {
-      background: rgba(255, 90, 95, 0.1); color: #FF5A5F;
-    }
-
-    /* ═══ Input & Select ═══ */
-    .input-label {
-      display: block; font-size: 12px; font-weight: 800; color: #5a5c5d;
-      margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em;
-    }
-    .select-premium, .input-luminous, .textarea-luminous {
-      background-color: #f6f6f8;
-      border: 1px solid rgba(172, 173, 175, 0.25);
-      border-radius: 12px; padding: 14px 16px;
-      color: #2d2f31; font-size: 14px; font-weight: 600; width: 100%;
-      outline: none; transition: all 0.2s;
-      font-family: 'Manrope', sans-serif;
-    }
-    .select-premium {
-      appearance: none; cursor: pointer;
-      background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%235a5c5d' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
-      background-position: right 14px center; background-repeat: no-repeat; background-size: 1.2rem;
-      padding-right: 40px;
-    }
-    .select-premium:hover, .input-luminous:hover, .textarea-luminous:hover {
-      background-color: #ffffff; border-color: rgba(255, 90, 95, 0.4);
-    }
-    .select-premium:focus, .input-luminous:focus, .textarea-luminous:focus {
-      background-color: #ffffff; border-color: #FF5A5F; box-shadow: 0 0 0 3px rgba(255, 90, 95, 0.15);
-    }
-
-    /* ═══ Generate Button ═══ */
-    .btn-generate {
-      background: linear-gradient(135deg, #b1202d, #ff7575);
-      color: white; font-weight: 800; border-radius: 999px;
-      box-shadow: 0 10px 30px rgba(255, 90, 95, 0.25);
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      position: relative; overflow: hidden; width: 100%;
-      padding: 18px 24px; font-size: 17px;
-      display: flex; align-items: center; justify-content: center; gap: 12px; cursor: pointer; border: none;
-    }
-    .btn-generate:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 14px 40px rgba(255, 90, 95, 0.35); }
-    .btn-generate:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
-
-    /* ═══ Glass Card ═══ */
-    .glass-card {
-      background: #ffffff; border-radius: 1.5rem;
-      box-shadow: 0px 20px 40px rgba(45, 47, 49, 0.04);
-      padding: 32px; transition: all 0.3s ease;
-      border: 1px solid transparent; 
-    }
-    .glass-card:hover { box-shadow: 0px 30px 60px rgba(45, 47, 49, 0.06); }
-
-    /* ═══ Results Area ═══ */
-    .prompt-card {
-      background: #fcfcfd; border-radius: 1.25rem;
-      padding: 24px; transition: all 0.2s ease;
-      border: 1px solid rgba(172, 173, 175, 0.1);
-    }
-    .prompt-card:hover { background: #ffffff; border-color: rgba(255, 90, 95, 0.2); box-shadow: 0 16px 32px rgba(45, 47, 49, 0.05); }
-    .prompt-text {
-      font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.7; color: #b1202d;
-      background: rgba(255, 90, 95, 0.04); border-radius: 12px; padding: 16px 20px;
-      word-break: break-all; white-space: pre-wrap; font-weight: 500;
-    }
-
-    .btn-copy {
-      background: rgba(255, 90, 95, 0.1); color: #FF5A5F; border-radius: 999px;
-      padding: 8px 16px; font-weight: 800; font-size: 13px; cursor: pointer; transition: all 0.2s; border: none;
-    }
-    .btn-copy:hover { background: #FF5A5F; color: #ffffff; transform: translateY(-1px); }
-    .btn-copy.copied { background: #e6f6ee; color: #007a4d; }
-
-    .substyle-tag {
-      padding: 8px 16px; border-radius: 999px; font-size: 13px; font-weight: 700;
-      color: #5a5c5d; background: #f0f1f3; cursor: pointer; transition: all 0.2s;
-    }
-    .substyle-tag:hover { background: #e7e8ea; color: #2d2f31; }
-    .substyle-tag.active { background: rgba(255, 90, 95, 0.1); color: #FF5A5F; border: 1px solid rgba(255, 90, 95, 0.2); margin: -1px; }
-
-    /* Highlights for Auto-selected */
-    .substyle-tag.highlighted {
-      background: rgba(255, 194, 205, 0.3); color: #b1202d;
-      animation: chipPulse 1.5s ease-in-out infinite alternate;
-    }
-    @keyframes chipPulse { from { box-shadow: 0 0 0 rgba(255, 90, 95, 0); } to { box-shadow: 0 0 8px rgba(255, 90, 95, 0.3); } }
-
-    .spinner { width: 22px; height: 22px; border: 3px solid rgba(255,255,255,0.4); border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite; }
-    @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-    @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
-
-    /* Head Header */
-    .glass-header {
-      background: rgba(246, 246, 248, 0.7); backdrop-filter: blur(20px);
-      border-radius: 1.5rem; padding: 24px 32px;
-      box-shadow: 0px 10px 30px rgba(45, 47, 49, 0.03); margin-bottom: 32px;
-    }
-  </style>
-</head>
-
-<body>
-
-  <!-- Mobile Overlay -->
-  <div class="mobile-overlay fixed inset-0 z-[9999] bg-[#f6f6f8] hidden flex-col items-center justify-center p-12 text-center lg:hidden">
-    <div class="text-7xl mb-8" style="animation: float 6s ease-in-out infinite;">📱</div>
-    <h2 class="font-display font-extrabold text-3xl text-luminous-text mb-6 uppercase tracking-tighter">Desktop Only</h2>
-    <p class="text-luminous-textDarker text-lg font-medium leading-relaxed">Global Plly Master is a premium studio tool.<br>Please open on desktop for the full Luminous experience.</p>
-  </div>
-
-  <div id="toast-container" class="fixed top-8 right-8 z-[300] flex flex-col gap-4"></div>
-
-  <!-- ═══ SIDEBAR ═══ -->
-  <aside class="app-sidebar">
-    <div class="p-8 pb-4">
-      <div class="flex items-center gap-4 mb-4">
-        <div class="w-12 h-12 rounded-[1rem] bg-gradient-to-tr from-[#FF5A5F] to-[#ffc2cd] flex items-center justify-center text-white text-2xl shadow-glow">🎵</div>
-        <div>
-          <h1 class="font-display font-extrabold text-lg leading-tight tracking-tight text-luminous-text">PLLY <span class="text-luminous-primary">MASTER</span></h1>
-          <p class="text-[10px] text-luminous-textMuted mt-1 uppercase tracking-widest font-bold">Studio Dashboard</p>
-        </div>
-      </div>
-    </div>
-
-    <nav class="flex-1 overflow-y-auto pb-6">
-      <div class="sidebar-section-label">Main Control</div>
-      <a class="nav-link active" href="/">
-        <span class="w-6 flex justify-center text-lg">🏠</span><span>Dashboard</span>
-      </a>
-      <a id="btn-admin-nav" class="nav-link" style="display:none;" href="/admin.html">
-        <span class="w-6 flex justify-center text-lg">🛡️</span><span>Admin Station</span>
-      </a>
-
-      <div class="sidebar-section-label">Insights</div>
-      <a class="nav-link" href="/results.html" id="nav-recent-results" style="opacity:0.6;" title="Recent results">
-        <span class="w-6 flex justify-center text-lg">🎵</span><span class="flex-1">Latest Outputs</span>
-        <span id="nav-results-badge" class="bg-luminous-primaryLight/10 text-luminous-primary px-2 py-0.5 rounded-full text-[10px] font-bold"></span>
-      </a>
-      <button class="nav-link w-full text-left" onclick="switchView('history')">
-        <span class="w-6 flex justify-center text-lg">📋</span><span class="flex-1">Task History</span>
-      </button>
-      <button class="nav-link w-full text-left" onclick="switchView('trends')">
-        <span class="w-6 flex justify-center text-lg">🌍</span><span class="flex-1">Global Trends</span>
-      </button>
-
-      <div class="sidebar-section-label">AI System</div>
-      <div class="mx-3 mt-2 p-4 rounded-2xl bg-luminous-surfaceLow border border-white">
-        <div class="flex items-center gap-3">
-          <div id="gemini-dot" class="w-2.5 h-2.5 rounded-full bg-slate-300" style="transition:background 0.4s;"></div>
-          <div class="flex-1 min-w-0">
-            <p class="text-[10px] font-bold text-luminous-textDarker uppercase tracking-wider">Gemini Status</p>
-            <p id="gemini-status-text" class="text-[11px] font-semibold text-luminous-text truncate">Verifying...</p>
-          </div>
-          <span id="gemini-icon" class="text-base">⏳</span>
-        </div>
-      </div>
-    </nav>
-
-    <!-- User Profile -->
-    <div class="p-4 border-t border-luminous-surfaceLow">
-      <div class="flex items-center gap-3 p-3 rounded-2xl hover:bg-luminous-surfaceLow transition-colors cursor-pointer group">
-        <div class="w-10 h-10 rounded-full bg-luminous-text text-white flex items-center justify-center font-bold shadow-sm">👤</div>
-        <div class="flex-1 min-w-0">
-          <p id="user-display" class="text-sm font-bold text-luminous-text truncate">User</p>
-          <p class="text-[10px] text-luminous-primary font-bold uppercase tracking-wider">Luminous Pro</p>
-        </div>
-        <button onclick="doLogout()" class="text-luminous-textMuted hover:text-luminous-primary p-2 rounded-full transition-all">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
-        </button>
-      </div>
-    </div>
-  </aside>
+  const mainView = `
   <main class="main-viewport flex-1 flex flex-col w-full h-full relative z-0 bg-[#f6f6f8] min-w-0">
     <!-- Top Bar -->
     <div class="h-20 bg-white/80 backdrop-blur-md border-b border-[#f0f1f3] flex items-center justify-between px-6 lg:px-10 shrink-0 z-40 sticky top-0 w-full shadow-[0px_10px_30px_rgba(45,47,49,0.03)]">
@@ -368,7 +37,9 @@
       </div>
     </div>
   </main>
-  
+  `;
+
+  const scriptTag = `
   <script>
     // ═══ Auth Guard ═══
     (function () {
@@ -467,7 +138,7 @@
         '</div>' +
         '<div class="bg-luminous-surfaceLow p-6 rounded-2xl font-mono text-[14px] text-luminous-text mb-8 whitespace-pre-wrap leading-relaxed border border-[#e7e8ea] max-h-[400px] overflow-y-auto break-words">' + escaped + '</div>' +
         '<div class="flex flex-wrap gap-4 items-center justify-end">' +
-            '<button onclick="copyText(\'' + escaped.replace(/'/g, "\\'") + '\'); showToast(\'프롬프트가 복사되었습니다!\', \'success\');" class="inline-flex items-center gap-2 px-8 py-4 rounded-full bg-[#FF5A5F] text-white font-extrabold hover:shadow-[0_10px_30px_rgba(255,90,95,0.25)] hover:-translate-y-1 transition-all">📋 프롬프트 복사하기</button>' +
+            '<button onclick="copyText(\\'' + escaped.replace(/'/g, "\\\\'") + '\\'); showToast(\\'프롬프트가 복사되었습니다!\\', \\'success\\');" class="inline-flex items-center gap-2 px-8 py-4 rounded-full bg-[#FF5A5F] text-white font-extrabold hover:shadow-[0_10px_30px_rgba(255,90,95,0.25)] hover:-translate-y-1 transition-all">📋 프롬프트 복사하기</button>' +
         '</div>' +
         
         '<!-- Image Prompts Section -->' +
@@ -477,7 +148,7 @@
             '<div><h3 class="text-[20px] font-display font-black text-luminous-text">Image &amp; Video Prompts</h3><p class="text-xs text-luminous-textMuted font-bold mt-1 tracking-wide">앨범 커버 및 뮤직비디오용 AI 프롬프트 (16:9)</p></div>' +
             '<div id="img-loading" class="ml-auto flex items-center gap-2 text-fuchsia-500 text-[13px] font-bold hidden"><div class="spinner w-4 h-4 border-2 border-fuchsia-200 border-t-fuchsia-500"></div>생성 중...</div>' +
           '</div>' +
-          '<div class="flex flex-wrap gap-2 mb-6"><button class="px-5 py-2.5 rounded-full text-[13px] font-bold text-luminous-textMuted bg-[#f0f1f3] hover:bg-[#e7e8ea] hover:text-luminous-text transition-all img-tab active" data-tab="whisk" onclick="switchImgTab(\'whisk\')">🌀 Whisk (Pika)</button><button class="px-5 py-2.5 rounded-full text-[13px] font-bold text-luminous-textMuted bg-[#f0f1f3] hover:bg-[#e7e8ea] hover:text-luminous-text transition-all img-tab" data-tab="flow" onclick="switchImgTab(\'flow\')">🎬 FLOW (Video)</button><button class="px-5 py-2.5 rounded-full text-[13px] font-bold text-luminous-textMuted bg-[#f0f1f3] hover:bg-[#e7e8ea] hover:text-luminous-text transition-all img-tab" data-tab="grok" onclick="switchImgTab(\'grok\')">🤖 Grok (Image)</button></div>' +
+          '<div class="flex flex-wrap gap-2 mb-6"><button class="px-5 py-2.5 rounded-full text-[13px] font-bold text-luminous-textMuted bg-[#f0f1f3] hover:bg-[#e7e8ea] hover:text-luminous-text transition-all img-tab active" data-tab="whisk" onclick="switchImgTab(\\'whisk\\')">🌀 Whisk (Pika)</button><button class="px-5 py-2.5 rounded-full text-[13px] font-bold text-luminous-textMuted bg-[#f0f1f3] hover:bg-[#e7e8ea] hover:text-luminous-text transition-all img-tab" data-tab="flow" onclick="switchImgTab(\\'flow\\')">🎬 FLOW (Video)</button><button class="px-5 py-2.5 rounded-full text-[13px] font-bold text-luminous-textMuted bg-[#f0f1f3] hover:bg-[#e7e8ea] hover:text-luminous-text transition-all img-tab" data-tab="grok" onclick="switchImgTab(\\'grok\\')">🤖 Grok (Image)</button></div>' +
           '<div id="img-prompt-list"><p class="text-luminous-textMuted text-sm font-bold animate-pulse">⏳ 프롬프트를 불러오는 중입니다...</p></div>' +
         '</div>' +
 
@@ -506,8 +177,8 @@
               '<span class="text-[13px] lg:text-sm font-extrabold text-luminous-text truncate">' + (r.title || 'Untitled track') + '</span>' +
             '</div>' +
             '<div class="flex items-center gap-1.5 lg:gap-2 shrink-0">' +
-              '<button id="copy-btn-style-' + i + '" onclick="copyBatchCard(this,' + i + ',' + r.index + ', \'style\')" class="btn-copy text-[10px] lg:text-[11px] px-2.5 py-1.5 ' + (isCopied ? 'bg-emerald-50 text-emerald-600' : 'bg-[#FF5A5F]/10 text-[#FF5A5F]') + ' font-bold rounded-full transition-all whitespace-nowrap">' + (isCopied ? '✅ 스타일' : '✨ 스타일') + '</button>' +
-              '<button id="copy-btn-lyrics-' + i + '" onclick="copyBatchCard(this,' + i + ',' + r.index + ', \'lyrics\')" class="btn-copy text-[10px] lg:text-[11px] px-2.5 py-1.5 bg-[#FF5A5F]/10 text-[#FF5A5F] font-bold rounded-full transition-all whitespace-nowrap hover:bg-[#FF5A5F] hover:text-white">🎤 가사</button>' +
+              '<button id="copy-btn-style-' + i + '" onclick="copyBatchCard(this,' + i + ',' + r.index + ', \\'style\\')" class="btn-copy text-[10px] lg:text-[11px] px-2.5 py-1.5 ' + (isCopied ? 'bg-emerald-50 text-emerald-600' : 'bg-[#FF5A5F]/10 text-[#FF5A5F]') + ' font-bold rounded-full transition-all whitespace-nowrap">' + (isCopied ? '✅ 스타일' : '✨ 스타일') + '</button>' +
+              '<button id="copy-btn-lyrics-' + i + '" onclick="copyBatchCard(this,' + i + ',' + r.index + ', \\'lyrics\\')" class="btn-copy text-[10px] lg:text-[11px] px-2.5 py-1.5 bg-[#FF5A5F]/10 text-[#FF5A5F] font-bold rounded-full transition-all whitespace-nowrap hover:bg-[#FF5A5F] hover:text-white">🎤 가사</button>' +
             '</div>' +
           '</div>' +
           '<div class="text-[10px] lg:text-[11px] text-[#FF5A5F] mb-1.5 font-bold tracking-wider uppercase">Style Prompt</div>' +
@@ -539,7 +210,7 @@
             '<div><h2 class="text-[20px] font-display font-black text-luminous-text">Image &amp; Video Prompts</h2><p class="text-xs text-luminous-textMuted font-bold mt-1">각 트랙별 앨범 커버 및 뮤직비디오용 AI 프롬프트 (16:9)</p></div>' +
             '<div id="batch-img-loading" class="ml-auto flex items-center gap-2 text-fuchsia-500 text-[13px] font-bold hidden"><div class="spinner w-4 h-4 border-2 border-fuchsia-200 border-t-fuchsia-500"></div>생성 중...</div>' +
           '</div>' +
-          '<div class="flex flex-wrap gap-2 mb-6"><button class="px-5 py-2.5 rounded-full text-[13px] font-bold text-luminous-textMuted bg-[#f0f1f3] hover:bg-[#e7e8ea] hover:text-luminous-text transition-all img-tab active" data-tab="whisk" onclick="switchBatchImgTab(\'whisk\')">🌀 Whisk</button><button class="px-5 py-2.5 rounded-full text-[13px] font-bold text-luminous-textMuted bg-[#f0f1f3] hover:bg-[#e7e8ea] hover:text-luminous-text transition-all img-tab" data-tab="flow" onclick="switchBatchImgTab(\'flow\')">🎬 FLOW</button><button class="px-5 py-2.5 rounded-full text-[13px] font-bold text-luminous-textMuted bg-[#f0f1f3] hover:bg-[#e7e8ea] hover:text-luminous-text transition-all img-tab" data-tab="grok" onclick="switchBatchImgTab(\'grok\')">🤖 Grok</button></div>' +
+          '<div class="flex flex-wrap gap-2 mb-6"><button class="px-5 py-2.5 rounded-full text-[13px] font-bold text-luminous-textMuted bg-[#f0f1f3] hover:bg-[#e7e8ea] hover:text-luminous-text transition-all img-tab active" data-tab="whisk" onclick="switchBatchImgTab(\\'whisk\\')">🌀 Whisk</button><button class="px-5 py-2.5 rounded-full text-[13px] font-bold text-luminous-textMuted bg-[#f0f1f3] hover:bg-[#e7e8ea] hover:text-luminous-text transition-all img-tab" data-tab="flow" onclick="switchBatchImgTab(\\'flow\\')">🎬 FLOW</button><button class="px-5 py-2.5 rounded-full text-[13px] font-bold text-luminous-textMuted bg-[#f0f1f3] hover:bg-[#e7e8ea] hover:text-luminous-text transition-all img-tab" data-tab="grok" onclick="switchBatchImgTab(\\'grok\\')">🤖 Grok</button></div>' +
           '<div id="batch-img-list"><p class="text-luminous-textMuted text-sm font-bold">⏳ 이미지 프롬프트를 불러오는 중입니다...</p></div>' +
         '</div>' +
 
@@ -597,7 +268,7 @@
       var data = JSON.parse(localStorage.getItem('plly_results') || '{}');
       var text = '';
       if (data.type === 'batch' && data.data) { 
-        text = data.data.map(function (r) { return '[#' + r.index + '] ' + r.title + '\n[Style]\n' + r.prompt + '\n\n[Lyrics]\n' + (r.lyrics||''); }).join('\n\n---\n\n'); 
+        text = data.data.map(function (r) { return '[#' + r.index + '] ' + r.title + '\\n[Style]\\n' + r.prompt + '\\n\\n[Lyrics]\\n' + (r.lyrics||''); }).join('\\n\\n---\\n\\n'); 
       } else if (data.data) {
         text = data.data.prompt.prompt;
       }
@@ -771,4 +442,9 @@
     renderResults();
   </script>
 </body>
-</html>
+</html>`;
+
+  let newHtml = headAndSidebar + mainView + scriptTag;
+  fs.writeFileSync('public/results.html', newHtml);
+  console.log('FINAL REWRITE SUCCESS!');
+} catch(e) { console.error(e); }

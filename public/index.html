@@ -1109,7 +1109,7 @@
         // Save to localStorage for results.html if needed
         localStorage.setItem('plly_results', JSON.stringify({
           type: 'batch',
-          data: _prompts.map(p => ({ index: p.index, title: p.title, prompt: p.prompt }))
+          data: _prompts.map(p => ({ index: p.index, title: p.title, prompt: p.prompt, lyrics: p.lyrics }))
         }));
         localStorage.setItem('plly_input', JSON.stringify({ country, genre, mood, tempo }));
 
