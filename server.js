@@ -1454,7 +1454,7 @@ function generateSunoPrompt(country, genre, mood, tempo, vocal = 'auto', structu
     let lyricsThemeTxt = themeText.trim();
     if (!lyricsThemeTxt) {
         // ✨ 다이나믹 가사 프롬프트 생성 (매번 동일 조건이어도 다른 내용이 나오도록)
-        const timeOfDay = ['at midnight', 'during a golden sunset', 'in the early morning mist', 'under a starless sky', 'on a rainy afternoon', 'at the edge of dawn', 'during the last hour of summer'];
+        const timeOfDay = ['at midnight', 'during a golden sunset', 'in the early morning mist', 'under a neon-lit sky', 'on a rainy afternoon'];
         const characters = ['a lone wanderer', 'two star-crossed lovers', 'a passionate dreamer', 'someone seeking peace', 'a rebel with a cause'];
         const actions = ['finding hidden beauty', 'letting go of the past', 'racing towards the future', 'reflecting on memories', 'embracing the chaos'];
 
@@ -1728,46 +1728,46 @@ app.post('/api/auth/register', async (req, res) => {
     try {
         const { username, password, realName } = req.body;
         if (!username || !password || !realName)
-            return res.status(400).json({ success: false, message: '모든 항목을 입력해주�        const systemPrompt = `You are an elite Suno AI V5 prompt engineer and lyricist. Your prompts consistently go viral.
-Your ONLY output is a valid JSON array with EXACTLY 10 objects. No markdown, no explanation, no extra text.
+            return res.status(400).json({ success: false, message: '모든 항목을 입력해주세요.' });
+        if (username.length < 4)
+            return res.status(400).json({ success: false, message: '아이디는 4자 이상이어야 합니다.' });
+        if (password.length < 6)
+            return res.status(400).json({ success: false, message: '비밀번호는 6자 이상이어야 합니다.' });
 
-Output format (strict):
-[
-  {
-    "prompt": "<V5-optimized style prompt, max 220 chars, English only>",
-    "title": "<creative song title in the target language>",
-    "lyrics": "<1 Verse and 1 Chorus of lyrics matching the mood and theme. If instrumental, leave empty.>"
-  },
-  ...
-]
+        // 중복 체크
+        const { data: existing } = await supabase.from('users').select('id').eq('username', username).single();
+        if (existing) return res.status(409).json({ success: false, message: '이미 사용 중인 아이디입니다.' });
 
-=== V5 PROMPT FORMULA (apply to EVERY prompt) ===
-Structure each prompt using this 7-step director format:
-1. GENRE: Specific sub-genre (e.g. "dark indie folk", "melodic trap", "city pop revival")
-2. BPM & KEY: Always include exact BPM and musical key (e.g. "92 BPM, F Minor", "128 BPM, A Major")
-3. MOOD & ENERGY: 1-2 precise emotional descriptors (e.g. "melancholic longing", "euphoric rush")
-4. INSTRUMENTS: Specific instrument names — NOT generic (e.g. "fingerpicked acoustic guitar, lo-fi electric piano, subtle vinyl crackle" NOT "guitar, piano")
-5. VOCAL STYLE: Gender + tone + technique (e.g. "breathy female vocals, soft falsetto", "gritty male baritone, ad-libs")
-6. ERA & PRODUCTION: Sonic texture and mix vibe (e.g. "late 90s nostalgia, warm analog tape saturation", "2024 hyperpop production, crystal clear mix")
-7. NARRATIVE (optional but powerful): 1 short evocative phrase in quotes (e.g. "like chasing something you can never catch", "the weight of a silent room after goodbye")
+        const passwordHash = await bcrypt.hash(password, 12);
+        const { error } = await supabase.from('users').insert([{
+            username, password_hash: passwordHash, real_name: realName, role: 'pending'
+        }]);
+        if (error) throw error;
 
-=== 10-PROMPT ENERGY SPECTRUM (mandatory distribution) ===
-- Prompts 1-3: SOFT / WARM (intimate, acoustic, gentle)
-- Prompts 4-6: MID ENERGY (groovy, balanced, melodic)  
-- Prompts 7-9: INTENSE / PEAK (aggressive, euphoric, powerful)
-- Prompt 10: EXPERIMENTAL / UNIQUE (unexpected fusion or avant-garde twist)
+        res.json({ success: true, message: '가입 신청이 완료되었습니다. 관리자 승인을 기다려주세요.' });
+    } catch (e) {
+        res.status(500).json({ success: false, message: '서버 오류: ' + e.message });
+    }
+});
 
-=== CRITICAL RULES ===
-- ALWAYS include exact BPM and key (this is the #1 V5 improvement)
-- Use SPECIFIC instrument names, never vague terms
-- Each of the 10 prompts must feel distinctly different in energy and texture
-- Include vocal language tag if specified (e.g. "Korean lyrics", "sung in Japanese")
-- Max 220 characters per prompt
-- Title must be evocative and match the mood (can be in the target language if specified)
-- Lyrics MUST match the mood, language and theme. Make them poetic and singable. Leave empty if vocal type is instrumental.\`;
+// ─────────────────── 로그인 ───────────────────
+app.post('/api/auth/login', async (req, res) => {
+    try {
+        const { username, password } = req.body;
+        if (!username || !password)
+            return res.status(400).json({ success: false, message: '아이디와 비밀번호를 입력해주세요.' });
 
-        // ── 사용자 컨텍스트 ──
-        const userContext = \`Generate 10 V5-optimized Suno AI prompts for these settings:wait bcrypt.compare(password, user.password_hash);
+        // 관리자 계정 체크 (Supabase 없이도 동작)
+        if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+            const token = jwt.sign({ id: 'admin', username: ADMIN_USERNAME, role: 'admin', realName: '관리자' }, JWT_SECRET, { expiresIn: '7d' });
+            return res.json({ success: true, token, role: 'admin', username: ADMIN_USERNAME, realName: '관리자' });
+        }
+
+        // 일반 사용자 체크
+        const { data: user, error } = await supabase.from('users').select('*').eq('username', username).single();
+        if (error || !user) return res.status(401).json({ success: false, message: '아이디 또는 비밀번호가 올바르지 않습니다.' });
+
+        const passwordMatch = await bcrypt.compare(password, user.password_hash);
         if (!passwordMatch) return res.status(401).json({ success: false, message: '아이디 또는 비밀번호가 올바르지 않습니다.' });
 
         if (user.role === 'pending')
@@ -2042,7 +2042,7 @@ Structure each prompt using this 7-step director format:
 4. INSTRUMENTS: Specific instrument names — NOT generic (e.g. "fingerpicked acoustic guitar, lo-fi electric piano, subtle vinyl crackle" NOT "guitar, piano")
 5. VOCAL STYLE: Gender + tone + technique (e.g. "breathy female vocals, soft falsetto", "gritty male baritone, ad-libs")
 6. ERA & PRODUCTION: Sonic texture and mix vibe (e.g. "late 90s nostalgia, warm analog tape saturation", "2024 hyperpop production, crystal clear mix")
-7. NARRATIVE (optional but powerful): 1 short evocative phrase in quotes (e.g. "like chasing something you can never catch", "the weight of a silent room after goodbye")
+7. NARRATIVE (optional but powerful): 1 short evocative phrase in quotes (e.g. "like watching rain on a neon-lit window")
 
 === 10-PROMPT ENERGY SPECTRUM (mandatory distribution) ===
 - Prompts 1-3: SOFT / WARM (intimate, acoustic, gentle)
@@ -2148,66 +2148,18 @@ app.post('/api/generate-lyrics', verifyToken, async (req, res) => {
         const vocalLangInfo = VOCAL_LANG_MAP[vocalLang] || { label: 'Korean' };
         const weirdnessNum  = Math.min(100, Math.max(0, Number(weirdness) || 50));
 
-        // 무드별 가사 테마 풀 — 무드에 맞는 구체적인 스토리 선택
-        const MOOD_THEMES = {
-            dawn:       ['watching the city wake up alone before anyone else', 'the silence between 4am and sunrise when thoughts run deepest', 'writing a letter I\'ll never send in the pre-dawn dark', 'the first coffee before the world gets loud again'],
-            running:    ['pushing past the wall when lungs scream stop', 'running from who I used to be — and winning', 'every step on the pavement is proof I\'m still alive', 'the street belongs to me at 6am with music in my ears'],
-            cafe:       ['strangers sharing the same silence in a corner booth', 'overhearing a love story two tables over', 'coffee getting cold while I think of you', 'the writer who comes here every day and never finishes the chapter'],
-            night_drive:['driving with no destination after midnight just to feel free', 'city lights blurring past at 120km/h', 'the music that only sounds right past midnight on empty roads', 'a phone call I can\'t make while doing 100 on the highway'],
-            study:      ['the library at 2am when everyone else gave up', 'memorizing constellations instead of studying for the exam', 'one more page and then I\'ll sleep — three hours later', 'the pen that runs dry right before the most important line'],
-            party:      ['the exact moment the drop hits and everything disappears', 'finding my person across a crowded dance floor', 'dancing like tonight is the last night of everything', 'three songs in and suddenly the whole world is beautiful'],
-            romantic:   ['the first time our hands touched by accident and neither moved away', 'slow dancing in the kitchen at midnight for no reason', 'the look across the room that said everything words couldn\'t', 'you fell asleep on my shoulder and I stayed still for hours'],
-            melancholy: ['reading old messages at 3am on a rainy night', 'laughing alone at an inside joke only two people ever knew', 'packing up an apartment full of someone else\'s ghost', 'the smell of rain and the memory of a person I can\'t call'],
-            epic:       ['the warrior\'s final stand when everyone else has fallen', 'rising from ash when the whole world said it was over', 'the moment the hero realizes the real enemy was always within', 'carrying the weight of everyone\'s future on one set of shoulders'],
-            chill:      ['floating in still water watching clouds move and thinking nothing', 'the lazy Sunday afternoon that fixes everything broken in a week', 'breathing slower until the whole world finally makes sense', 'no plans, no phone, just the sound of wind and being okay'],
-            cyberpunk:  ['hacking the system from a neon-soaked basement at midnight', 'love in a city where emotions are illegal and monitored', 'the last human in a metropolis of beautiful machines', 'selling yesterday\'s memories to afford tomorrow\'s electricity'],
-            summer:     ['the last day of summer before everything changes forever', 'salt in your hair and sand between your toes and nothing mattering', 'the vacation fling that almost became a real life', 'beach bonfire songs we made up and never wrote down'],
-            gym:        ['one more rep when every muscle is begging you to quit', 'becoming the person last year\'s version couldn\'t imagine', 'the grind nobody sees but the results everyone asks about', 'iron and sweat and silence — this is who I\'m becoming'],
-            roadtrip:   ['windows down, no destination, just the road and the song', 'leaving everything behind at the state line without looking back', 'finding a diner at 3am in the middle of absolutely nowhere', 'the playlist that became the entire soundtrack of one summer'],
-            gaming:     ['the final boss that took a hundred attempts and one perfect run', 'leveling up in the game and realizing it mirrors real life', 'the hero who discovered they were living inside a simulation', 'pressing continue when the real world feels like permanent game over'],
-            nostalgia:  ['the summer of years ago that I can\'t get back no matter what', 'finding an old mixtape under the bed with your handwriting on it', 'driving past the old house and it\'s completely different now', 'the song that teleports me back to being seventeen instantly'],
-            heartbreak: ['finding your hoodie in the back of my closet six months later', 'deleting the photos but not the 3am memories', 'the last voicemail I listen to and never reply to', 'running into you at the grocery store and pretending I\'m fine'],
-            confidence: ['walking into every room like the invitation was mandatory', 'nobody can touch what I built from absolutely nothing', 'the glow-up they said would never happen happening publicly', 'too valuable for people who can\'t see it'],
-            hopeful:    ['writing the first line of a chapter that finally feels different', 'planting seeds for a garden I\'ll see bloom next spring', 'the moment you realize things are actually slowly getting better', 'the first day of something that quietly changes everything'],
-            anger:      ['burning down every bridge they built on top of my back', 'everything I should have said in that last argument and didn\'t', 'they told me to calm down so I got louder and clearer', 'rage as the purest form of love that has nowhere left to go'],
-            rain:       ['trapped inside watching the city blur through a wet window', 'the argument that started the exact moment the rain began', 'running out into the rain because staying inside was worse', 'the specific smell of rain hitting concrete after a long drought'],
-            forest:     ['the hike that made me forget my own name completely', 'finding a clearing deep in the woods where no one has ever been', 'the tree older than every single problem I have ever had', 'turning off the phone and walking into the green until I disappear'],
-            club:       ['the 2am hour when only the real music plays', 'making eye contact across the dance floor and not looking away', 'losing yourself completely in the bassline until the body takes over', 'the DJ who played exactly what I needed at exactly the right moment'],
-            wedding:    ['the speech I rewrote forty times and cried through anyway', 'watching my best person become someone\'s entire universe', 'the moment the doors opened and every single person stood up', 'the first dance when only two people exist in the whole room'],
-            sleep:      ['the dream where you came back and everything was fine again', 'falling asleep to a voice that feels like the safest place', 'the thoughts that only appear after midnight when guards are down', 'finally letting go of today before drifting somewhere better'],
-        };
-        // 무드 테마 또는 범용 아크 선택
-        const moodThemePool = MOOD_THEMES[mood] || ['rising hope against all odds', 'bittersweet nostalgia for a lost moment', 'forbidden desire that burns bright', 'identity crisis and self-discovery'];
-        const randomArc = moodThemePool[Math.floor(Math.random() * moodThemePool.length)];
-
-        // 랜덤 다양성 요소 생성
-        const perspectives = ['first-person singular', 'first-person plural', 'second-person direct address', 'third-person observer'];
+        const perspectives = ['first-person singular', 'first-person plural', 'second-person', 'third-person narrative'];
         const randomPerspective = perspectives[Math.floor(Math.random() * perspectives.length)];
         const randomSeed = Math.floor(Math.random() * 999999);
-
-        // 기존 데이터에서 랜덤 픽
-        const pickRandom = (arr, n) => arr ? arr.sort(() => Math.random() - 0.5).slice(0, n) : [];
-        const randomInstruments = pickRandom(countryInfo.instruments || [], 2);
-        const randomVibe = pickRandom(countryInfo.vibes || [], 1)[0] || '';
-        const randomMoodTags = pickRandom(moodInfo.tags || [], 2);
-        const randomGenreTags = pickRandom(genreInfo.tags || [], 2);
-        const decades = ['1980s', '1990s', '2000s', '2010s', '2020s'];
-        const randomDecade = decades[Math.floor(Math.random() * decades.length)];
-
         const lyricsPrompt = 'Write compelling song lyrics for a ' + genreInfo.name + ' track.'
             + ' Region/Culture: ' + countryInfo.name + '.'
-            + ' Mood: ' + moodInfo.name + (randomMoodTags.length ? ' (' + randomMoodTags.join(', ') + ')' : '') + '.'
+            + ' Mood: ' + moodInfo.name + '.'
             + ' Language: ' + vocalLangInfo.label + '.'
-            + (themeText ? ' Theme: "' + themeText + '".' : ' Theme must follow this narrative arc: "' + randomArc + '".')
+            + (themeText ? ' Theme: "' + themeText + '".' : ' Pick a completely unexpected, original theme — not love, not party, not success.')
             + ' Perspective: ' + randomPerspective + '.'
-            + (randomInstruments.length ? ' Feature these instruments prominently: ' + randomInstruments.join(', ') + '.' : '')
-            + (randomVibe ? ' Overall vibe: ' + randomVibe + '.' : '')
-            + (randomGenreTags.length ? ' Style anchors: ' + randomGenreTags.join(', ') + '.' : '')
-            + ' Production era feel: ' + randomDecade + '.'
             + ' Write complete lyrics with [Verse 1], [Pre-Chorus], [Chorus], [Verse 2], [Bridge] sections.'
             + ' Make it emotionally resonant and singable.'
-            + ' Variation seed #' + randomSeed + ' — output must feel like a completely different song from any previous generation.'
-            + ' TITLE RULE: The title must be specific and evocative — avoid generic overused words like "neon", "echo", "fire", "rise", "glow", "shine", "night", "dream", "light", "soul". Make it unexpected and tied to the narrative arc.'
+            + ' IMPORTANT: Variation seed #' + randomSeed + ' — every generation must feel like a different song. Use a unique metaphor, unusual imagery, or an unexpected narrative arc. Never repeat structures or phrases from previous outputs.'
             + ' Return a JSON object: { "title": "<creative song title in the lyrics language>", "lyrics": "<full lyrics text>" }'
             + ' No other text, only valid JSON.';
 
@@ -2218,7 +2170,7 @@ app.post('/api/generate-lyrics', verifyToken, async (req, res) => {
                 response = await ai.models.generateContent({
                     model: GEMINI_MODEL,
                     contents: lyricsPrompt,
-                    config: { temperature: 1.2, topP: 0.95, topK: 40 }
+                    config: { temperature: 1.2, topP: 0.95 }
                 });
                 break;
             } catch (e) {
@@ -2260,44 +2212,21 @@ app.post('/api/generate-style', verifyToken, async (req, res) => {
         const influenceNum = Math.min(100, Math.max(0, Number(styleInfluence) || 50));
         const weirdnessNum = Math.min(100, Math.max(0, Number(weirdness)      || 50));
 
-        // 기존 데이터에서 랜덤 픽
-        const pickRandomStyle = (arr, n) => arr ? arr.sort(() => Math.random() - 0.5).slice(0, n) : [];
-        const styleInstruments = pickRandomStyle(countryInfo.instruments || [], 2);
-        const styleVibe = pickRandomStyle(countryInfo.vibes || [], 1)[0] || '';
-        const styleScale = pickRandomStyle(countryInfo.scales || [], 1)[0] || '';
-        const styleMoodTags = pickRandomStyle(moodInfo.tags || [], 2);
-        const styleGenreTags = pickRandomStyle(genreInfo.tags || [], 2);
-        const bpmRange = genreInfo.bpm || '100-130';
-        const bpmParts = bpmRange.split('-');
-        const randomBpm = bpmParts.length === 2
-            ? Math.floor(Math.random() * (parseInt(bpmParts[1]) - parseInt(bpmParts[0]) + 1) + parseInt(bpmParts[0]))
-            : parseInt(bpmParts[0]) || 120;
-        const productionTechniques = ['sidechain compression', 'reverb-heavy', 'dry and punchy', 'lo-fi texture', 'futuristic hyper-production', 'analog warmth', 'glitchy electronic', 'orchestral layering', 'stripped-back acoustic', 'heavy distortion'];
-        const randomProduction = pickRandomStyle(productionTechniques, 2);
-        const decades = ['1980s', '1990s', '2000s', '2010s', '2020s'];
-        const randomDecade = decades[Math.floor(Math.random() * decades.length)];
-
         const stylePrompt = 'You are a Suno AI style expert. Generate a perfect style descriptor string.'
             + ' Genre: ' + genreInfo.name + '. Region: ' + countryInfo.name + '. Mood: ' + moodInfo.name + '.'
             + (subStyles && subStyles.length ? ' Sub-styles: ' + subStyles.join(', ') + '.' : '')
-            + (refArtist ? ' Reference artist: ' + refArtist + '.' : '')
-            + ' Style influence: ' + influenceNum + '% (higher = more genre-defining). Weirdness: ' + weirdnessNum + '% (higher = more experimental).'
-            + (styleInstruments.length ? ' Highlight these instruments: ' + styleInstruments.join(', ') + '.' : '')
-            + (styleVibe ? ' Core vibe: ' + styleVibe + '.' : '')
-            + (styleScale ? ' Tonality/scale: ' + styleScale + '.' : '')
-            + (styleMoodTags.length ? ' Mood anchors: ' + styleMoodTags.join(', ') + '.' : '')
-            + (styleGenreTags.length ? ' Genre tags: ' + styleGenreTags.join(', ') + '.' : '')
-            + ' BPM: approximately ' + randomBpm + '.'
-            + ' Production era: ' + randomDecade + ' production feel.'
-            + ' Production technique: ' + randomProduction.join(' + ') + '.'
-            + ' Output ONLY a comma-separated style tag string (max 200 chars, English only). No explanations.'
-            + ' Variation seed #' + Math.floor(Math.random()*999999) + ' — output must use completely different tag combinations each time.';
+            + (refArtist ? ' Reference: ' + refArtist + '.' : '')
+            + ' Style influence: ' + influenceNum + '% (higher = more distinct/defined).'
+            + ' Weirdness: ' + weirdnessNum + '% (higher = more experimental).'
+            + ' Output ONLY a comma-separated style tag string (max 200 chars, English only).'
+            + ' Include: sub-genre, instruments, production style, era/vibe. No explanations.'
+            + ' Variation seed #' + Math.floor(Math.random()*999999) + ' — choose completely different instruments, production techniques, and era references each time. Never output the same tag combination twice.';
 
         const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
         const response = await ai.models.generateContent({
             model: GEMINI_MODEL,
             contents: stylePrompt,
-            config: { temperature: 1.3, topP: 0.97, topK: 40 }
+            config: { temperature: 1.3, topP: 0.97 }
         });
         const style = (response.text || '').trim().replace(/\n/g, ', ');
         console.log('✅ /api/generate-style (user: ' + req.user.username + ')');
