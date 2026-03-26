@@ -4,36 +4,43 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Global Plly Master - Suno AI 프롬프트 자동화</title>
-  <meta name="description" content="타겟 국가와 분위기를 선택하면 최적화된 Suno AI 프롬프트를 자동 생성하는 음원 제작 자동화 시스템">
+  <title>Global Plly Master - Luminous Edition</title>
+  <meta name="description" content="타겟 국가와 분위기를 선택하면 최적화된 Suno AI 프롬프트를 자동 생성하는 음원 제작 시스템">
 
-  <!-- Google Fonts -->
+  <!-- Google Fonts: Plus Jakarta Sans for Display, Manrope for UI -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 
-  <!-- Tailwind CSS CDN -->
+  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
       theme: {
         extend: {
           fontFamily: {
-            sans: ['Inter', 'sans-serif'],
+            sans: ['Manrope', 'sans-serif'],
+            display: ['Plus Jakarta Sans', 'sans-serif'],
             mono: ['JetBrains Mono', 'monospace'],
           },
           colors: {
-            plly: {
-              bg: '#0a0a0f',
-              card: '#12121a',
-              border: '#1e1e2e',
-              accent: '#7c3aed',
-              accent2: '#06b6d4',
-              accent3: '#f43f5e',
-              glow: '#7c3aed33',
-              text: '#e2e8f0',
-              muted: '#64748b',
+            luminous: {
+              bg: '#f6f6f8',
+              surfaceLow: '#f0f1f3',
+              surface: '#ffffff',
+              primary: '#FF5A5F',
+              primaryLight: '#FF7575',
+              primaryDark: '#b1202d',
+              text: '#2d2f31',
+              textMuted: '#9c9d9f',
+              textDarker: '#5a5c5d',
+              outlineFade: 'rgba(172, 173, 175, 0.2)'
             }
+          },
+          boxShadow: {
+            'ambient': '0px 20px 40px rgba(45, 47, 49, 0.04)',
+            'ambient-hover': '0px 30px 60px rgba(45, 47, 49, 0.08)',
+            'glow': '0 10px 30px rgba(255, 90, 95, 0.25)',
           }
         },
       },
@@ -42,776 +49,528 @@
 
   <style>
     /* ═══ Scrollbar ═══ */
-    ::-webkit-scrollbar { width: 4px; }
-    ::-webkit-scrollbar-track { background: #080810; }
-    ::-webkit-scrollbar-thumb { background: rgba(124,58,237,0.3); border-radius: 10px; }
-    ::-webkit-scrollbar-thumb:hover { background: rgba(124,58,237,0.6); }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #f6f6f8; }
+    ::-webkit-scrollbar-thumb { background: rgba(172, 173, 175, 0.4); border-radius: 10px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(255, 90, 95, 0.6); }
 
     body {
-      background-color: #080810;
-      color: #e2e8f0;
+      background-color: #f6f6f8;
+      color: #2d2f31;
       overflow: hidden;
       display: flex;
       height: 100vh;
       width: 100vw;
-      font-family: 'Inter', sans-serif;
-    }
-
-    /* ═══ BG Grid ═══ */
-    .bg-grid {
-      background-image: radial-gradient(circle at 2px 2px, rgba(124,58,237,0.08) 1px, transparent 0);
-      background-size: 32px 32px;
     }
 
     /* ═══ Sidebar ═══ */
     .app-sidebar {
-      width: 240px; min-width: 240px; height: 100vh;
-      background: rgba(10,10,18,0.92);
-      border-right: 1px solid rgba(255,255,255,0.07);
+      width: 260px; min-width: 260px; height: 100vh;
+      background: #ffffff;
+      box-shadow: 0px 0px 40px rgba(45, 47, 49, 0.03);
       display: flex; flex-direction: column;
-      backdrop-filter: blur(24px); z-index: 50;
+      z-index: 50;
     }
 
     .main-viewport {
       flex: 1; height: 100vh; overflow: hidden;
       display: flex;
-      background: radial-gradient(ellipse at 60% 0%, rgba(124,58,237,0.05) 0%, transparent 60%);
+      background-color: #f6f6f8;
     }
 
-    /* ── Responsive: medium screens (1024~1280px) ── */
     @media (max-width: 1280px) {
-      .app-sidebar { width: 200px; min-width: 200px; }
+      .app-sidebar { width: 220px; min-width: 220px; }
       .trends-panel { width: 320px; min-width: 290px; }
-      .content-area { padding: 28px 28px; }
+      .content-area { padding: 32px 32px; }
     }
-    /* ── Responsive: small screens (<= 1024px) ── */
     @media (max-width: 1024px) {
-      .app-sidebar { width: 180px; min-width: 160px; }
-      .trends-panel { width: 270px; min-width: 250px; }
-      .trends-panel-header { padding: 14px 12px 10px; }
-      .trends-panel-body { padding: 10px 10px; }
-      .content-area { padding: 20px 20px; }
-      .country-tab { padding: 4px 8px; font-size: 11px; }
+      .app-sidebar { width: 200px; min-width: 180px; }
+      .trends-panel { width: 280px; min-width: 260px; }
+      .content-area { padding: 24px; }
     }
-    /* ── Responsive: very small screens (<= 768px) ── */
     @media (max-width: 768px) {
-      .app-sidebar { display: none; }
-      .trends-panel { display: none; }
+      .app-sidebar, .trends-panel { display: none; }
       .main-viewport { overflow-y: auto; }
       .content-area { padding: 20px 16px; }
     }
 
-
     /* ═══ Trends Panel ═══ */
     .trends-panel {
       width: 400px; min-width: 360px; height: 100vh;
-      border-right: 1px solid rgba(255,255,255,0.07);
+      background: #ffffff;
+      box-shadow: -20px 0px 40px rgba(45, 47, 49, 0.02);
       display: flex; flex-direction: column;
-      background: rgba(10,10,18,0.6);
-      backdrop-filter: blur(12px);
       overflow: hidden;
+      z-index: 40;
     }
     .trends-panel-header {
-      padding: 20px 20px 14px;
-      border-bottom: 1px solid rgba(255,255,255,0.06);
+      padding: 24px 28px 16px;
+      border-bottom: 1px solid #f0f1f3;
       flex-shrink: 0;
     }
     .trends-panel-body {
-      flex: 1; overflow-y: auto;
-      padding: 14px 16px;
-      scrollbar-width: thin;
-      scrollbar-color: rgba(124,58,237,0.3) transparent;
+      flex: 1; overflow-y: auto; padding: 20px 24px;
     }
     .country-tab {
       display: inline-flex; align-items: center; gap: 6px;
-      padding: 6px 12px; border-radius: 20px;
-      font-size: 12px; font-weight: 700;
-      border: 1px solid transparent;
-      cursor: pointer; transition: all 0.15s;
-      color: #94a3b8;
+      padding: 8px 16px; border-radius: 999px;
+      font-size: 13px; font-weight: 700;
+      color: #5a5c5d; cursor: pointer; transition: all 0.2s;
+      background: #f0f1f3;
     }
-    .country-tab:hover { background: rgba(255,255,255,0.07); color: #fff; }
-    .country-tab.active {
-      background: rgba(124,58,237,0.2);
-      border-color: rgba(124,58,237,0.4);
-      color: #c4b5fd;
-    }
+    .country-tab:hover { background: #e7e8ea; color: #2d2f31; }
+    .country-tab.active { background: rgba(255, 90, 95, 0.1); color: #FF5A5F; }
+
     .age-row {
-      padding: 14px 14px 10px;
-      border-radius: 14px;
-      border: 1px solid rgba(255,255,255,0.06);
-      background: rgba(255,255,255,0.025);
-      margin-bottom: 10px;
-      transition: border-color 0.2s;
+      padding: 18px; border-radius: 1.25rem;
+      background: #fafafa;
+      margin-bottom: 12px; transition: all 0.2s;
+      border: 1px solid transparent;
     }
-    .age-row:hover { border-color: rgba(124,58,237,0.2); }
-    .age-row-header {
-      display: flex; align-items: center; gap: 8px;
-      margin-bottom: 10px;
-      padding-bottom: 8px;
-      border-bottom: 1px solid rgba(255,255,255,0.05);
-    }
+    .age-row:hover { background: #ffffff; border-color: rgba(255, 90, 95, 0.15); box-shadow: 0 10px 20px rgba(45,47,49,0.03); }
+    .age-row-header { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+    
     .genre-list-item {
       display: flex; align-items: center; justify-content: space-between;
-      padding: 7px 8px; border-radius: 8px;
-      cursor: pointer; transition: background 0.15s;
-      width: 100%;
+      padding: 8px 10px; border-radius: 10px;
+      cursor: pointer; transition: all 0.2s; width: 100%;
     }
-    .genre-list-item:hover { background: rgba(124,58,237,0.12); }
-    .genre-list-item .rank {
-      font-size: 11px; font-weight: 800; color: #4b5563;
-      min-width: 18px; margin-right: 8px;
-    }
-    .genre-list-item .rank-1 { color: #a78bfa; }
-    .genre-list-item .gname {
-      flex: 1; font-size: 12.5px; font-weight: 600; color: #e2e8f0;
-    }
-    .genre-list-item.hot .gname { color: #fca5a5; }
-    .genre-list-item.rising .gname { color: #86efac; }
-    .genre-list-item .badge { font-size: 13px; }
+    .genre-list-item:hover { background: rgba(255, 90, 95, 0.05); }
+    .genre-list-item .rank { font-size: 12px; font-weight: 800; color: #9c9d9f; min-width: 20px; }
+    .genre-list-item .rank-1 { color: #FF5A5F; }
+    .genre-list-item .gname { flex: 1; font-size: 13.5px; font-weight: 700; color: #2d2f31; }
+    .genre-list-item.hot .gname { color: #b1202d; }
+    .genre-list-item.rising .gname { color: #007a4d; }
+
     .genre-chip {
       display: inline-flex; align-items: center; gap: 4px;
-      padding: 4px 10px; border-radius: 20px;
-      font-size: 11px; font-weight: 700;
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.08);
-      color: #cbd5e1; cursor: pointer;
-      transition: all 0.15s; margin: 3px 2px;
+      padding: 6px 14px; border-radius: 999px; font-size: 12px; font-weight: 700;
+      background: #ffffff; color: #5a5c5d; cursor: pointer; transition: all 0.2s;
+      border: 1px solid #e7e8ea; margin: 4px 2px;
     }
-    .genre-chip:hover {
-      background: rgba(124,58,237,0.2);
-      border-color: rgba(124,58,237,0.4);
-      color: #fff;
-    }
-    .genre-chip.hot {
-      border-color: rgba(239,68,68,0.3);
-      color: #fca5a5;
-    }
-    .genre-chip.rising {
-      border-color: rgba(34,197,94,0.3);
-      color: #86efac;
-    }
+    .genre-chip:hover { background: #FF5A5F; color: #fff; border-color: #FF5A5F; }
+    .genre-chip.hot { color: #b1202d; border-color: rgba(177, 32, 45, 0.2); background: rgba(177, 32, 45, 0.05); }
+    .genre-chip.rising { color: #007a4d; border-color: rgba(0, 122, 77, 0.2); background: rgba(0, 122, 77, 0.05); }
 
-    .content-area {
-      padding: 36px 44px;
-      flex: 1;
-      overflow-y: auto;
-    }
+    .content-area { padding: 48px 64px; flex: 1; overflow-y: auto; }
 
     /* ═══ Nav ═══ */
     .sidebar-section-label {
-      font-size: 10px; font-weight: 800; color: #64748b;
-      padding: 0 16px; margin-bottom: 6px; margin-top: 20px;
-      text-transform: uppercase; letter-spacing: 0.15em;
+      font-size: 11px; font-weight: 800; color: #9c9d9f;
+      padding: 0 20px; margin-bottom: 8px; margin-top: 24px;
+      text-transform: uppercase; letter-spacing: 0.1em;
     }
     .nav-link {
-      display: flex; align-items: center; gap: 12px;
-      padding: 11px 16px; border-radius: 12px;
-      color: #cbd5e1; font-weight: 600; font-size: 14px;
-      transition: all 0.2s; cursor: pointer; text-decoration: none;
+      display: flex; align-items: center; gap: 14px;
+      padding: 12px 20px; border-radius: 12px;
+      color: #5a5c5d; font-weight: 700; font-size: 14px;
+      transition: all 0.2s; cursor: pointer; text-decoration: none; margin: 4px 12px;
     }
-    .nav-link:hover { background: rgba(124,58,237,0.12); color: #fff; }
+    .nav-link:hover { background: #f0f1f3; color: #2d2f31; }
     .nav-link.active {
-      background: rgba(124,58,237,0.18); color: #fff;
-      border-left: 3px solid #8b5cf6;
-      border-radius: 0 12px 12px 0; padding-left: 13px;
+      background: rgba(255, 90, 95, 0.1); color: #FF5A5F;
     }
 
-    /* ═══ Select ═══ */
-    .select-premium {
-      background-color: rgba(255,255,255,0.06);
-      border: 1px solid rgba(255,255,255,0.12);
-      border-radius: 12px; padding: 11px 36px 11px 14px;
-      color: #f1f5f9; font-size: 13.5px; font-weight: 500;
-      width: 100%; outline: none; transition: all 0.2s;
-      appearance: none;
-      background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23a0aec0' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
-      background-position: right 10px center; background-repeat: no-repeat; background-size: 1.3em 1.3em;
-      cursor: pointer;
-      font-family: 'Inter', sans-serif;
-    }
-    .select-premium:hover { border-color: rgba(139,92,246,0.4); background-color: rgba(255,255,255,0.08); }
-    .select-premium:focus { border-color: #8b5cf6; box-shadow: 0 0 0 3px rgba(139,92,246,0.15); }
-    .select-premium option { background-color: #1e1e2e; color: #e2e8f0; font-size: 13px; }
-    .select-premium option:checked { background-color: #7c3aed; }
-
+    /* ═══ Input & Select ═══ */
     .input-label {
-      display: block; font-size: 12px; font-weight: 700;
-      color: #cbd5e1; margin-bottom: 8px;
-      letter-spacing: 0.05em; text-transform: uppercase;
+      display: block; font-size: 12px; font-weight: 800; color: #5a5c5d;
+      margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    .select-premium, .input-luminous, .textarea-luminous {
+      background-color: #f6f6f8;
+      border: 1px solid rgba(172, 173, 175, 0.25);
+      border-radius: 12px; padding: 14px 16px;
+      color: #2d2f31; font-size: 14px; font-weight: 600; width: 100%;
+      outline: none; transition: all 0.2s;
+      font-family: 'Manrope', sans-serif;
+    }
+    .select-premium {
+      appearance: none; cursor: pointer;
+      background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%235a5c5d' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+      background-position: right 14px center; background-repeat: no-repeat; background-size: 1.2rem;
+      padding-right: 40px;
+    }
+    .select-premium:hover, .input-luminous:hover, .textarea-luminous:hover {
+      background-color: #ffffff; border-color: rgba(255, 90, 95, 0.4);
+    }
+    .select-premium:focus, .input-luminous:focus, .textarea-luminous:focus {
+      background-color: #ffffff; border-color: #FF5A5F; box-shadow: 0 0 0 3px rgba(255, 90, 95, 0.15);
     }
 
     /* ═══ Generate Button ═══ */
     .btn-generate {
-      background: linear-gradient(135deg, #7c3aed, #6d28d9);
-      color: white; font-weight: 800; border-radius: 16px;
-      box-shadow: 0 4px 20px rgba(124,58,237,0.4);
+      background: linear-gradient(135deg, #b1202d, #ff7575);
+      color: white; font-weight: 800; border-radius: 999px;
+      box-shadow: 0 10px 30px rgba(255, 90, 95, 0.25);
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       position: relative; overflow: hidden; width: 100%;
-      padding: 18px 24px; font-size: 17px; letter-spacing: -0.02em;
-      display: flex; align-items: center; justify-content: center; gap: 12px;
-      border: none; cursor: pointer;
+      padding: 18px 24px; font-size: 17px;
+      display: flex; align-items: center; justify-content: center; gap: 12px; cursor: pointer; border: none;
     }
-    .btn-generate:hover:not(:disabled) {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 30px rgba(124,58,237,0.6);
-    }
-    .btn-generate:disabled {
-      opacity: 0.5; cursor: not-allowed; transform: none;
-    }
+    .btn-generate:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 14px 40px rgba(255, 90, 95, 0.35); }
+    .btn-generate:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
 
     /* ═══ Glass Card ═══ */
     .glass-card {
-      background: rgba(255,255,255,0.035);
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 20px; padding: 24px;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      background: #ffffff; border-radius: 1.5rem;
+      box-shadow: 0px 20px 40px rgba(45, 47, 49, 0.04);
+      padding: 32px; transition: all 0.3s ease;
+      border: 1px solid transparent; 
     }
-    .glass-card:hover {
-      border-color: rgba(124,58,237,0.25);
-      background: rgba(255,255,255,0.05);
-    }
+    .glass-card:hover { box-shadow: 0px 30px 60px rgba(45, 47, 49, 0.06); }
 
-    /* ═══ Prompt Result Card ═══ */
+    /* ═══ Results Area ═══ */
     .prompt-card {
-      background: rgba(255,255,255,0.025);
-      border: 1px solid rgba(255,255,255,0.07);
-      border-radius: 16px; padding: 20px 22px;
-      transition: all 0.25s ease;
-      opacity: 1;
+      background: #fcfcfd; border-radius: 1.25rem;
+      padding: 24px; transition: all 0.2s ease;
+      border: 1px solid rgba(172, 173, 175, 0.1);
     }
-    .prompt-card:hover {
-      border-color: rgba(124,58,237,0.3);
-      background: rgba(255,255,255,0.04);
-    }
+    .prompt-card:hover { background: #ffffff; border-color: rgba(255, 90, 95, 0.2); box-shadow: 0 16px 32px rgba(45, 47, 49, 0.05); }
     .prompt-text {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 12.5px; line-height: 1.8; color: #c4b5fd;
-      background: rgba(0,0,0,0.35);
-      border: 1px solid rgba(124,58,237,0.15);
-      border-radius: 12px; padding: 14px 16px;
-      word-break: break-all; white-space: pre-wrap;
+      font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.7; color: #b1202d;
+      background: rgba(255, 90, 95, 0.04); border-radius: 12px; padding: 16px 20px;
+      word-break: break-all; white-space: pre-wrap; font-weight: 500;
     }
 
-    /* ═══ Copy Button ═══ */
     .btn-copy {
-      background: rgba(124,58,237,0.15);
-      border: 1px solid rgba(124,58,237,0.3);
-      color: #a78bfa; border-radius: 10px;
-      padding: 7px 16px; font-weight: 700; font-size: 12px;
-      cursor: pointer; transition: all 0.2s; white-space: nowrap;
-      font-family: 'Inter', sans-serif;
+      background: rgba(255, 90, 95, 0.1); color: #FF5A5F; border-radius: 999px;
+      padding: 8px 16px; font-weight: 800; font-size: 13px; cursor: pointer; transition: all 0.2s; border: none;
     }
-    .btn-copy:hover { background: rgba(124,58,237,0.3); color: #e2e8f0; transform: translateY(-1px); }
-    .btn-copy.copied {
-      background: rgba(16,185,129,0.2); border-color: rgba(16,185,129,0.4); color: #6ee7b7;
-    }
+    .btn-copy:hover { background: #FF5A5F; color: #ffffff; transform: translateY(-1px); }
+    .btn-copy.copied { background: #e6f6ee; color: #007a4d; }
 
-    /* ═══ Num Badge ═══ */
-    .num-badge {
-      width: 32px; height: 32px; border-radius: 8px; flex-shrink: 0;
-      background: linear-gradient(135deg, #7c3aed, #6d28d9);
-      display: flex; align-items: center; justify-content: center;
-      font-weight: 900; font-size: 13px; color: white;
-    }
-
-    /* ═══ Substyle tag ═══ */
     .substyle-tag {
-      padding: 5px 12px; border-radius: 8px; font-size: 12px; font-weight: 700;
-      border: 1px solid rgba(255,255,255,0.1); color: #94a3b8;
-      background: rgba(255,255,255,0.04); cursor: pointer;
-      transition: all 0.15s; white-space: nowrap; user-select: none;
+      padding: 8px 16px; border-radius: 999px; font-size: 13px; font-weight: 700;
+      color: #5a5c5d; background: #f0f1f3; cursor: pointer; transition: all 0.2s;
     }
-    .substyle-tag:hover { border-color: rgba(139,92,246,0.4); color: #e2e8f0; }
-    .substyle-tag.active {
-      background: rgba(139,92,246,0.2); border-color: #8b5cf6; color: #c4b5fd;
-    }
-    /* 트렌드에서 자동 적용된 아티스트 칩 — 황금빛 하이라이트 */
+    .substyle-tag:hover { background: #e7e8ea; color: #2d2f31; }
+    .substyle-tag.active { background: rgba(255, 90, 95, 0.1); color: #FF5A5F; border: 1px solid rgba(255, 90, 95, 0.2); margin: -1px; }
+
+    /* Highlights for Auto-selected */
     .substyle-tag.highlighted {
-      background: rgba(251,191,36,0.12);
-      border-color: rgba(251,191,36,0.5);
-      color: #fbbf24;
-      animation: chipGlow 1.8s ease-in-out infinite alternate;
+      background: rgba(255, 194, 205, 0.3); color: #b1202d;
+      animation: chipPulse 1.5s ease-in-out infinite alternate;
     }
-    .substyle-tag.highlighted:hover {
-      background: rgba(251,191,36,0.22);
-      border-color: #fbbf24;
-      color: #fde68a;
-    }
-    @keyframes chipGlow {
-      from { box-shadow: 0 0 0 0 rgba(251,191,36,0); }
-      to   { box-shadow: 0 0 6px 2px rgba(251,191,36,0.18); }
-    }
+    @keyframes chipPulse { from { box-shadow: 0 0 0 rgba(255, 90, 95, 0); } to { box-shadow: 0 0 8px rgba(255, 90, 95, 0.3); } }
 
-    /* ═══ Spinner ═══ */
-    .spinner {
-      width: 20px; height: 20px; border: 2.5px solid rgba(255,255,255,0.3);
-      border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinner { width: 22px; height: 22px; border: 3px solid rgba(255,255,255,0.4); border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite; }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
 
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(16px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-    @keyframes float {
-      0%,100% { transform: translateY(0); }
-      50%      { transform: translateY(-10px); }
-    }
-    @keyframes pulseGlow {
-      0%,100% { box-shadow: 0 0 20px rgba(124,58,237,0.3); }
-      50%      { box-shadow: 0 0 40px rgba(124,58,237,0.6); }
-    }
-
-    /* ═══ Toast ═══ */
-    .toast { transform: translateX(110%); transition: all 0.4s cubic-bezier(0.175,0.885,0.32,1.275); }
-    .toast.show { transform: translateX(0); }
-
-    /* ═══ Progress ═══ */
-    #progress-bar { width: 0; transition: width 0.6s ease; }
-
-    /* Mobile */
-    @media (max-width: 1024px) {
-      .mobile-overlay { display: flex !important; }
+    /* Head Header */
+    .glass-header {
+      background: rgba(246, 246, 248, 0.7); backdrop-filter: blur(20px);
+      border-radius: 1.5rem; padding: 24px 32px;
+      box-shadow: 0px 10px 30px rgba(45, 47, 49, 0.03); margin-bottom: 32px;
     }
   </style>
 </head>
 
-<body class="bg-grid">
+<body>
 
   <!-- Mobile Overlay -->
-  <div class="mobile-overlay fixed inset-0 z-[9999] bg-[#080810] hidden flex-col items-center justify-center p-12 text-center lg:hidden">
+  <div class="mobile-overlay fixed inset-0 z-[9999] bg-[#f6f6f8] hidden flex-col items-center justify-center p-12 text-center lg:hidden">
     <div class="text-7xl mb-8" style="animation: float 6s ease-in-out infinite;">📱</div>
-    <h2 class="text-3xl font-black text-white mb-6 uppercase tracking-tighter">Desktop Only</h2>
-    <p class="text-plly-muted text-lg leading-relaxed">Global Plly Master는 전문적인 제작 도구입니다.<br>최상의 경험을 위해 데스크탑 환경에서 접속해주세요.</p>
+    <h2 class="font-display font-extrabold text-3xl text-luminous-text mb-6 uppercase tracking-tighter">Desktop Only</h2>
+    <p class="text-luminous-textDarker text-lg font-medium leading-relaxed">Global Plly Master is a premium studio tool.<br>Please open on desktop for the full Luminous experience.</p>
   </div>
 
-  <!-- Toast Container -->
   <div id="toast-container" class="fixed top-8 right-8 z-[300] flex flex-col gap-4"></div>
 
   <!-- ═══ SIDEBAR ═══ -->
-  <aside class="app-sidebar" style="position:relative;z-index:10;">
-    <div class="p-8">
-      <div class="flex items-center gap-4">
-        <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-600 to-cyan-500 flex items-center justify-center text-2xl shadow-xl shadow-purple-500/20" style="animation: pulseGlow 2s ease-in-out infinite;">🎵</div>
+  <aside class="app-sidebar">
+    <div class="p-8 pb-4">
+      <div class="flex items-center gap-4 mb-4">
+        <div class="w-12 h-12 rounded-[1rem] bg-gradient-to-tr from-[#FF5A5F] to-[#ffc2cd] flex items-center justify-center text-white text-2xl shadow-glow">🎵</div>
         <div>
-          <h1 class="font-black text-xl leading-none tracking-tighter uppercase">PLLY <span class="text-purple-500">MASTER</span></h1>
-          <p class="text-[9px] text-plly-muted mt-1.5 uppercase tracking-[0.2em] font-black opacity-60">AI Music Dashboard</p>
+          <h1 class="font-display font-extrabold text-lg leading-tight tracking-tight text-luminous-text">PLLY <span class="text-luminous-primary">MASTER</span></h1>
+          <p class="text-[10px] text-luminous-textMuted mt-1 uppercase tracking-widest font-bold">Studio Dashboard</p>
         </div>
       </div>
     </div>
 
-    <nav class="flex-1 px-4 py-4 space-y-1.5 overflow-y-auto">
+    <nav class="flex-1 overflow-y-auto pb-6">
       <div class="sidebar-section-label">Main Control</div>
       <a class="nav-link active" href="/">
-        <span class="w-8 flex justify-center">🏠</span><span>대시보드</span>
+        <span class="w-6 flex justify-center text-lg">🏠</span><span>Dashboard</span>
       </a>
       <a id="btn-admin-nav" class="nav-link" style="display:none;" href="/admin.html">
-        <span class="w-8 flex justify-center">🛡️</span><span>관리자 패널</span>
+        <span class="w-6 flex justify-center text-lg">🛡️</span><span>Admin Station</span>
       </a>
 
       <div class="sidebar-section-label">Insights</div>
-      <a class="nav-link" href="/results.html" id="nav-recent-results"
-        style="opacity:0.4;" title="생성된 프롬프트 결과 보기">
-        <span class="w-8 flex justify-center">🎵</span>
-        <span class="flex-1">최근 결과</span>
-        <span id="nav-results-badge" class="text-[9px] font-black px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/20"></span>
+      <a class="nav-link" href="/results.html" id="nav-recent-results" style="opacity:0.6;" title="Recent results">
+        <span class="w-6 flex justify-center text-lg">🎵</span><span class="flex-1">Latest Outputs</span>
+        <span id="nav-results-badge" class="bg-luminous-primaryLight/10 text-luminous-primary px-2 py-0.5 rounded-full text-[10px] font-bold"></span>
       </a>
       <button class="nav-link w-full text-left" onclick="switchView('history')">
-        <span class="w-8 flex justify-center">📋</span>
-        <span class="flex-1">작업 기록</span>
+        <span class="w-6 flex justify-center text-lg">📋</span><span class="flex-1">Task History</span>
       </button>
       <button class="nav-link w-full text-left" onclick="switchView('trends')">
-        <span class="w-8 flex justify-center">🌍</span>
-        <span class="flex-1">글로벌 트렌드</span>
+        <span class="w-6 flex justify-center text-lg">🌍</span><span class="flex-1">Global Trends</span>
       </button>
-      <a class="nav-link" href="/timeline.html">
-        <span class="w-8 flex justify-center">🎬</span>
-        <span class="flex-1">타임라인 추출기</span>
-        <span class="text-[9px] font-black px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/20">NEW</span>
-      </a>
 
-      <!-- Gemini AI Status -->
-      <div class="mt-4 mx-2 p-3 rounded-xl border border-white/5 bg-white/[0.02]">
-        <div class="flex items-center gap-2.5">
-          <div id="gemini-dot" class="w-2.5 h-2.5 rounded-full bg-slate-600 flex-shrink-0" style="transition:background 0.4s;"></div>
+      <div class="sidebar-section-label">AI System</div>
+      <div class="mx-3 mt-2 p-4 rounded-2xl bg-luminous-surfaceLow border border-white">
+        <div class="flex items-center gap-3">
+          <div id="gemini-dot" class="w-2.5 h-2.5 rounded-full bg-slate-300" style="transition:background 0.4s;"></div>
           <div class="flex-1 min-w-0">
-            <p class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Gemini AI</p>
-            <p id="gemini-status-text" class="text-[9px] text-slate-600 truncate">확인 중...</p>
+            <p class="text-[10px] font-bold text-luminous-textDarker uppercase tracking-wider">Gemini Status</p>
+            <p id="gemini-status-text" class="text-[11px] font-semibold text-luminous-text truncate">Verifying...</p>
           </div>
           <span id="gemini-icon" class="text-base">⏳</span>
         </div>
       </div>
     </nav>
 
-
-    <!-- ── 코다리 부장 & 영자 실장 크레딧 카드 ── -->
-    <div class="mx-3 mb-3 rounded-2xl overflow-hidden" style="border:1px solid rgba(255,255,255,0.07); background: rgba(255,255,255,0.02);">
-      <!-- 코다리 부장 -->
-      <div class="flex items-center gap-2.5 px-3 py-2.5 border-b border-white/5">
-        <div class="w-7 h-7 rounded-lg flex items-center justify-center text-sm flex-shrink-0"
-          style="background: linear-gradient(135deg, rgba(6,182,212,0.25), rgba(124,58,237,0.25)); border: 1px solid rgba(6,182,212,0.2);">
-          🐟
-        </div>
+    <!-- User Profile -->
+    <div class="p-4 border-t border-luminous-surfaceLow">
+      <div class="flex items-center gap-3 p-3 rounded-2xl hover:bg-luminous-surfaceLow transition-colors cursor-pointer group">
+        <div class="w-10 h-10 rounded-full bg-luminous-text text-white flex items-center justify-center font-bold shadow-sm">👤</div>
         <div class="flex-1 min-w-0">
-          <p class="text-[10px] font-black text-cyan-400 tracking-wider">코다리 개발부장</p>
-          <a href="https://global-plly-master.vercel.app/" target="_blank"
-            class="text-[9px] text-slate-500 hover:text-cyan-400 transition-colors truncate block"
-            style="font-family:'JetBrains Mono',monospace;">
-            🌐 global-plly-master.vercel.app
-          </a>
+          <p id="user-display" class="text-sm font-bold text-luminous-text truncate">User</p>
+          <p class="text-[10px] text-luminous-primary font-bold uppercase tracking-wider">Luminous Pro</p>
         </div>
-      </div>
-      <!-- 영자 실장 -->
-      <div class="flex items-center gap-2.5 px-3 py-2.5">
-        <div class="w-7 h-7 rounded-lg flex items-center justify-center text-sm flex-shrink-0"
-          style="background: linear-gradient(135deg, rgba(244,63,94,0.25), rgba(251,191,36,0.2)); border: 1px solid rgba(244,63,94,0.2);">
-          🌸
-        </div>
-        <div class="flex-1 min-w-0">
-          <p class="text-[10px] font-black text-rose-300 tracking-wider">영자 실장</p>
-          <p class="text-[9px] text-slate-500">디자인 곱게 신경 중 ✨</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- User Info -->
-    <div class="p-4 border-t border-white/5 bg-white/[0.01]">
-      <div class="flex items-center gap-4 p-4 rounded-2xl hover:bg-white/5 transition-all cursor-default group">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-purple-500 to-rose-400 flex items-center justify-center font-black text-white shadow-lg">👤</div>
-        <div class="flex-1 min-w-0">
-          <p id="user-display" class="text-sm font-bold truncate">User</p>
-          <p class="text-[10px] text-emerald-400 font-bold uppercase tracking-wider">Pro Active</p>
-        </div>
-        <button onclick="doLogout()" title="로그아웃"
-          class="text-plly-muted hover:text-rose-400 p-2 rounded-xl hover:bg-rose-500/10 transition-all">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-          </svg>
+        <button onclick="doLogout()" class="text-luminous-textMuted hover:text-luminous-primary p-2 rounded-full transition-all">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
         </button>
       </div>
     </div>
   </aside>
 
-
   <!-- ═══ MAIN VIEWPORT ═══ -->
-  <main class="main-viewport bg-grid" style="position:relative;z-index:10;">
+  <main class="main-viewport">
 
-    <!-- ═══ TRENDS PANEL (Left) ═══ -->
+    <!-- ═══ TRENDS PANEL ═══ -->
     <div class="trends-panel">
       <div class="trends-panel-header">
-        <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center justify-between mb-4">
           <div class="flex items-center gap-2">
-            <span class="text-lg">🌍</span>
-            <span class="font-black text-white text-sm tracking-tight">Global Trends</span>
-            <span class="text-[9px] font-black px-2 py-0.5 rounded-full bg-cyan-500/15 border border-cyan-500/20 text-cyan-400 uppercase tracking-widest">Live</span>
+            <h3 class="font-display font-bold text-lg text-luminous-text">Trend Analytics</h3>
+            <span class="bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-widest">Live</span>
           </div>
-          <button id="btn-refresh-trends" onclick="loadTrends()" title="AI로 새로고침"
-            class="text-slate-500 hover:text-purple-400 transition-colors p-1.5 rounded-lg hover:bg-purple-500/10 text-xs font-bold">
-            🔄
-          </button>
+          <button id="btn-refresh-trends" onclick="loadTrends()" class="text-luminous-textMuted hover:text-luminous-primary transition-colors p-2 rounded-full hover:bg-luminous-surfaceLow font-bold text-lg">🔄</button>
         </div>
-        <!-- Country Tabs -->
-        <div id="country-tabs" class="flex flex-wrap gap-1.5"></div>
+        <div id="country-tabs" class="flex flex-wrap gap-2"></div>
       </div>
       <div class="trends-panel-body" id="age-trends-body">
-        <!-- Age breakdown rendered here -->
-        <div class="text-center py-16 text-slate-600 text-xs">
-          <div class="text-3xl mb-2">🌐</div>로딩 중...
-        </div>
+         <div class="text-center py-20 text-luminous-textMuted">
+            <div class="spinner mx-auto mb-4" style="border-color: rgba(90,92,93,0.2); border-top-color: #FF5A5F;"></div>
+            <p class="font-bold">Syncing insights...</p>
+         </div>
       </div>
     </div>
 
-    <!-- ═══ FORM PANEL (Right) ═══ -->
+    <!-- ═══ FORM CONTENT ═══ -->
     <div class="content-area">
 
       <!-- Hero Header -->
-      <header class="mb-10" style="animation: fadeUp 0.5s ease-out forwards; opacity:0;">
-        <div class="flex items-center gap-3 mb-4">
-          <span class="inline-block px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 text-[10px] font-black text-purple-400 uppercase tracking-widest">AI-Powered</span>
-          <span id="admin-badge" class="hidden px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-[10px] font-black text-amber-500 uppercase tracking-widest">Master Admin</span>
+      <header class="glass-header" style="animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity:0;">
+        <div class="flex items-center gap-3 mb-3">
+          <span class="bg-luminous-surfaceLow text-luminous-textDarker px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest">AI Engine Generator</span>
+          <span id="admin-badge" class="hidden bg-[#fff5e6] text-[#b35900] px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest">Admin</span>
         </div>
-        <h2 class="text-5xl font-black text-white leading-[1.1] tracking-tight">Design the Sound<br>
-          <span style="background: linear-gradient(135deg, #8b5cf6, #06b6d4); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;">of Tomorrow.</span>
+        <h2 class="font-display font-extrabold text-4xl text-luminous-text leading-tight tracking-tight">
+          Compose the Sound <br>
+          <span style="background: linear-gradient(135deg, #b1202d, #ff7575); -webkit-background-clip: text; color: transparent;">of Tomorrow.</span>
         </h2>
-        <p class="text-plly-muted mt-5 text-lg font-medium">조건을 선택하면 Gemini AI가 Suno AI용 프롬프트 10개를 자동으로 생성합니다.</p>
+        <p class="text-luminous-textDarker mt-4 text-base font-medium">Select your criteria to automatically generate 10 highly optimized Suno AI prompts.</p>
       </header>
 
-      <!-- ═══ Form ═══ -->
       <div id="prompt-form" class="space-y-8">
 
         <!-- Section 01: Target Selection -->
-        <section class="glass-card" style="animation: fadeUp 0.5s 0.1s ease-out forwards; opacity:0;">
-          <div class="flex items-center gap-4 mb-6">
-            <div class="w-9 h-9 rounded-xl bg-purple-500/15 border border-purple-500/25 flex items-center justify-center text-sm font-black text-purple-300">01</div>
+        <section class="glass-card" style="animation: fadeUp 0.6s 0.1s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity:0;">
+          <div class="flex items-center gap-4 mb-8">
+            <div class="w-10 h-10 rounded-full bg-luminous-surfaceLow flex items-center justify-center text-sm font-bold text-luminous-textDarker">1</div>
             <div>
-              <h3 class="text-lg font-black text-white tracking-tight">Target Selection</h3>
-              <p class="text-[12px] text-slate-400 mt-0.5">시장과 장르의 정체성을 설정합니다.</p>
+              <h3 class="font-display font-extrabold text-xl text-luminous-text">Target Settings</h3>
+              <p class="text-xs text-luminous-textMuted font-medium mt-1">Define the fundamental genre and market.</p>
             </div>
           </div>
-          <div class="grid grid-cols-2 gap-6 mb-5">
+          <div class="grid grid-cols-2 gap-8 mb-6">
             <div>
-              <label class="input-label">타겟 국가 <span id="country-flag" class="ml-1"></span></label>
-              <select id="select-country" class="select-premium">
-                <option value="" disabled selected>국가를 선택하세요</option>
-              </select>
+              <label class="input-label">Target Market <span id="country-flag" class="ml-1 text-lg"></span></label>
+              <select id="select-country" class="select-premium"><option value="" disabled selected>Choose market...</option></select>
             </div>
             <div>
-              <label class="input-label">음악 장르</label>
-              <select id="select-genre" class="select-premium">
-                <option value="" disabled selected>장르를 선택하세요</option>
-              </select>
+              <label class="input-label">Primary Genre</label>
+              <select id="select-genre" class="select-premium"><option value="" disabled selected>Choose genre...</option></select>
             </div>
           </div>
-          <div class="grid grid-cols-2 gap-6">
+          <div class="grid grid-cols-2 gap-8">
             <div>
-              <label class="input-label">감성 무드 <span id="mood-emoji" class="ml-1"></span></label>
-              <select id="select-mood" class="select-premium">
-                <option value="" disabled selected>무드를 선택하세요</option>
-              </select>
+              <label class="input-label">Vibe / Mood <span id="mood-emoji" class="ml-1 text-lg"></span></label>
+              <select id="select-mood" class="select-premium"><option value="" disabled selected>Choose vibe...</option></select>
             </div>
             <div>
-              <label class="input-label">곡의 속도 (Tempo)</label>
+              <label class="input-label">Tempo (BPM)</label>
               <select id="select-tempo" class="select-premium">
-                <option value="" disabled selected>템포를 선택하세요</option>
-                <option value="very slow (40-60 BPM)">🐢 Very Slow (40-60 BPM)</option>
-                <option value="slow (60-80 BPM)">🌙 Slow (60-80 BPM)</option>
-                <option value="moderate (80-100 BPM)">🚶 Moderate (80-100 BPM)</option>
-                <option value="medium-fast (100-120 BPM)">🚗 Medium-Fast (100-120 BPM)</option>
-                <option value="fast (120-140 BPM)">🏃 Fast (120-140 BPM)</option>
-                <option value="very fast (140-180 BPM)">⚡ Very Fast (140-180 BPM)</option>
+                <option value="" disabled selected>Choose tempo...</option>
+                <option value="very slow (40-60 BPM)">🐢 Very Slow (40-60)</option>
+                <option value="slow (60-80 BPM)">🌙 Slow (60-80)</option>
+                <option value="moderate (80-100 BPM)">🚶 Moderate (80-100)</option>
+                <option value="medium-fast (100-120 BPM)">🚗 Medium-Fast (100-120)</option>
+                <option value="fast (120-140 BPM)">🏃 Fast (120-140)</option>
+                <option value="very fast (140-180 BPM)">⚡ Very Fast (140-180)</option>
               </select>
             </div>
           </div>
         </section>
 
-        <!-- Section 01.5: 서브스타일 -->
-        <section id="substyle-section" class="glass-card" style="display:none; animation: fadeUp 0.4s ease-out forwards; opacity:0;">
-          <div class="mb-4">
-            <span class="text-xs font-black text-purple-400 tracking-widest uppercase">🎨 세부 스타일</span>
-            <span class="text-xs text-slate-500 ml-2">(복수 선택 가능)</span>
+        <!-- Section 01.5: Substyles -->
+        <section id="substyle-section" class="glass-card" style="display:none; animation: fadeUp 0.6s ease-out forwards; opacity:0;">
+          <div class="mb-5">
+            <h3 class="font-display font-extrabold text-lg text-luminous-text">Sub-Styles <span class="text-sm font-medium text-luminous-textMuted ml-2 normal-case tracking-normal">(Multiple selection)</span></h3>
           </div>
           <div id="substyle-tags" class="flex flex-wrap gap-2"></div>
         </section>
 
         <!-- Section 02: Refinement -->
-        <section class="glass-card" style="animation: fadeUp 0.5s 0.15s ease-out forwards; opacity:0;">
-          <div class="flex items-center gap-4 mb-6">
-            <div class="w-9 h-9 rounded-xl bg-purple-500/15 border border-purple-500/25 flex items-center justify-center text-sm font-black text-purple-300">02</div>
+        <section class="glass-card" style="animation: fadeUp 0.6s 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity:0;">
+          <div class="flex items-center gap-4 mb-8">
+            <div class="w-10 h-10 rounded-full bg-luminous-surfaceLow flex items-center justify-center text-sm font-bold text-luminous-textDarker">2</div>
             <div>
-              <h3 class="text-lg font-black text-white tracking-tight">Refinement</h3>
-              <p class="text-[12px] text-slate-400 mt-0.5">추가 설정으로 완성도를 높입니다. <span class="text-slate-600">(선택)</span></p>
+              <h3 class="font-display font-extrabold text-xl text-luminous-text">Refinement</h3>
+              <p class="text-xs text-luminous-textMuted font-medium mt-1">Adjust vocals, structure, and artistic influences.</p>
             </div>
           </div>
-          <div class="grid grid-cols-3 gap-5 mb-5">
-            <div>
-              <label class="input-label">보컬</label>
+          <div class="grid grid-cols-3 gap-6 mb-6">
+            <div><label class="input-label">Vocals</label>
               <select id="vocal-select" class="select-premium">
-                <option value="auto">🤖 자동</option>
-                <option value="male vocals">👨 남성</option>
-                <option value="female vocals">👩 여성</option>
-                <option value="male and female duet vocals">👫 듀엣</option>
-                <option value="husky raspy vocals">🚬 허스키</option>
-                <option value="choir vocals">👥 합창</option>
-                <option value="instrumental, no lyrics">🎸 연주</option>
+                <option value="auto">🤖 Auto</option>
+                <option value="male vocals">👨 Male</option>
+                <option value="female vocals">👩 Female</option>
+                <option value="male and female duet vocals">👫 Duet</option>
+                <option value="husky raspy vocals">🚬 Husky</option>
+                <option value="choir vocals">👥 Choir</option>
+                <option value="instrumental, no lyrics">🎸 Instrumental</option>
               </select>
             </div>
-            <div>
-              <label class="input-label">가사 언어 🌐</label>
+            <div><label class="input-label">Lyrics Language</label>
               <select id="vocal-lang-select" class="select-premium">
-                <option value="auto">🤖 자동</option>
-                <option value="korean">🇰🇷 한국어</option>
-                <option value="english">🇺🇸 영어</option>
-                <option value="japanese">🇯🇵 일본어</option>
-                <option value="chinese">🇨🇳 중국어</option>
-                <option value="spanish">🇪🇸 스페인어</option>
-                <option value="portuguese">🇧🇷 포르투갈어</option>
-                <option value="hindi">🇮🇳 힌디어</option>
-                <option value="french">🇫🇷 프랑스어</option>
-                <option value="instrumental">🎸 가사 없음</option>
+                <option value="auto">🤖 Auto</option>
+                <option value="korean">🇰🇷 Korean</option>
+                <option value="english">🇺🇸 English</option>
+                <option value="japanese">🇯🇵 Japanese</option>
+                <option value="chinese">🇨🇳 Chinese</option>
+                <option value="spanish">🇪🇸 Spanish</option>
+                <option value="instrumental">🎸 No Lyrics</option>
               </select>
             </div>
-            <div>
-              <label class="input-label">곡 구성</label>
+            <div><label class="input-label">Song Structure</label>
               <select id="structure-select" class="select-premium">
-                <option value="standard">📻 스탠다드 (3분)</option>
-                <option value="short">📱 숏폼 (1분)</option>
-                <option value="intro_heavy">🎬 인트로 강조</option>
-                <option value="outro_heavy">🌅 아웃트로 강조</option>
+                <option value="standard">📻 Standard (~3m)</option>
+                <option value="short">📱 Short-form (~1m)</option>
+                <option value="intro_heavy">🎬 Intro Heavy</option>
+                <option value="outro_heavy">🌅 Outro Heavy</option>
               </select>
             </div>
           </div>
-          <div>
-            <label class="input-label">🎤 레퍼런스 아티스트 <span class="text-slate-500 font-normal normal-case tracking-normal" style="font-size:11px;">(선택 — 예: BLACKPINK, Bad Bunny)</span></label>
-            <input type="text" id="ref-artist-input" placeholder="예: aespa, (G)I-DLE, NewJeans..."
-              style="width:100%; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:12px; padding:11px 14px; color:#f1f5f9; font-size:13.5px; outline:none; transition:all 0.2s; font-family:Inter,sans-serif;"
-              onfocus="this.style.borderColor='#8b5cf6'; this.style.boxShadow='0 0 0 3px rgba(139,92,246,0.12)'"
-              onblur="this.style.borderColor='rgba(255,255,255,0.1)'; this.style.boxShadow='none'" />
+          
+          <div class="mb-6">
+            <label class="input-label">Reference Artists <span class="text-[11px] normal-case text-luminous-textMuted font-medium tracking-normal">(Optional)</span></label>
+            <input type="text" id="ref-artist-input" class="input-luminous" placeholder="e.g. aespa, Daft Punk, The Weeknd...">
           </div>
-          <!-- 추천 아티스트 칩 -->
-          <div id="artist-chips-wrap" class="mt-4 hidden">
-            <label class="input-label">⭐ 추천 아티스트 <span class="text-slate-500 font-normal normal-case tracking-normal" style="font-size:11px;">(클릭 시 자동 입력)</span></label>
-            <div id="artist-chips" class="flex flex-wrap gap-2 mt-2"></div>
+          <div id="artist-chips-wrap" class="mt-4 hidden p-4 bg-[#fafafa] rounded-2xl border border-[#f0f1f3]">
+            <label class="input-label !mb-3 border-b border-[#f0f1f3] pb-2">⭐ AI Suggested</label>
+            <div id="artist-chips" class="flex flex-wrap gap-2"></div>
           </div>
 
-          <div class="mt-4">
-            <label class="input-label">테마 / 스탠스 <span class="text-slate-500 font-normal normal-case tracking-normal" style="font-size:11px;">(선택)</span></label>
-            <textarea id="theme-text" rows="2"
-              style="width:100%; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:12px; padding:12px 14px; color:#f1f5f9; font-size:13.5px; outline:none; resize:none; transition:all 0.2s; font-family:Inter,sans-serif; line-height:1.6;"
-              placeholder="예: 비 오는 밤 창가에서 헤어진 연인을 그리워하는 마음..."
-              onfocus="this.style.borderColor='#8b5cf6'"
-              onblur="this.style.borderColor='rgba(255,255,255,0.1)'"></textarea>
+          <div class="mt-6">
+            <label class="input-label">Theme / Storyline <span class="text-[11px] normal-case text-luminous-textMuted font-medium tracking-normal">(Optional)</span></label>
+            <textarea id="theme-text" rows="2" class="textarea-luminous" placeholder="e.g. A melancholic night ride through Neo-Seoul..."></textarea>
           </div>
         </section>
 
-        <!-- ═══ 고급 모드 패널 ═══ -->
-        <div id="advanced-panel" style="display:none; animation: fadeUp 0.35s ease-out forwards;">
-          <!-- 가사 섹션 -->
-          <div class="card-section mb-4" style="border:1px solid rgba(139,92,246,0.25); border-radius:16px; padding:20px; background:rgba(139,92,246,0.05);">
-          <div class="flex items-center justify-between mb-3">
-              <span style="font-size:14px; font-weight:700; color:#c4b5fd; letter-spacing:0.02em;">🎤 가사</span>
-              <div style="display:flex; gap:6px; align-items:center;">
-                <button id="btn-copy-title" onclick="copyAdv('lyrics-title','btn-copy-title')" title="제목 복사"
-                  style="display:flex; align-items:center; gap:4px; background:rgba(139,92,246,0.12); border:1px solid rgba(139,92,246,0.25); border-radius:7px; padding:4px 10px; color:#a78bfa; font-size:11px; font-weight:700; cursor:pointer; transition:all 0.2s;">
-                  📋 제목
-                </button>
-                <button id="btn-copy-lyrics" onclick="copyAdv('advanced-lyrics','btn-copy-lyrics')" title="가사 복사"
-                  style="display:flex; align-items:center; gap:4px; background:rgba(139,92,246,0.12); border:1px solid rgba(139,92,246,0.25); border-radius:7px; padding:4px 10px; color:#a78bfa; font-size:11px; font-weight:700; cursor:pointer; transition:all 0.2s;">
-                  📋 가사
-                </button>
-                <button onclick="generateLyricsAI()" id="btn-gen-lyrics"
-                  style="display:flex; align-items:center; gap:5px; background:linear-gradient(135deg,#7c3aed,#5b21b6); border:none; border-radius:8px; padding:5px 12px; color:white; font-size:12px; font-weight:700; cursor:pointer; transition:all 0.2s;"
-                  onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
-                  <span id="lyrics-btn-icon">✨</span> AI 자동생성
-                </button>
+        <!-- Advanced Panel -->
+        <div id="advanced-panel" style="display:none; animation: fadeUp 0.4s ease-out forwards;">
+          <!-- Lyrics -->
+          <div class="bg-[#fafafa] border border-luminous-surfaceLow rounded-[2rem] p-8 mb-6 shadow-sm">
+            <div class="flex items-center justify-between mb-6">
+              <h4 class="font-display font-extrabold text-lg text-luminous-text">🎤 Lyrics Generator</h4>
+              <div class="flex gap-2">
+                <button id="btn-copy-title" onclick="copyAdv('lyrics-title','btn-copy-title')" class="btn-copy">Title</button>
+                <button id="btn-copy-lyrics" onclick="copyAdv('advanced-lyrics','btn-copy-lyrics')" class="btn-copy">Lyrics</button>
+                <button onclick="generateLyricsAI()" id="btn-gen-lyrics" class="btn-copy !bg-luminous-text !text-white hover:!bg-luminous-primaryLight hover:!text-white ml-2">✨ Auto Generate</button>
               </div>
             </div>
-            <!-- 가사 제목 -->
-            <input type="text" id="lyrics-title" placeholder="🎵 곡 제목 (AI 생성 시 자동 입력)"
-              style="width:100%; background:rgba(139,92,246,0.08); border:1px solid rgba(139,92,246,0.2); border-radius:10px; padding:9px 14px; color:#f1f5f9; font-size:13px; font-weight:600; outline:none; margin-bottom:10px; transition:all 0.2s; font-family:Inter,sans-serif;"
-              onfocus="this.style.borderColor='#8b5cf6'" onblur="this.style.borderColor='rgba(139,92,246,0.2)'"/>
-            <textarea id="advanced-lyrics" rows="5"
-              style="width:100%; background:rgba(0,0,0,0.3); border:1px solid rgba(139,92,246,0.2); border-radius:12px; padding:12px 14px; color:#f1f5f9; font-size:13px; outline:none; resize:vertical; transition:all 0.2s; font-family:'JetBrains Mono',monospace; line-height:1.8;"
-              placeholder="가사나 주제를 적어주세요. 또는 반주만 넣으시려면 비워두셔도 됩니다."
-              onfocus="this.style.borderColor='#8b5cf6'" onblur="this.style.borderColor='rgba(139,92,246,0.2)'"></textarea>
+            <input type="text" id="lyrics-title" class="input-luminous mb-4 font-bold" placeholder="Song Title (Auto-fills on generate)" />
+            <textarea id="advanced-lyrics" rows="5" class="textarea-luminous !font-mono text-sm leading-relaxed" placeholder="Type custom lyrics or leave blank for instrumental."></textarea>
           </div>
 
-          <!-- 스타일 섹션 -->
-          <div class="card-section mb-4" style="border:1px solid rgba(6,182,212,0.2); border-radius:16px; padding:20px; background:rgba(6,182,212,0.04);">
-          <div class="flex items-center justify-between mb-3">
-              <span style="font-size:14px; font-weight:700; color:#67e8f9; letter-spacing:0.02em;">🎨 스타일</span>
-              <div style="display:flex; gap:6px; align-items:center;">
-                <button id="btn-copy-style" onclick="copyAdv('advanced-style','btn-copy-style')" title="스타일 복사"
-                  style="display:flex; align-items:center; gap:4px; background:rgba(6,182,212,0.12); border:1px solid rgba(6,182,212,0.25); border-radius:7px; padding:4px 10px; color:#67e8f9; font-size:11px; font-weight:700; cursor:pointer; transition:all 0.2s;">
-                  📋 스타일
-                </button>
-                <button onclick="generateStyleAI()" id="btn-gen-style"
-                  style="display:flex; align-items:center; gap:5px; background:linear-gradient(135deg,#0891b2,#0e7490); border:none; border-radius:8px; padding:5px 12px; color:white; font-size:12px; font-weight:700; cursor:pointer; transition:all 0.2s;"
-                  onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
-                  <span id="style-btn-icon">✨</span> AI 자동추천
-                </button>
+          <!-- Styles -->
+          <div class="bg-[#fafafa] border border-luminous-surfaceLow rounded-[2rem] p-8 mb-6 shadow-sm">
+            <div class="flex items-center justify-between mb-6">
+              <h4 class="font-display font-extrabold text-lg text-luminous-text">🎨 Style Directives</h4>
+              <div class="flex gap-2">
+                <button id="btn-copy-style" onclick="copyAdv('advanced-style','btn-copy-style')" class="btn-copy">Copy Style</button>
+                <button onclick="generateStyleAI()" id="btn-gen-style" class="btn-copy !bg-luminous-text !text-white hover:!bg-luminous-primaryLight hover:!text-white ml-2">✨ Optimize Style</button>
               </div>
             </div>
-            <textarea id="advanced-style" rows="2"
-              style="width:100%; background:rgba(0,0,0,0.3); border:1px solid rgba(6,182,212,0.2); border-radius:12px; padding:12px 14px; color:#f1f5f9; font-size:13px; outline:none; resize:none; transition:all 0.2s; font-family:'JetBrains Mono',monospace; line-height:1.8;"
-              placeholder="예: Neo-Soul, R&B 형식, 랩 R&B, 건방진, 일본적입니다."
-              onfocus="this.style.borderColor='#06b6d4'" onblur="this.style.borderColor='rgba(6,182,212,0.2)'"></textarea>
-            <!-- 스타일 태그 표시 -->
-            <div id="style-tags-preview" class="flex flex-wrap gap-2 mt-3 hidden"></div>
+            <textarea id="advanced-style" rows="2" class="textarea-luminous !font-mono text-sm leading-relaxed" placeholder="e.g. Neo-Soul, heavy bassline, ethereal synth..."></textarea>
+            <div id="style-tags-preview" class="flex flex-wrap gap-2 mt-4 hidden"></div>
           </div>
-
-
         </div>
 
-        <!-- 고급 모드 토글 버튼 -->
-        <div class="flex justify-center mb-2" style="margin-top:-4px;">
-          <button id="btn-advanced-toggle" onclick="toggleAdvancedMode()"
-            style="display:flex; align-items:center; gap:6px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:10px; padding:7px 18px; color:#64748b; font-size:12px; font-weight:700; cursor:pointer; transition:all 0.2s;"
-            onmouseover="this.style.borderColor='rgba(139,92,246,0.4)'; this.style.color='#c4b5fd';"
-            onmouseout="this.style.borderColor='rgba(255,255,255,0.1)'; this.style.color='#64748b';">
-            <span id="advanced-toggle-icon">⚡</span>
-            <span id="advanced-toggle-text">고급 모드</span>
+        <div class="flex justify-center -mt-2 mb-4">
+          <button id="btn-advanced-toggle" onclick="toggleAdvancedMode()" class="px-6 py-2.5 rounded-full bg-white border border-luminous-surfaceLow text-sm font-bold shadow-sm hover:shadow-md hover:border-luminous-primaryLight transition-all text-luminous-textDarker">
+            <span id="advanced-toggle-icon">⚡</span> <span id="advanced-toggle-text">Advanced Tools</span>
           </button>
         </div>
 
-        <!-- ═══ Generate Button ═══ -->
-        <div style="animation: fadeUp 0.5s 0.2s ease-out forwards; opacity:0;">
-          <!-- 생성 개수 토글 -->
-          <div class="flex items-center justify-center gap-2 mb-3">
-            <span class="text-xs text-slate-400 font-semibold">생성 개수:</span>
-            <div style="display:flex; gap:4px; background:rgba(255,255,255,0.05); border-radius:10px; padding:3px;">
-              <button id="toggle-count-1" onclick="setPromptCount(1)"
-                style="padding:4px 14px; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer; transition:all 0.18s; border:none; color:#94a3b8; background:transparent;">
-                ⚡ 1개
-              </button>
-              <button id="toggle-count-10" onclick="setPromptCount(10)"
-                style="padding:4px 14px; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer; transition:all 0.18s; border:none; background:rgba(139,92,246,0.25); color:#c4b5fd;">
-                🎵 10개
-              </button>
+        <!-- Submit Section -->
+        <div style="animation: fadeUp 0.6s 0.3s forwards; opacity:0;">
+          <div class="flex items-center justify-center gap-4 mb-5">
+            <span class="text-sm font-bold text-luminous-textMuted uppercase tracking-widest">Output Quantity</span>
+            <div class="bg-luminous-surfaceLow p-1 rounded-full flex gap-1 shadow-inner">
+              <button id="toggle-count-1" onclick="setPromptCount(1)" class="px-5 py-2 rounded-full text-sm font-bold text-luminous-textDarker transition-all border-none bg-transparent hover:text-luminous-text">1 Prompt</button>
+              <button id="toggle-count-10" onclick="setPromptCount(10)" class="px-5 py-2 rounded-full text-sm font-extrabold text-luminous-primary bg-white shadow-sm border border-luminous-surfaceLow transition-all">10 Prompts</button>
             </div>
           </div>
-          <button id="btn-generate" class="btn-generate" disabled onclick="generatePrompts()">
+          <button id="btn-generate" class="btn-generate text-xl font-display font-bold py-5" disabled onclick="generatePrompts()">
             <span id="btn-spinner" class="spinner hidden"></span>
-            <span id="btn-icon" class="text-2xl">🎵</span>
-            <span id="btn-text" class="font-black tracking-tight">프롬프트 10개 자동 생성</span>
+            <span id="btn-icon" class="text-2xl mr-2">🎵</span>
+            <span id="btn-text">Extract Master Prompts</span>
           </button>
-          <p class="text-center text-xs text-slate-600 mt-3">✅ API 키는 서버에서만 처리됩니다 — 브라우저에 노출되지 않습니다</p>
+          <p class="text-center text-xs font-bold text-luminous-textMuted mt-4 uppercase tracking-[0.05em] opacity-60">Engineered with Gemini 2.0 Flash</p>
         </div>
 
-        <!-- ═══ Results Area ═══ -->
-        <div id="results-area" class="hidden" style="animation: fadeUp 0.5s ease-out forwards; opacity:0;">
-          <!-- Progress Bar -->
-          <div class="mb-6">
-            <div class="flex items-center justify-between mb-3">
-              <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-red-500 flex items-center justify-center text-xl shadow-lg">🎯</div>
-                <div>
-                  <h3 class="text-xl font-black text-white">프롬프트 생성 완료</h3>
-                  <p class="text-xs text-slate-400">각 카드의 복사 버튼으로 Suno AI에 바로 붙여넣으세요</p>
-                </div>
-              </div>
-              <div class="flex items-center gap-3">
-                <span id="copy-count-text" class="text-xs font-bold text-slate-400">0/10 복사됨</span>
-                <button onclick="copyAllPrompts()" id="btn-copy-all"
-                  class="px-4 py-2 rounded-xl bg-purple-500/15 border border-purple-500/25 text-purple-300 text-xs font-bold hover:bg-purple-500/25 transition-all">
-                  📋 전체 복사
-                </button>
+        <!-- Results Area -->
+        <div id="results-area" class="hidden pb-12" style="animation: fadeUp 0.6s ease-out forwards; opacity:0;">
+          <div class="glass-header !bg-[#ffffff] !p-8 !mb-8 !flex !justify-between !items-center !border !border-luminous-surfaceLow">
+            <div class="flex items-center gap-4">
+              <div class="w-12 h-12 bg-luminous-primaryLight/10 text-luminous-primary rounded-2xl flex items-center justify-center text-2xl font-bold">✨</div>
+              <div>
+                <h3 class="font-display font-extrabold text-2xl text-luminous-text">Master Prompts Ready</h3>
+                <p class="font-medium text-luminous-textMuted text-sm mt-1">Copy and paste directly to Suno AI</p>
               </div>
             </div>
-            <!-- progress bar -->
-            <div class="h-1.5 rounded-full bg-white/5 overflow-hidden">
-              <div id="progress-bar" class="h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-400"></div>
+            <div class="flex items-center gap-4">
+               <span id="copy-count-text" class="text-sm font-bold text-luminous-textDarker px-4">0/10 copied</span>
+               <button onclick="copyAllPrompts()" id="btn-copy-all" class="btn-gradient px-6 py-3 shadow-ambient hover:shadow-glow text-sm">📋 Copy All</button>
             </div>
           </div>
-
-          <!-- Cards Grid -->
-          <div id="prompts-grid" class="grid grid-cols-1 lg:grid-cols-2 gap-4"></div>
+          
+          <div class="h-2 rounded-full bg-luminous-surfaceLow overflow-hidden mb-8 w-full">
+             <div id="progress-bar" class="h-full bg-luminous-primary transition-all duration-700 w-0"></div>
+          </div>
+          <div id="prompts-grid" class="grid grid-cols-1 lg:grid-cols-2 gap-6"></div>
         </div>
 
-      </div><!-- /prompt-form -->
-
-      <!-- ═══ History View ═══ -->
-      <div id="view-history" class="hidden mt-2">
-        <div class="flex items-center gap-4 mb-8">
-          <button onclick="switchView('dashboard')" class="text-slate-400 hover:text-white transition-colors text-sm">← 대시보드</button>
-          <h3 class="text-2xl font-black text-white">📋 작업 기록</h3>
+      </div><!-- form panel end -->
+      
+      <!-- History View -->
+      <div id="view-history" class="hidden">
+        <div class="flex items-center gap-6 mb-10 border-b border-luminous-surfaceLow pb-6">
+          <button onclick="switchView('dashboard')" class="w-12 h-12 rounded-full bg-white shadow-sm flex items-center justify-center hover:bg-luminous-surfaceLow transition-all text-xl">←</button>
+          <h3 class="font-display font-extrabold text-3xl text-luminous-text">Task History</h3>
         </div>
-        <div id="history-list" class="space-y-3"></div>
-        <p id="history-empty" class="text-center text-slate-500 py-20 text-sm hidden">아직 생성된 기록이 없습니다.</p>
+        <div id="history-list" class="space-y-4"></div>
       </div>
-
-      <footer class="mt-16 pt-8 border-t border-white/5 flex items-center justify-between text-[10px] text-plly-muted font-black uppercase tracking-[0.3em] opacity-40">
-        <div>Powered by Gemini AI</div>
-        <div class="flex gap-6"><span>Global Plly Master</span><span>Suno AI Optimized</span></div>
-      </footer>
-
-    </div><!-- /content-area -->
+    </div>
   </main>
-
-
-  <!-- ═══════════════════════════════ SCRIPT ═══════════════════════════════ -->
-  <script>
+\n\n<script>
     // ─── Auth Guard ───
     (function () {
       var token = localStorage.getItem('gpm_token');

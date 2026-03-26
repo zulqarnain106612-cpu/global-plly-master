@@ -4,472 +4,253 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Global Plly Master - 관리자</title>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
-        rel="stylesheet">
+    <title>Global Plly Master - Admin Station</title>
+    <!-- Fonts: Plus Jakarta Sans (Headings), Manrope (Body) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Manrope', 'sans-serif'],
+                        display: ['Plus Jakarta Sans', 'sans-serif'],
+                    },
+                    colors: {
+                        luminous: {
+                            bg: '#f6f6f8',
+                            surfaceLow: '#f0f1f3',
+                            surface: '#ffffff',
+                            primary: '#FF5A5F',
+                            primaryLight: '#FF7575',
+                            text: '#2d2f31',
+                            textMuted: '#5a5c5d',
+                            outlineFade: 'rgba(172, 173, 175, 0.2)'
+                        }
+                    },
+                    boxShadow: {
+                        'ambient': '0px 20px 40px rgba(45, 47, 49, 0.06)',
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Outfit', sans-serif;
-            background: #0a0a0f;
-            color: #f9fafb;
-            min-height: 100vh;
-        }
-
-        .bg-orb {
-            position: fixed;
-            border-radius: 50%;
-            filter: blur(80px);
-            opacity: 0.1;
-            pointer-events: none;
-        }
-
-        .orb1 {
-            width: 500px;
-            height: 500px;
-            background: #7c3aed;
-            top: -150px;
-            left: -100px;
-        }
-
-        .orb2 {
-            width: 300px;
-            height: 300px;
-            background: #06b6d4;
-            bottom: 0;
-            right: 0;
-        }
-
-        /* 헤더 */
+        body { background-color: #f6f6f8; color: #2d2f31; }
+        
+        /* Glassmorphic Top Nav */
         header {
-            background: rgba(255, 255, 255, 0.04);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-            padding: 16px 32px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+            background: rgba(246, 246, 248, 0.7);
+            backdrop-filter: blur(24px);
+            border-bottom: 1px solid rgba(172, 173, 175, 0.15);
             position: sticky;
             top: 0;
             z-index: 100;
-            backdrop-filter: blur(12px);
         }
 
-        .header-logo {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .header-logo .icon {
-            width: 40px;
-            height: 40px;
-            background: linear-gradient(135deg, #7c3aed, #06b6d4);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-        }
-
-        .header-logo h1 {
-            font-size: 18px;
-            font-weight: 700;
-        }
-
-        .admin-badge {
-            background: linear-gradient(135deg, #f59e0b, #ef4444);
-            color: white;
-            font-size: 11px;
-            font-weight: 700;
-            padding: 3px 8px;
-            border-radius: 20px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .header-right {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
-
-        .admin-name {
-            font-size: 14px;
-            color: #9ca3af;
-        }
-
-        .btn-sm {
-            padding: 8px 16px;
-            border-radius: 8px;
-            border: none;
-            font-family: 'Outfit', sans-serif;
-            font-size: 13px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .btn-outline {
-            background: transparent;
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            color: #9ca3af;
-        }
-
-        .btn-outline:hover {
-            background: rgba(255, 255, 255, 0.06);
-            color: #f9fafb;
-        }
-
-        .btn-goto {
-            background: linear-gradient(135deg, #7c3aed, #4f46e5);
-            color: white;
-        }
-
-        .btn-goto:hover {
-            box-shadow: 0 4px 15px rgba(124, 58, 237, 0.4);
-            transform: translateY(-1px);
-        }
-
-        /* 메인 컨텐츠 */
-        main {
-            max-width: 1100px;
-            margin: 0 auto;
-            padding: 40px 24px;
-        }
-
-        /* 통계 카드 */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 16px;
-            margin-bottom: 40px;
-        }
-
+        /* Luminous Cards replacing 1px borders with tonal layering */
         .stat-card {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 16px;
-            padding: 20px 24px;
+            background: #ffffff;
+            border-radius: 1.5rem; /* md rounded */
+            box-shadow: 0px 20px 40px rgba(45, 47, 49, 0.04);
+            padding: 1.5rem;
             display: flex;
             align-items: center;
-            gap: 16px;
+            gap: 1rem;
+            border: none;
         }
 
-        .stat-icon {
-            width: 48px;
-            height: 48px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 22px;
-        }
-
-        .stat-num {
-            font-size: 28px;
-            font-weight: 800;
-            line-height: 1;
-        }
-
-        .stat-label {
-            font-size: 13px;
-            color: #6b7280;
-            margin-top: 3px;
-        }
-
-        /* 섹션 헤더 */
-        .section-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 20px;
-        }
-
-        .section-header h2 {
-            font-size: 18px;
-            font-weight: 700;
-        }
-
-        .section-header span {
-            font-size: 13px;
-            color: #6b7280;
-        }
-
-        /* 테이블 카드 */
         .table-card {
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 20px;
+            background: #ffffff;
+            border-radius: 2rem; /* lg rounded */
+            box-shadow: 0px 20px 40px rgba(45, 47, 49, 0.04);
             overflow: hidden;
-            margin-bottom: 32px;
+            margin-bottom: 3rem; /* Spacing scale 12 */
         }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
+        /* Tables without lines */
         thead th {
-            padding: 14px 20px;
-            text-align: left;
-            font-size: 12px;
-            font-weight: 600;
-            color: #6b7280;
+            font-family: 'Manrope', sans-serif;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #5a5c5d;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
-            background: rgba(255, 255, 255, 0.03);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            letter-spacing: 0.05em;
+            padding: 1.25rem 1.5rem;
+            text-align: left;
+            background: #f0f1f3; /* surface-container-low */
         }
 
         tbody tr {
-            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
             transition: background 0.2s;
         }
 
-        tbody tr:last-child {
-            border-bottom: none;
-        }
-
         tbody tr:hover {
-            background: rgba(255, 255, 255, 0.03);
+            background: #f6f6f8;
         }
 
         tbody td {
-            padding: 16px 20px;
-            font-size: 14px;
-            color: #e5e7eb;
+            padding: 1.5rem;
+            color: #2d2f31;
+            font-size: 0.875rem;
+            font-weight: 500;
             vertical-align: middle;
+            /* White space separator instead of border */
+            border-bottom: 0.75rem solid #ffffff; 
         }
 
-        /* 상태 뱃지 */
+        /* Buttons */
+        .btn-luminous {
+            background: #f0f1f3;
+            color: #FF5A5F;
+            border-radius: 999px;
+            padding: 0.5rem 1rem;
+            font-weight: 700;
+            font-size: 0.8125rem;
+            transition: all 0.2s ease;
+        }
+        .btn-luminous:hover {
+            background: #FF5A5F;
+            color: #ffffff;
+        }
+
+        .btn-action-approve {
+            background: #e6f6ee;
+            color: #007a4d;
+            border-radius: 999px;
+            padding: 0.5rem 1rem;
+            font-weight: 700;
+            font-size: 0.8125rem;
+        }
+        .btn-action-reject {
+            background: #ffefec;
+            color: #b02500;
+            border-radius: 999px;
+            padding: 0.5rem 1rem;
+            font-weight: 700;
+            font-size: 0.8125rem;
+        }
+
+        /* Badges */
         .badge {
             display: inline-flex;
             align-items: center;
-            gap: 5px;
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
+            padding: 0.25rem 0.75rem;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
         }
+        .badge.pending { background: #fff5e6; color: #b35900; }
+        .badge.user { background: #e6f6ee; color: #007a4d; }
+        .badge.admin { background: rgba(255, 90, 95, 0.1); color: #FF5A5F; }
+        .badge.rejected { background: #f0f1f3; color: #5a5c5d; }
 
-        .badge.pending {
-            background: rgba(245, 158, 11, 0.15);
-            color: #fcd34d;
-            border: 1px solid rgba(245, 158, 11, 0.3);
-        }
-
-        .badge.user {
-            background: rgba(34, 197, 94, 0.15);
-            color: #86efac;
-            border: 1px solid rgba(34, 197, 94, 0.3);
-        }
-
-        .badge.admin {
-            background: rgba(239, 68, 68, 0.15);
-            color: #fca5a5;
-            border: 1px solid rgba(239, 68, 68, 0.3);
-        }
-
-        .badge.rejected {
-            background: rgba(107, 114, 128, 0.15);
-            color: #9ca3af;
-            border: 1px solid rgba(107, 114, 128, 0.3);
-        }
-
-        /* 액션 버튼 */
-        .btn-approve {
-            padding: 7px 14px;
-            border-radius: 8px;
-            border: none;
-            background: rgba(34, 197, 94, 0.15);
-            color: #86efac;
-            border: 1px solid rgba(34, 197, 94, 0.3);
-            font-family: 'Outfit', sans-serif;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            margin-right: 6px;
-        }
-
-        .btn-approve:hover {
-            background: rgba(34, 197, 94, 0.25);
-            transform: translateY(-1px);
-        }
-
-        .btn-reject {
-            padding: 7px 14px;
-            border-radius: 8px;
-            border: none;
-            background: rgba(239, 68, 68, 0.1);
-            color: #fca5a5;
-            border: 1px solid rgba(239, 68, 68, 0.25);
-            font-family: 'Outfit', sans-serif;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .btn-reject:hover {
-            background: rgba(239, 68, 68, 0.2);
-            transform: translateY(-1px);
-        }
-
-        /* 빈 상태 */
-        .empty-state {
-            padding: 60px 20px;
-            text-align: center;
-            color: #4b5563;
-        }
-
-        .empty-state .icon {
-            font-size: 40px;
-            margin-bottom: 12px;
-        }
-
-        .empty-state p {
-            font-size: 15px;
-        }
-
-        /* 로딩 */
-        .loading {
-            text-align: center;
-            padding: 60px;
-            color: #6b7280;
-        }
-
-        .spinner-lg {
-            display: inline-block;
-            width: 36px;
-            height: 36px;
-            border: 3px solid rgba(255, 255, 255, 0.1);
-            border-top-color: #7c3aed;
+        /* Spinner & Toasts */
+        .spinner {
+            border: 3px solid rgba(255, 90, 95, 0.2);
+            border-top-color: #FF5A5F;
             border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-            margin-bottom: 12px;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
         }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
-        @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
-        }
-
-        /* 토스트 */
         #toast {
             position: fixed;
             bottom: 30px;
             right: 30px;
-            padding: 14px 20px;
-            border-radius: 12px;
-            font-size: 14px;
-            font-weight: 500;
+            padding: 1rem 1.5rem;
+            border-radius: 1rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            background: #ffffff;
+            box-shadow: 0px 20px 40px rgba(45, 47, 49, 0.1);
             transform: translateY(100px);
             opacity: 0;
             transition: all 0.4s cubic-bezier(.175, .885, .32, 1.275);
             z-index: 9999;
         }
-
-        #toast.show {
-            transform: translateY(0);
-            opacity: 1;
-        }
-
-        #toast.success {
-            background: rgba(34, 197, 94, 0.2);
-            border: 1px solid rgba(34, 197, 94, 0.4);
-            color: #86efac;
-        }
-
-        #toast.error {
-            background: rgba(239, 68, 68, 0.2);
-            border: 1px solid rgba(239, 68, 68, 0.4);
-            color: #fca5a5;
-        }
+        #toast.show { transform: translateY(0); opacity: 1; }
     </style>
 </head>
 
 <body>
-    <div class="bg-orb orb1"></div>
-    <div class="bg-orb orb2"></div>
-
-    <header>
-        <div class="header-logo">
-            <div class="icon">🎵</div>
-            <div>
-                <h1>Global Plly Master</h1>
-            </div>
-            <span class="admin-badge">👑 관리자</span>
+    <header class="py-5 px-8 flex items-center justify-between">
+        <div class="flex items-center gap-4">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#FF5A5F] to-[#ffc2cd] flex items-center justify-center text-white text-lg shadow-glow">🎵</div>
+            <h1 class="font-display font-bold text-xl tracking-tight text-luminous-text">Global Plly Master</h1>
+            <span class="bg-luminous-primaryLight/10 text-luminous-primary px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest ml-2">Admin Authority</span>
         </div>
-        <div class="header-right">
-            <span class="admin-name" id="admin-name">관리자</span>
-            <button class="btn-sm btn-goto" onclick="window.location.href='/'">🎵 메인으로</button>
-            <button class="btn-sm btn-outline" onclick="doLogout()">로그아웃</button>
+        <div class="flex items-center gap-6">
+            <span class="text-sm font-semibold text-luminous-textMuted" id="admin-name">Admin</span>
+            <button class="btn-luminous" onclick="window.location.href='/'">Go to Studio</button>
+            <button class="text-sm font-bold text-luminous-textMuted hover:text-luminous-text transition-colors" onclick="doLogout()">Sign Out</button>
         </div>
     </header>
 
-    <main>
-        <!-- 통계 -->
-        <div class="stats-grid">
+    <main class="max-w-[1100px] mx-auto py-12 px-6">
+        
+        <!-- Stats Sequence -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-16">
             <div class="stat-card">
-                <div class="stat-icon" style="background:rgba(124,58,237,0.2);">⏳</div>
+                <div class="w-12 h-12 rounded-xl bg-[#fff5e6] text-[#b35900] flex items-center justify-center text-xl font-bold">⏳</div>
                 <div>
-                    <div class="stat-num" id="stat-pending">-</div>
-                    <div class="stat-label">승인 대기</div>
+                    <div class="font-display font-extrabold text-3xl leading-none text-luminous-text tracking-tight" id="stat-pending">-</div>
+                    <div class="text-xs font-semibold text-luminous-textMuted mt-1 uppercase tracking-wider">Pending Apps</div>
                 </div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon" style="background:rgba(34,197,94,0.2);">✅</div>
+                <div class="w-12 h-12 rounded-xl bg-[#e6f6ee] text-[#007a4d] flex items-center justify-center text-xl font-bold">✨</div>
                 <div>
-                    <div class="stat-num" id="stat-active">-</div>
-                    <div class="stat-label">활성 회원</div>
+                    <div class="font-display font-extrabold text-3xl leading-none text-luminous-text tracking-tight" id="stat-active">-</div>
+                    <div class="text-xs font-semibold text-luminous-textMuted mt-1 uppercase tracking-wider">Active Users</div>
                 </div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon" style="background:rgba(245,158,11,0.2);">👥</div>
+                <div class="w-12 h-12 rounded-xl bg-[#f0f1f3] text-[#5a5c5d] flex items-center justify-center text-xl font-bold">👥</div>
                 <div>
-                    <div class="stat-num" id="stat-total">-</div>
-                    <div class="stat-label">전체 회원</div>
+                    <div class="font-display font-extrabold text-3xl leading-none text-luminous-text tracking-tight" id="stat-total">-</div>
+                    <div class="text-xs font-semibold text-luminous-textMuted mt-1 uppercase tracking-wider">Total Members</div>
                 </div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon" style="background:rgba(6,182,212,0.2);">🎵</div>
+                <div class="w-12 h-12 rounded-xl bg-[#ffefec] text-[#b02500] flex items-center justify-center text-xl font-bold">🎵</div>
                 <div>
-                    <div class="stat-num" id="stat-prompts">-</div>
-                    <div class="stat-label">생성된 프롬프트</div>
+                    <div class="font-display font-extrabold text-3xl leading-none text-luminous-text tracking-tight" id="stat-prompts">-</div>
+                    <div class="text-xs font-semibold text-luminous-textMuted mt-1 uppercase tracking-wider">Prompts Created</div>
                 </div>
             </div>
         </div>
 
-        <!-- 승인 대기 목록 -->
-        <div class="section-header">
-            <h2>⏳ 승인 대기 회원</h2>
-            <span id="pending-count">로딩 중...</span>
+        <!-- Pending Section -->
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="font-display font-extrabold text-2xl text-luminous-text">Registration Queue</h2>
+            <span class="text-sm font-semibold text-luminous-textMuted" id="pending-count">Loading...</span>
         </div>
         <div class="table-card" id="pending-table-wrap">
-            <div class="loading">
-                <div class="spinner-lg"></div>
-                <p>데이터 불러오는 중...</p>
+            <div class="p-12 text-center text-luminous-textMuted">
+                <div class="spinner mx-auto mb-4"></div>
+                <p class="font-semibold">Syncing queue data...</p>
             </div>
         </div>
 
-        <!-- 전체 회원 목록 -->
-        <div class="section-header">
-            <h2>👥 전체 회원 목록</h2>
-            <button class="btn-sm btn-outline" onclick="loadAllData()" style="font-size:12px;">🔄 새로고침</button>
+        <!-- Directory Section -->
+        <div class="flex items-center justify-between mt-8 mb-6">
+            <h2 class="font-display font-extrabold text-2xl text-luminous-text">Member Directory</h2>
+            <button class="btn-luminous" onclick="loadAllData()">Sync Records</button>
         </div>
         <div class="table-card" id="all-table-wrap">
-            <div class="loading">
-                <div class="spinner-lg"></div>
-                <p>데이터 불러오는 중...</p>
+            <div class="p-12 text-center text-luminous-textMuted">
+                <div class="spinner mx-auto mb-4"></div>
+                <p class="font-semibold">Syncing directory...</p>
             </div>
         </div>
+
     </main>
 
     <div id="toast"></div>
@@ -478,32 +259,32 @@
         const token = localStorage.getItem('gpm_token');
         const role = localStorage.getItem('gpm_role');
 
-        // 인증 체크
         if (!token || role !== 'admin') {
             window.location.href = '/login.html';
         }
 
-        document.getElementById('admin-name').textContent = localStorage.getItem('gpm_realname') || '관리자';
+        document.getElementById('admin-name').textContent = localStorage.getItem('gpm_realname') || 'Administrator';
 
-        function authHeaders() {
-            return { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token };
-        }
+        function authHeaders() { return { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token }; }
 
         function showToast(msg, type = 'success') {
             const el = document.getElementById('toast');
             el.textContent = msg;
-            el.className = 'show ' + type;
+            el.className = 'show';
+            if(type === 'error') el.style.color = '#b02500';
+            else el.style.color = '#2d2f31';
             setTimeout(() => el.className = '', 3000);
         }
 
         function roleBadge(r) {
-            const map = { pending: '⏳ 대기', user: '✅ 활성', admin: '👑 관리자', rejected: '❌ 거절' };
+            const map = { pending: 'Pending', user: 'Active', admin: 'Admin', rejected: 'Rejected' };
             return `<span class="badge ${r}">${map[r] || r}</span>`;
         }
 
         function fmt(dateStr) {
             if (!dateStr) return '-';
-            return new Date(dateStr).toLocaleString('ko-KR', { year: '2-digit', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+            const d = new Date(dateStr);
+            return '<span class="text-luminous-textMuted text-xs font-bold">' + d.toLocaleDateString('ko-KR', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) + '</span>';
         }
 
         async function loadAllData() {
@@ -515,7 +296,6 @@
                 const users = await usersRes.json();
                 const stats = await statsRes.json();
 
-                // 통계 업데이트
                 if (stats.success) {
                     document.getElementById('stat-pending').textContent = stats.data.pending;
                     document.getElementById('stat-active').textContent = stats.data.active;
@@ -523,63 +303,59 @@
                     document.getElementById('stat-prompts').textContent = stats.data.prompts;
                 }
 
-                if (!users.success) { showToast('데이터 로드 실패: ' + users.message, 'error'); return; }
+                if (!users.success) { showToast('Database Error: ' + users.message, 'error'); return; }
 
                 const pending = users.data.filter(u => u.role === 'pending');
                 const all = users.data;
 
-                // 대기 테이블
-                document.getElementById('pending-count').textContent = `총 ${pending.length}명`;
+                document.getElementById('pending-count').textContent = `${pending.length} Waiting`;
                 document.getElementById('pending-table-wrap').innerHTML = pending.length === 0
-                    ? `<div class="empty-state"><div class="icon">🎉</div><p>대기 중인 가입 신청이 없습니다!</p></div>`
-                    : `<table><thead><tr><th>실명</th><th>아이디</th><th>신청일</th><th>액션</th></tr></thead><tbody>
+                    ? `<div class="p-16 text-center text-luminous-textMuted"><div class="text-4xl mb-4">✨</div><p class="font-bold text-lg">No pending requests.</p><p class="text-sm mt-1">Inbox zero achieved.</p></div>`
+                    : `<table class="w-full"><thead><tr><th>Name</th><th>Username</th><th>Submitted</th><th>Actions</th></tr></thead><tbody class="bg-white">
               ${pending.map(u => `<tr>
-                <td><strong>${u.real_name}</strong></td>
-                <td><code style="background:rgba(255,255,255,0.07);padding:3px 8px;border-radius:6px;font-size:13px;">${u.username}</code></td>
-                <td style="color:#6b7280;">${fmt(u.created_at)}</td>
-                <td>
-                  <button class="btn-approve" onclick="approveUser('${u.id}', '${u.real_name}')">✅ 승인</button>
-                  <button class="btn-reject" onclick="rejectUser('${u.id}', '${u.real_name}')">❌ 거절</button>
+                <td class="font-bold text-base">${u.real_name}</td>
+                <td><span class="bg-luminous-surfaceLow text-luminous-text px-2 py-1 rounded-md text-xs font-mono font-bold">${u.username}</span></td>
+                <td>${fmt(u.created_at)}</td>
+                <td class="space-x-2">
+                  <button class="btn-action-approve transition hover:-translate-y-0.5" onclick="approveUser('${u.id}', '${u.real_name}')">Approve</button>
+                  <button class="btn-action-reject transition hover:-translate-y-0.5" onclick="rejectUser('${u.id}', '${u.real_name}')">Decline</button>
                 </td>
               </tr>`).join('')}
             </tbody></table>`;
 
-                // 전체 테이블
                 document.getElementById('all-table-wrap').innerHTML = all.length === 0
-                    ? `<div class="empty-state"><div class="icon">👥</div><p>등록된 회원이 없습니다.</p></div>`
-                    : `<table><thead><tr><th>실명</th><th>아이디</th><th>상태</th><th>가입일</th><th>승인일</th></tr></thead><tbody>
+                    ? `<div class="p-16 text-center text-luminous-textMuted"><p class="font-bold">No active members.</p></div>`
+                    : `<table class="w-full"><thead><tr><th>Name</th><th>Username</th><th>Status</th><th>Registered</th><th>Approved</th></tr></thead><tbody class="bg-white">
               ${all.map(u => `<tr>
-                <td><strong>${u.real_name}</strong></td>
-                <td><code style="background:rgba(255,255,255,0.07);padding:3px 8px;border-radius:6px;font-size:13px;">${u.username}</code></td>
+                <td class="font-bold text-base">${u.real_name}</td>
+                <td><span class="bg-luminous-surfaceLow text-luminous-text px-2 py-1 rounded-md text-xs font-mono font-bold">${u.username}</span></td>
                 <td>${roleBadge(u.role)}</td>
-                <td style="color:#6b7280;">${fmt(u.created_at)}</td>
-                <td style="color:#6b7280;">${fmt(u.approved_at)}</td>
+                <td>${fmt(u.created_at)}</td>
+                <td>${fmt(u.approved_at)}</td>
               </tr>`).join('')}
             </tbody></table>`;
 
             } catch (e) {
-                showToast('네트워크 오류가 발생했습니다.', 'error');
+                showToast('Network synchronization failed.', 'error');
             }
         }
 
         async function approveUser(id, name) {
-            if (!confirm(`${name}님의 가입을 승인하시겠습니까?`)) return;
             try {
                 const res = await fetch(`/api/admin/users/${id}/approve`, { method: 'PUT', headers: authHeaders() });
                 const data = await res.json();
-                if (data.success) { showToast(`✅ ${name}님 가입 승인 완료!`); loadAllData(); }
+                if (data.success) { showToast(`Activated ${name}.`); loadAllData(); }
                 else showToast(data.message, 'error');
-            } catch (e) { showToast('처리 중 오류가 발생했습니다.', 'error'); }
+            } catch (e) { showToast('Action failed.', 'error'); }
         }
 
         async function rejectUser(id, name) {
-            if (!confirm(`${name}님의 가입 신청을 거절하시겠습니까?`)) return;
             try {
                 const res = await fetch(`/api/admin/users/${id}/reject`, { method: 'PUT', headers: authHeaders() });
                 const data = await res.json();
-                if (data.success) { showToast(`${name}님 가입 신청 거절 처리됨.`, 'error'); loadAllData(); }
+                if (data.success) { showToast(`Declined ${name}.`); loadAllData(); }
                 else showToast(data.message, 'error');
-            } catch (e) { showToast('처리 중 오류가 발생했습니다.', 'error'); }
+            } catch (e) { showToast('Action failed.', 'error'); }
         }
 
         function doLogout() {
@@ -590,11 +366,8 @@
             window.location.href = '/login.html';
         }
 
-        // 초기 로드
         loadAllData();
-        // 30초마다 자동 새로고침
         setInterval(loadAllData, 30000);
     </script>
 </body>
-
 </html>

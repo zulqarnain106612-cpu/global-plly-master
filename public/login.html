@@ -4,288 +4,191 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Global Plly Master - 로그인</title>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
-        rel="stylesheet">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+    <title>Global Plly Master - Luminous</title>
+    <!-- Fonts: Plus Jakarta Sans (Headings), Manrope (Body) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS (Minimal Config for Luminous Optimism) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Manrope', 'sans-serif'],
+                        display: ['Plus Jakarta Sans', 'sans-serif'],
+                    },
+                    colors: {
+                        luminous: {
+                            base: '#f6f6f8',
+                            low: '#f0f1f3',
+                            lowest: '#ffffff',
+                            primary: '#FF5A5F',
+                            primaryLight: '#FF7575',
+                            text: '#2d2f31',
+                            textMuted: '#5a5c5d'
+                        }
+                    },
+                    boxShadow: {
+                        'ambient': '0px 20px 40px rgba(45, 47, 49, 0.06)',
+                        'glow': '0 10px 30px rgba(255, 90, 95, 0.25)',
+                    }
+                }
+            }
         }
-
+    </script>
+    <style>
         body {
-            font-family: 'Outfit', sans-serif;
-            background: #0a0a0f;
-            min-height: 100vh;
+            background-color: #f6f6f8;
+            color: #2d2f31;
+            overflow: hidden;
             display: flex;
             align-items: center;
             justify-content: center;
-            overflow: hidden;
-            position: relative;
+            min-height: 100vh;
         }
 
-        /* 배경 오브 */
-        .bg-orb {
+        /* Ambient Orbs for Luminous Feeling */
+        .orb {
             position: fixed;
             border-radius: 50%;
             filter: blur(80px);
-            opacity: 0.18;
-            animation: float 8s ease-in-out infinite;
+            opacity: 0.15;
+            z-index: 0;
             pointer-events: none;
+            animation: float 10s ease-in-out infinite;
         }
 
-        .orb1 {
-            width: 500px;
-            height: 500px;
-            background: #7c3aed;
-            top: -150px;
+        .orb-primary {
+            width: 400px;
+            height: 400px;
+            background: #FF5A5F;
+            top: -100px;
             left: -100px;
         }
 
-        .orb2 {
-            width: 400px;
-            height: 400px;
-            background: #06b6d4;
-            bottom: -100px;
-            right: -100px;
-            animation-delay: -3s;
-        }
-
-        .orb3 {
+        .orb-secondary {
             width: 300px;
             height: 300px;
-            background: #f59e0b;
-            top: 50%;
-            left: 55%;
-            animation-delay: -6s;
+            background: #FF7575;
+            bottom: -50px;
+            right: -50px;
+            animation-delay: -5s;
         }
 
         @keyframes float {
-
-            0%,
-            100% {
-                transform: translateY(0px) scale(1);
-            }
-
-            50% {
-                transform: translateY(-30px) scale(1.05);
-            }
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-30px) scale(1.05); }
         }
 
-        /* 파티클 */
-        canvas#particles {
-            position: fixed;
-            inset: 0;
-            pointer-events: none;
-            z-index: 0;
-        }
-
-        .container {
+        /* Glassmorphic Container */
+        .glass-container {
             position: relative;
             z-index: 10;
             width: 100%;
-            max-width: 440px;
-            padding: 20px;
+            max-width: 420px;
+            background: #ffffff;
+            border-radius: 2rem; /* lg / md */
+            padding: 3rem 2.5rem;
+            box-shadow: 0px 20px 40px rgba(45, 47, 49, 0.06);
+            /* Soft Lift: NO BORDERS */
         }
 
-        /* 로고 */
-        .logo {
-            text-align: center;
-            margin-bottom: 32px;
+        /* Custom Input focused glow */
+        .input-luminous {
+            background-color: #f6f6f8;
+            border: 1px solid rgba(172, 173, 175, 0.2); /* Ghost border */
+            border-radius: 0.75rem;
+            color: #2d2f31;
+            font-family: 'Manrope', sans-serif;
+            transition: all 0.3s ease;
         }
 
-        .logo-icon {
-            width: 64px;
-            height: 64px;
-            background: linear-gradient(135deg, #7c3aed, #06b6d4);
-            border-radius: 20px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 30px;
-            margin-bottom: 12px;
-            box-shadow: 0 0 30px rgba(124, 58, 237, 0.5);
+        .input-luminous:focus {
+            outline: none;
+            border-color: rgba(255, 90, 95, 0.3); /* primary 30% */
+            box-shadow: 0 0 0 2px rgba(255, 90, 95, 0.15); /* 2px outer glow */
+            background-color: #ffffff;
         }
 
-        .logo h1 {
-            font-size: 24px;
-            font-weight: 800;
-            background: linear-gradient(135deg, #a78bfa, #67e8f9);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            letter-spacing: -0.5px;
-        }
-
-        .logo p {
-            color: #6b7280;
-            font-size: 13px;
-            margin-top: 4px;
-        }
-
-        /* 탭 */
-        .tab-bar {
-            display: flex;
-            background: rgba(255, 255, 255, 0.04);
-            border-radius: 14px;
-            padding: 4px;
-            margin-bottom: 24px;
-            border: 1px solid rgba(255, 255, 255, 0.07);
-        }
-
+        /* Tabs styling */
         .tab-btn {
-            flex: 1;
-            padding: 10px;
-            border: none;
-            background: transparent;
-            color: #6b7280;
-            font-family: 'Outfit', sans-serif;
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-            border-radius: 10px;
-            transition: all 0.3s;
+            color: #5a5c5d;
+            font-family: 'Manrope', sans-serif;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            position: relative;
         }
 
         .tab-btn.active {
-            background: linear-gradient(135deg, #7c3aed, #4f46e5);
-            color: white;
-            box-shadow: 0 4px 15px rgba(124, 58, 237, 0.4);
+            color: #2d2f31;
         }
 
-        /* 카드 */
-        .card {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 24px;
-            padding: 32px;
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 24px;
+            height: 3px;
+            background: #FF5A5F;
+            border-radius: 4px;
         }
 
-        /* 폼 패널 */
+        /* Button Gradient */
+        .btn-gradient {
+            background: linear-gradient(135deg, #b1202d, #ff7575);
+            color: #ffffff;
+            border-radius: 999px; /* full/pill */
+            font-weight: 700;
+            font-family: 'Manrope', sans-serif;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 16px rgba(255, 90, 95, 0.2);
+        }
+
+        .btn-gradient:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px rgba(255, 90, 95, 0.3);
+        }
+
+        .btn-gradient:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
         .form-panel {
             display: none;
+            animation: fadeIn 0.4s ease-out forwards;
         }
 
         .form-panel.active {
             display: block;
         }
 
-        .form-title {
-            font-size: 20px;
-            font-weight: 700;
-            color: #f9fafb;
-            margin-bottom: 6px;
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        .form-sub {
-            font-size: 13px;
-            color: #6b7280;
-            margin-bottom: 24px;
-        }
-
-        /* 입력창 */
-        .input-group {
-            margin-bottom: 16px;
-        }
-
-        .input-group label {
-            display: block;
-            font-size: 12px;
-            font-weight: 600;
-            color: #9ca3af;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 8px;
-        }
-
-        .input-group input {
-            width: 100%;
-            padding: 14px 16px;
-            background: rgba(255, 255, 255, 0.06);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            color: #f9fafb;
-            font-family: 'Outfit', sans-serif;
-            font-size: 15px;
-            outline: none;
-            transition: all 0.3s;
-        }
-
-        .input-group input:focus {
-            border-color: #7c3aed;
-            background: rgba(124, 58, 237, 0.1);
-            box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15);
-        }
-
-        .input-group input::placeholder {
-            color: #4b5563;
-        }
-
-        /* 버튼 */
-        .btn-primary {
-            width: 100%;
-            padding: 15px;
-            background: linear-gradient(135deg, #7c3aed, #4f46e5);
-            border: none;
-            border-radius: 12px;
-            color: white;
-            font-family: 'Outfit', sans-serif;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            margin-top: 8px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(124, 58, 237, 0.4);
-        }
-
-        .btn-primary:active {
-            transform: translateY(0);
-        }
-
-        .btn-primary:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        /* 메시지 */
+        /* Messages */
         .msg {
-            padding: 12px 16px;
-            border-radius: 10px;
-            font-size: 14px;
-            margin-top: 16px;
             display: none;
+            padding: 1rem;
+            border-radius: 1rem;
+            font-size: 0.875rem;
+            margin-top: 1.5rem;
+            font-weight: 500;
+            text-align: center;
         }
+        .msg.show { display: block; }
+        .msg.error { background: #ffefec; color: #b02500; }
+        .msg.success { background: #e6f6ee; color: #007a4d; }
+        .msg.pending { background: #fff5e6; color: #b35900; }
 
-        .msg.error {
-            background: rgba(239, 68, 68, 0.15);
-            border: 1px solid rgba(239, 68, 68, 0.3);
-            color: #fca5a5;
-            display: block;
-        }
-
-        .msg.success {
-            background: rgba(34, 197, 94, 0.15);
-            border: 1px solid rgba(34, 197, 94, 0.3);
-            color: #86efac;
-            display: block;
-        }
-
-        .msg.pending {
-            background: rgba(245, 158, 11, 0.15);
-            border: 1px solid rgba(245, 158, 11, 0.3);
-            color: #fcd34d;
-            display: block;
-        }
-
-        /* 로딩 스피너 */
         .spinner {
             display: inline-block;
             width: 16px;
@@ -298,148 +201,68 @@
             vertical-align: middle;
         }
 
-        @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
-        }
-
-        /* 구분선 */
-        .divider {
-            text-align: center;
-            color: #4b5563;
-            font-size: 12px;
-            margin: 16px 0;
-            position: relative;
-        }
-
-        .divider::before,
-        .divider::after {
-            content: '';
-            position: absolute;
-            top: 50%;
-            width: 40%;
-            height: 1px;
-            background: rgba(255, 255, 255, 0.07);
-        }
-
-        .divider::before {
-            left: 0;
-        }
-
-        .divider::after {
-            right: 0;
-        }
-
-        .footer-text {
-            text-align: center;
-            color: #4b5563;
-            font-size: 12px;
-            margin-top: 20px;
-        }
+        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 
 <body>
-    <div class="bg-orb orb1"></div>
-    <div class="bg-orb orb2"></div>
-    <div class="bg-orb orb3"></div>
-    <canvas id="particles"></canvas>
+    <!-- Abstract Environment -->
+    <div class="orb orb-primary"></div>
+    <div class="orb orb-secondary"></div>
 
-    <div class="container">
-        <!-- 로고 -->
-        <div class="logo">
-            <div class="logo-icon">🎵</div>
-            <h1>Global Plly Master</h1>
-            <p>Suno AI 프롬프트 자동화 엔진</p>
+    <div class="glass-container">
+        <!-- Header -->
+        <div class="text-center mb-10">
+            <div class="w-14 h-14 mx-auto bg-gradient-to-tr from-[#FF5A5F] to-[#ffc2cd] rounded-[1rem] flex items-center justify-center text-white text-2xl mb-5 shadow-glow">🎵</div>
+            <h1 class="font-display font-extrabold text-2xl tracking-tight text-luminous-text">Global Plly Master</h1>
+            <p class="text-luminous-textMuted text-sm mt-1">The Digital Curator</p>
         </div>
 
-        <!-- 탭 -->
-        <div class="tab-bar">
-            <button class="tab-btn active" id="tab-login" onclick="switchTab('login')">로그인</button>
-            <button class="tab-btn" id="tab-register" onclick="switchTab('register')">가입 신청</button>
+        <!-- Navigation -->
+        <div class="flex items-center justify-center gap-8 mb-10">
+            <button class="tab-btn active text-lg" id="tab-login" onclick="switchTab('login')">Log In</button>
+            <button class="tab-btn text-lg" id="tab-register" onclick="switchTab('register')">Request Access</button>
         </div>
 
-        <!-- 카드 -->
-        <div class="card">
-
-            <!-- 로그인 패널 -->
-            <div class="form-panel active" id="panel-login">
-                <div class="form-title">다시 돌아오셨군요! 👋</div>
-                <div class="form-sub">아이디와 비밀번호를 입력해주세요.</div>
-
-                <div class="input-group">
-                    <label>아이디</label>
-                    <input type="text" id="login-username" placeholder="아이디를 입력하세요" autocomplete="username">
+        <!-- Login Panel -->
+        <div id="panel-login" class="form-panel active">
+            <div class="space-y-6">
+                <div>
+                    <label class="block text-[11px] font-bold text-luminous-textMuted uppercase tracking-wider mb-2">Username</label>
+                    <input type="text" id="login-username" class="input-luminous w-full px-4 py-3.5" placeholder="Enter your username" autocomplete="username">
                 </div>
-                <div class="input-group">
-                    <label>비밀번호</label>
-                    <input type="password" id="login-password" placeholder="비밀번호를 입력하세요"
-                        autocomplete="current-password">
+                <div>
+                    <label class="block text-[11px] font-bold text-luminous-textMuted uppercase tracking-wider mb-2">Password</label>
+                    <input type="password" id="login-password" class="input-luminous w-full px-4 py-3.5" placeholder="Enter your password" autocomplete="current-password">
                 </div>
-
-                <button class="btn-primary" id="btn-login" onclick="doLogin()">로그인</button>
-                <div class="msg" id="login-msg"></div>
+                <button id="btn-login" class="btn-gradient w-full py-4 mt-4" onclick="doLogin()">Enter Studio</button>
             </div>
-
-            <!-- 가입 신청 패널 -->
-            <div class="form-panel" id="panel-register">
-                <div class="form-title">가입 신청 📝</div>
-                <div class="form-sub">신청 후 관리자 승인을 받으면 서비스를 이용할 수 있습니다.</div>
-
-                <div class="input-group">
-                    <label>실명</label>
-                    <input type="text" id="reg-realname" placeholder="실명을 입력하세요">
-                </div>
-                <div class="input-group">
-                    <label>아이디</label>
-                    <input type="text" id="reg-username" placeholder="영문/숫자 조합 (4자 이상)">
-                </div>
-                <div class="input-group">
-                    <label>비밀번호</label>
-                    <input type="password" id="reg-password" placeholder="6자 이상 입력하세요">
-                </div>
-
-                <button class="btn-primary" id="btn-register" onclick="doRegister()">가입 신청</button>
-                <div class="msg" id="register-msg"></div>
-            </div>
-
+            <div id="login-msg" class="msg"></div>
         </div>
 
-        <div class="footer-text">© 2025 Global Plly Master. All rights reserved.</div>
+        <!-- Registration Panel -->
+        <div id="panel-register" class="form-panel">
+            <div class="space-y-5">
+                <div>
+                    <label class="block text-[11px] font-bold text-luminous-textMuted uppercase tracking-wider mb-2">Full Name</label>
+                    <input type="text" id="reg-realname" class="input-luminous w-full px-4 py-3.5" placeholder="Your real name">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold text-luminous-textMuted uppercase tracking-wider mb-2">Username</label>
+                    <input type="text" id="reg-username" class="input-luminous w-full px-4 py-3.5" placeholder="Alphanumeric (4+ chars)">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold text-luminous-textMuted uppercase tracking-wider mb-2">Password</label>
+                    <input type="password" id="reg-password" class="input-luminous w-full px-4 py-3.5" placeholder="6+ characters">
+                </div>
+                <button id="btn-register" class="btn-gradient w-full py-4 mt-2" onclick="doRegister()">Submit Request</button>
+            </div>
+            <div id="register-msg" class="msg"></div>
+        </div>
+        
     </div>
 
     <script>
-        // ═══════════════════════════ 파티클 배경 ═══════════════════════════
-        const canvas = document.getElementById('particles');
-        const ctx = canvas.getContext('2d');
-        let particles = [];
-        function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
-        resizeCanvas();
-        window.addEventListener('resize', resizeCanvas);
-        for (let i = 0; i < 60; i++) {
-            particles.push({
-                x: Math.random() * canvas.width, y: Math.random() * canvas.height,
-                vx: (Math.random() - 0.5) * 0.3, vy: (Math.random() - 0.5) * 0.3,
-                r: Math.random() * 1.5 + 0.5, a: Math.random() * 0.5 + 0.1
-            });
-        }
-        function animParticles() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            particles.forEach(p => {
-                p.x += p.vx; p.y += p.vy;
-                if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
-                if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
-                ctx.beginPath();
-                ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-                ctx.fillStyle = `rgba(167,139,250,${p.a})`;
-                ctx.fill();
-            });
-            requestAnimationFrame(animParticles);
-        }
-        animParticles();
-
-        // ═══════════════════════════ 탭 전환 ═══════════════════════════
         function switchTab(tab) {
             document.getElementById('panel-login').classList.toggle('active', tab === 'login');
             document.getElementById('panel-register').classList.toggle('active', tab === 'register');
@@ -447,7 +270,6 @@
             document.getElementById('tab-register').classList.toggle('active', tab === 'register');
         }
 
-        // ═══════════════════════════ 이미 로그인 여부 체크 ═══════════════════════════
         window.addEventListener('load', () => {
             const token = localStorage.getItem('gpm_token');
             const role = localStorage.getItem('gpm_role');
@@ -457,7 +279,6 @@
             }
         });
 
-        // ═══════════════════════════ 로그인 ═══════════════════════════
         async function doLogin() {
             const username = document.getElementById('login-username').value.trim();
             const password = document.getElementById('login-password').value;
@@ -467,7 +288,7 @@
             if (!username || !password) { showMsg(msgEl, 'error', '아이디와 비밀번호를 입력해주세요.'); return; }
 
             btn.disabled = true;
-            btn.innerHTML = '<span class="spinner"></span>로그인 중...';
+            btn.innerHTML = '<span class="spinner"></span>Authenticating...';
             msgEl.className = 'msg';
 
             try {
@@ -486,21 +307,19 @@
 
                     showMsg(msgEl, 'success', `환영합니다, ${data.realName}님! 🎉 이동 중...`);
                     setTimeout(() => {
-                        if (data.role === 'admin') window.location.href = '/admin.html';
-                        else window.location.href = '/';
+                        window.location.href = data.role === 'admin' ? '/admin.html' : '/';
                     }, 800);
                 } else {
                     showMsg(msgEl, data.status === 'pending' ? 'pending' : 'error', data.message);
                 }
             } catch (e) {
-                showMsg(msgEl, 'error', '서버 연결에 실패했습니다. 잠시 후 다시 시도해주세요.');
+                showMsg(msgEl, 'error', '서버 연결에 실패했습니다.');
             } finally {
                 btn.disabled = false;
-                btn.innerHTML = '로그인';
+                btn.innerHTML = 'Enter Studio';
             }
         }
 
-        // ═══════════════════════════ 회원가입 신청 ═══════════════════════════
         async function doRegister() {
             const realName = document.getElementById('reg-realname').value.trim();
             const username = document.getElementById('reg-username').value.trim();
@@ -513,7 +332,7 @@
             if (password.length < 6) { showMsg(msgEl, 'error', '비밀번호는 6자 이상이어야 합니다.'); return; }
 
             btn.disabled = true;
-            btn.innerHTML = '<span class="spinner"></span>신청 중...';
+            btn.innerHTML = '<span class="spinner"></span>Submitting...';
             msgEl.className = 'msg';
 
             try {
@@ -525,7 +344,7 @@
                 const data = await res.json();
 
                 if (data.success) {
-                    showMsg(msgEl, 'success', '🎉 가입 신청이 완료되었습니다! 관리자 승인 후 로그인하실 수 있습니다.');
+                    showMsg(msgEl, 'success', '🎉 가입 신청이 완료되었습니다! 승인 후 로그인 가능합니다.');
                     document.getElementById('reg-realname').value = '';
                     document.getElementById('reg-username').value = '';
                     document.getElementById('reg-password').value = '';
@@ -533,19 +352,18 @@
                     showMsg(msgEl, 'error', data.message);
                 }
             } catch (e) {
-                showMsg(msgEl, 'error', '서버 연결에 실패했습니다. 잠시 후 다시 시도해주세요.');
+                showMsg(msgEl, 'error', '서버 연결에 실패했습니다.');
             } finally {
                 btn.disabled = false;
-                btn.innerHTML = '가입 신청';
+                btn.innerHTML = 'Submit Request';
             }
         }
 
         function showMsg(el, type, text) {
-            el.className = 'msg ' + type;
+            el.className = 'msg show ' + type;
             el.textContent = text;
         }
 
-        // 엔터키 로그인
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
                 const activePanel = document.querySelector('.form-panel.active').id;
@@ -555,5 +373,4 @@
         });
     </script>
 </body>
-
 </html>

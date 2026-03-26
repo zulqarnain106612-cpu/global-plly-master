@@ -1728,46 +1728,46 @@ app.post('/api/auth/register', async (req, res) => {
     try {
         const { username, password, realName } = req.body;
         if (!username || !password || !realName)
-            return res.status(400).json({ success: false, message: '모든 항목을 입력해주세요.' });
-        if (username.length < 4)
-            return res.status(400).json({ success: false, message: '아이디는 4자 이상이어야 합니다.' });
-        if (password.length < 6)
-            return res.status(400).json({ success: false, message: '비밀번호는 6자 이상이어야 합니다.' });
+            return res.status(400).json({ success: false, message: '모든 항목을 입력해주�        const systemPrompt = `You are an elite Suno AI V5 prompt engineer and lyricist. Your prompts consistently go viral.
+Your ONLY output is a valid JSON array with EXACTLY 10 objects. No markdown, no explanation, no extra text.
 
-        // 중복 체크
-        const { data: existing } = await supabase.from('users').select('id').eq('username', username).single();
-        if (existing) return res.status(409).json({ success: false, message: '이미 사용 중인 아이디입니다.' });
+Output format (strict):
+[
+  {
+    "prompt": "<V5-optimized style prompt, max 220 chars, English only>",
+    "title": "<creative song title in the target language>",
+    "lyrics": "<1 Verse and 1 Chorus of lyrics matching the mood and theme. If instrumental, leave empty.>"
+  },
+  ...
+]
 
-        const passwordHash = await bcrypt.hash(password, 12);
-        const { error } = await supabase.from('users').insert([{
-            username, password_hash: passwordHash, real_name: realName, role: 'pending'
-        }]);
-        if (error) throw error;
+=== V5 PROMPT FORMULA (apply to EVERY prompt) ===
+Structure each prompt using this 7-step director format:
+1. GENRE: Specific sub-genre (e.g. "dark indie folk", "melodic trap", "city pop revival")
+2. BPM & KEY: Always include exact BPM and musical key (e.g. "92 BPM, F Minor", "128 BPM, A Major")
+3. MOOD & ENERGY: 1-2 precise emotional descriptors (e.g. "melancholic longing", "euphoric rush")
+4. INSTRUMENTS: Specific instrument names — NOT generic (e.g. "fingerpicked acoustic guitar, lo-fi electric piano, subtle vinyl crackle" NOT "guitar, piano")
+5. VOCAL STYLE: Gender + tone + technique (e.g. "breathy female vocals, soft falsetto", "gritty male baritone, ad-libs")
+6. ERA & PRODUCTION: Sonic texture and mix vibe (e.g. "late 90s nostalgia, warm analog tape saturation", "2024 hyperpop production, crystal clear mix")
+7. NARRATIVE (optional but powerful): 1 short evocative phrase in quotes (e.g. "like chasing something you can never catch", "the weight of a silent room after goodbye")
 
-        res.json({ success: true, message: '가입 신청이 완료되었습니다. 관리자 승인을 기다려주세요.' });
-    } catch (e) {
-        res.status(500).json({ success: false, message: '서버 오류: ' + e.message });
-    }
-});
+=== 10-PROMPT ENERGY SPECTRUM (mandatory distribution) ===
+- Prompts 1-3: SOFT / WARM (intimate, acoustic, gentle)
+- Prompts 4-6: MID ENERGY (groovy, balanced, melodic)  
+- Prompts 7-9: INTENSE / PEAK (aggressive, euphoric, powerful)
+- Prompt 10: EXPERIMENTAL / UNIQUE (unexpected fusion or avant-garde twist)
 
-// ─────────────────── 로그인 ───────────────────
-app.post('/api/auth/login', async (req, res) => {
-    try {
-        const { username, password } = req.body;
-        if (!username || !password)
-            return res.status(400).json({ success: false, message: '아이디와 비밀번호를 입력해주세요.' });
+=== CRITICAL RULES ===
+- ALWAYS include exact BPM and key (this is the #1 V5 improvement)
+- Use SPECIFIC instrument names, never vague terms
+- Each of the 10 prompts must feel distinctly different in energy and texture
+- Include vocal language tag if specified (e.g. "Korean lyrics", "sung in Japanese")
+- Max 220 characters per prompt
+- Title must be evocative and match the mood (can be in the target language if specified)
+- Lyrics MUST match the mood, language and theme. Make them poetic and singable. Leave empty if vocal type is instrumental.\`;
 
-        // 관리자 계정 체크 (Supabase 없이도 동작)
-        if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
-            const token = jwt.sign({ id: 'admin', username: ADMIN_USERNAME, role: 'admin', realName: '관리자' }, JWT_SECRET, { expiresIn: '7d' });
-            return res.json({ success: true, token, role: 'admin', username: ADMIN_USERNAME, realName: '관리자' });
-        }
-
-        // 일반 사용자 체크
-        const { data: user, error } = await supabase.from('users').select('*').eq('username', username).single();
-        if (error || !user) return res.status(401).json({ success: false, message: '아이디 또는 비밀번호가 올바르지 않습니다.' });
-
-        const passwordMatch = await bcrypt.compare(password, user.password_hash);
+        // ── 사용자 컨텍스트 ──
+        const userContext = \`Generate 10 V5-optimized Suno AI prompts for these settings:wait bcrypt.compare(password, user.password_hash);
         if (!passwordMatch) return res.status(401).json({ success: false, message: '아이디 또는 비밀번호가 올바르지 않습니다.' });
 
         if (user.role === 'pending')
