@@ -521,12 +521,19 @@
         <!-- Submit Section -->
         <div style="animation: fadeUp 0.6s 0.3s forwards; opacity:0;">
           
-          <button id="btn-generate" class="btn-generate text-xl font-display font-bold py-5" disabled onclick="window.promptCount = 1; generatePrompts()">
+          <div class="flex items-center justify-center gap-4 mb-5">
+            <span class="text-sm font-bold text-[#9ca3af] uppercase tracking-widest">마스터 프롬프트 생성 개수</span>
+            <div class="bg-[#1a1d24] p-1 rounded-full flex gap-1 shadow-inner border border-[rgba(255,255,255,0.05)]">
+              <button id="toggle-count-1" onclick="setPromptCount(1)" class="px-5 py-2 rounded-full text-sm font-bold transition-all border-none" style="background:transparent; color:#94a3b8;">⚡ 1개</button>
+              <button id="toggle-count-10" onclick="setPromptCount(10)" class="px-5 py-2 rounded-full text-sm font-extrabold transition-all border-none" style="background:rgba(139,92,246,0.25); color:#c4b5fd;">🎵 10개 (배치 추천)</button>
+            </div>
+          </div>
+          <button id="btn-generate" class="btn-generate text-xl font-display font-bold py-5" disabled onclick="generatePrompts()">
             <span id="btn-spinner" class="spinner hidden"></span>
             <span id="btn-icon" class="text-2xl mr-2">🎵</span>
-            <span id="btn-text">선택한 옵션으로 1개 프롬프트 완성하기</span>
+            <span id="btn-text">프롬프트 10개 자동 생성</span>
           </button>
-          <p class="text-center text-xs font-bold text-luminous-textMuted mt-4 uppercase tracking-[0.05em] opacity-60">Engineered with Gemini 2.0 Flash</p>
+          <p class="text-center text-xs font-bold #9ca3af mt-4 uppercase tracking-[0.05em] opacity-60">Engineered with Gemini 2.0 Flash</p>
         </div>
 
         <!-- Results Area -->
